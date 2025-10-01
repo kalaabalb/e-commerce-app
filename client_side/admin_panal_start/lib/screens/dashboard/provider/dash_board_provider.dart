@@ -51,8 +51,6 @@ class DashBoardProvider extends ChangeNotifier {
 
   DashBoardProvider(this._dataProvider);
 
-  //TODO: should complete updateProduct
-
   //TODO: should complete submitProduct
 
   //TODO: should complete deleteProduct
@@ -92,6 +90,63 @@ class DashBoardProvider extends ChangeNotifier {
         final response = await service.addItem(
           endpointUrl: 'products',
           itemData: form,
+        );
+        if (response.isOk) {
+          ApiResponse apiResponse = ApiResponse.fromJson(response.body, null);
+          if (apiResponse.success) {
+            clearFields();
+            SnackBarHelper.showSuccessSnackBar(' ${apiResponse.message}');
+            _dataProvider.getAllProduct();
+          } else {
+            SnackBarHelper.showErrorSnackBar(
+              "faild to add products : ${apiResponse.message}",
+            );
+          }
+        } else {
+          SnackBarHelper.showErrorSnackBar(
+            "Error${response.body?["message"] ?? response.status}",
+          );
+        }
+      }
+    } catch (e) {
+      print("$e");
+      SnackBarHelper.showErrorSnackBar("an error has occured:$e");
+      rethrow;
+    }
+  }
+
+  updateProduct() async {
+    try {
+      Map<String, dynamic> formDataMap = {
+        'name': productNameCtrl.text,
+        'description': productDescCtrl.text,
+        ' quantity': productQntCtrl.text,
+        ' price': productPriceCtrl.text,
+        ' offerPrice': productOffPriceCtrl.text.isEmpty
+            ? productPriceCtrl.text
+            : productOffPriceCtrl,
+        'proCategoryId': selectedCategory?.sId ?? '',
+        ' proSubCategoryId': selectedSubCategory?.sId ?? '',
+        ' proBrandId': selectedBrand?.sId ?? '',
+        ' proVariantTypeId': selectedVariantType?.sId ?? '',
+        ' proVariantId': selectedVariants,
+      };
+      final FormData form = await createFormDataForMultipleImage(
+        imgXFiles: [
+          {'image1': mainImgXFile},
+          {'image2': secondImgXFile},
+          {'image3': thirdImgXFile},
+          {'image4': fourthImgXFile},
+          {'image5': fifthImgXFile},
+        ],
+        formData: formDataMap,
+      );
+
+      if (productForUpdate != null) {
+        final response = await service.updateItem(
+          endpointUrl: 'products',
+          itemData: form,
+          itemId: '${productForUpdate?.sId}',
         );
         if (response.isOk) {
           ApiResponse apiResponse = ApiResponse.fromJson(response.body, null);
