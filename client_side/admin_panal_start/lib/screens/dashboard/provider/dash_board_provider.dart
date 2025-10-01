@@ -12,6 +12,7 @@ import '../../../core/data/data_provider.dart';
 import '../../../models/category.dart';
 import '../../../services/http_services.dart';
 import '../../../models/product.dart';
+import 'package:admin_panal_start/models/api_response.dart';
 
 class DashBoardProvider extends ChangeNotifier {
   HttpService service = HttpService();
@@ -62,37 +63,52 @@ class DashBoardProvider extends ChangeNotifier {
         SnackBarHelper.showErrorSnackBar("select for the main image");
         return;
       }
-      Map<String, dynamic> form = {
+      Map<String, dynamic> formDataMap = {
         'name': productNameCtrl.text,
         'description': productDescCtrl.text,
         ' quantity': productQntCtrl.text,
         ' price': productPriceCtrl.text,
-        ' offerPrice': productOffPriceCtrl.text,
+        ' offerPrice': productOffPriceCtrl.text.isEmpty
+            ? productPriceCtrl.text
+            : productOffPriceCtrl,
         'proCategoryId': selectedCategory?.sId ?? '',
         ' proSubCategoryId': selectedSubCategory?.sId ?? '',
         ' proBrandId': selectedBrand?.sId ?? '',
         ' proVariantTypeId': selectedVariantType?.sId ?? '',
         ' proVariantId': selectedVariants,
       };
-      final response = await service.addItem(
-        endpointUrl: 'productes',
-        itemData: form,
+      final FormData form = await createFormDataForMultipleImage(
+        imgXFiles: [
+          {'image1': mainImgXFile},
+          {'image2': secondImgXFile},
+          {'image3': thirdImgXFile},
+          {'image4': fourthImgXFile},
+          {'image5': fifthImgXFile},
+        ],
+        formData: formDataMap,
       );
-      if (response.isOk) {
-        ApiResponse apiResponse = ApiResponse.fromJson(response.body, null);
-        if (apiResponse.success) {
-          clearFields();
-          SnackBarHelper.showSuccessSnackBar(' ${apiResponse.message}');
-          _dataProvider.getAllBrands();
+
+      if (productForUpdate != null) {
+        final response = await service.addItem(
+          endpointUrl: 'products',
+          itemData: form,
+        );
+        if (response.isOk) {
+          ApiResponse apiResponse = ApiResponse.fromJson(response.body, null);
+          if (apiResponse.success) {
+            clearFields();
+            SnackBarHelper.showSuccessSnackBar(' ${apiResponse.message}');
+            _dataProvider.getAllBrands();
+          } else {
+            SnackBarHelper.showErrorSnackBar(
+              "faild to add products : ${apiResponse.message}",
+            );
+          }
         } else {
           SnackBarHelper.showErrorSnackBar(
-            "faild to add brand : ${apiResponse.message}",
+            "Error${response.body?["message"] ?? response.status}",
           );
         }
-      } else {
-        SnackBarHelper.showErrorSnackBar(
-          "Error${response.body?["message"] ?? response.status}",
-        );
       }
     } catch (e) {
       print("$e");
