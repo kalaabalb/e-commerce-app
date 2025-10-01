@@ -98,7 +98,7 @@ class DashBoardProvider extends ChangeNotifier {
           if (apiResponse.success) {
             clearFields();
             SnackBarHelper.showSuccessSnackBar(' ${apiResponse.message}');
-            _dataProvider.getAllBrands();
+            _dataProvider.getAllProduct();
           } else {
             SnackBarHelper.showErrorSnackBar(
               "faild to add products : ${apiResponse.message}",
@@ -175,11 +175,41 @@ class DashBoardProvider extends ChangeNotifier {
     return form;
   }
 
-  //TODO: should complete filterSubcategory
+  filterSubcategory(Category category) {
+    selectedBrand = null;
+    selectedCategory = category;
+    selectedSubCategory = null;
+    subCategoriesByCategory.clear();
+    final newList = _dataProvider.subCategories
+        .where((subcategory) => subcategory.categoryId?.sId == category.sId)
+        .toList();
+    subCategoriesByCategory = newList;
+    notifyListeners();
+  }
 
-  //TODO: should complete filterBrand
+  filterBrand(SubCategory subCategory) {
+    selectedBrand = null;
+    selectedSubCategory = subCategory;
+    brandsBySubCategory.clear();
+    final newList = _dataProvider.brands
+        .where((brand) => brand.subcategoryId?.sId == subCategory.sId)
+        .toList();
+    brandsBySubCategory = newList;
+    notifyListeners();
+  }
 
-  //TODO: should complete filterVariant
+  filterVariant(VariantType variantType) {
+    selectedVariants = [];
+    selectedVariantType = variantType;
+    variantsByVariantType.clear();
+    final newList = _dataProvider.variants
+        .where((variant) => variant.variantTypeId?.sId == variantType.sId)
+        .toList();
+    variantsByVariantType = newList
+        .map((variant) => variant.name ?? '')
+        .toList();
+    notifyListeners();
+  }
 
   setDataForUpdateProduct(Product? product) {
     if (product != null) {

@@ -60,6 +60,8 @@ class DataProvider extends ChangeNotifier {
   List<MyNotification> get notifications => _filteredNotifications;
 
   DataProvider() {
+    getAllProduct();
+    getAllVariant();
     getAllCategory();
     getAllSubCategory();
     getAllBrands();
@@ -228,9 +230,54 @@ class DataProvider extends ChangeNotifier {
     }
     notifyListeners();
   }
-  //TODO: should complete getAllProduct
 
-  //TODO: should complete filterProducts
+  Future<List<Product>> getAllProduct({bool showSnack = false}) async {
+    try {
+      Response response = await service.getItems(endpointUrl: 'products');
+      ApiResponse<List<Product>> apiResponse = ApiResponse.fromJson(
+        response.body,
+        (json) => (json as List).map((item) => Product.fromJson(item)).toList(),
+      );
+      _allProducts = apiResponse.data ?? [];
+      _filteredProducts = List.from(_allProducts);
+      notifyListeners();
+      if (showSnack) {
+        SnackBarHelper.showSuccessSnackBar(apiResponse.message);
+      }
+    } catch (e) {
+      if (showSnack) SnackBarHelper.showSuccessSnackBar(e.toString());
+      rethrow;
+    }
+    return _filteredProducts;
+  }
+
+  void filterProducts(String keyword) {
+    if (keyword.isEmpty) {
+      _filteredProducts = List.from(_allProducts);
+    } else {
+      final lowcase = keyword.toLowerCase();
+
+      _filteredProducts = _allProducts.where((product) {
+        final ProductNameContainsKeyword = (product.name ?? '')
+            .toLowerCase()
+            .contains(lowcase);
+        final categoryNameContainsKeyword =
+            product.proCategoryId?.name?.toLowerCase().contains(lowcase) ??
+            false;
+        final subCategoryNameContainsKeyword =
+            product.proSubCategoryId?.name?.toLowerCase().contains(lowcase) ??
+            false;
+        final brandNameContainsKeyword =
+            product.proBrandId?.name?.toLowerCase().contains(lowcase) ?? false;
+
+        return ProductNameContainsKeyword ||
+            categoryNameContainsKeyword ||
+            subCategoryNameContainsKeyword ||
+            brandNameContainsKeyword;
+      }).toList();
+    }
+    notifyListeners();
+  }
 
   //TODO: should complete getAllCoupons
 
