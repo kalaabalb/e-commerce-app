@@ -21,20 +21,45 @@ import 'utility/extensions.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(MultiProvider(providers: [
-    ChangeNotifierProvider(create: (context) => DataProvider()),
-    ChangeNotifierProvider(create: (context) => MainScreenProvider()),
-    ChangeNotifierProvider(create: (context) => CategoryProvider(context.dataProvider)),
-    ChangeNotifierProvider(create: (context) => SubCategoryProvider(context.dataProvider)),
-    ChangeNotifierProvider(create: (context) => BrandProvider(context.dataProvider)),
-    ChangeNotifierProvider(create: (context) => VariantsTypeProvider(context.dataProvider)),
-    ChangeNotifierProvider(create: (context) => VariantsProvider(context.dataProvider)),
-    ChangeNotifierProvider(create: (context) => DashBoardProvider(context.dataProvider)),
-    ChangeNotifierProvider(create: (context) => CouponCodeProvider(context.dataProvider)),
-    ChangeNotifierProvider(create: (context) => PosterProvider(context.dataProvider)),
-    ChangeNotifierProvider(create: (context) => OrderProvider(context.dataProvider)),
-    ChangeNotifierProvider(create: (context) => NotificationProvider(context.dataProvider)),
-  ], child: MyApp()));
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => DataProvider()),
+        ChangeNotifierProvider(create: (context) => MainScreenProvider()),
+        ChangeNotifierProvider(
+          create: (context) => CategoryProvider(context.dataProvider),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => SubCategoryProvider(context.dataProvider),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => BrandProvider(context.dataProvider),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => VariantsTypeProvider(context.dataProvider),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => VariantsProvider(context.dataProvider),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => DashBoardProvider(context.dataProvider),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => CouponCodeProvider(context.dataProvider),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => PosterProvider(context.dataProvider),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => OrderProvider(context.dataProvider),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => NotificationProvider(context.dataProvider),
+        ),
+      ],
+      child: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -45,7 +70,9 @@ class MyApp extends StatelessWidget {
       title: 'Flutter Admin Panel',
       theme: ThemeData.dark().copyWith(
         scaffoldBackgroundColor: bgColor,
-        textTheme: GoogleFonts.poppinsTextTheme(Theme.of(context).textTheme).apply(bodyColor: Colors.white),
+        textTheme: GoogleFonts.poppinsTextTheme(
+          Theme.of(context).textTheme,
+        ).apply(bodyColor: Colors.white),
         canvasColor: secondaryColor,
       ),
       initialRoute: AppPages.HOME,

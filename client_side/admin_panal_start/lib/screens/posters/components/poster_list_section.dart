@@ -1,3 +1,5 @@
+import 'package:admin_panal_start/utility/extensions.dart';
+
 import '../../../core/data/data_provider.dart';
 import 'add_poster_form.dart';
 import 'package:flutter/material.dart';
@@ -5,11 +7,8 @@ import 'package:provider/provider.dart';
 import '../../../models/poster.dart';
 import '../../../utility/constants.dart';
 
-
 class PosterListSection extends StatelessWidget {
-  const PosterListSection({
-    Key? key,
-  }) : super(key: key);
+  const PosterListSection({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -22,10 +21,7 @@ class PosterListSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            "All Posters",
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
+          Text("All Posters", style: Theme.of(context).textTheme.titleMedium),
           SizedBox(
             width: double.infinity,
             child: Consumer<DataProvider>(
@@ -34,24 +30,23 @@ class PosterListSection extends StatelessWidget {
                   columnSpacing: defaultPadding,
                   // minWidth: 600,
                   columns: [
-                    DataColumn(
-                      label: Text("Category Name"),
-                    ),
-                    DataColumn(
-                      label: Text("Edit"),
-                    ),
-                    DataColumn(
-                      label: Text("Delete"),
-                    ),
+                    DataColumn(label: Text("Category Name")),
+                    DataColumn(label: Text("Edit")),
+                    DataColumn(label: Text("Delete")),
                   ],
                   rows: List.generate(
                     dataProvider.posters.length,
-                    (index) => posterDataRow(dataProvider.posters[index], delete: () {
-                      //TODO: should complete call deletePoster
-
-                    }, edit: () {
-                      showAddPosterForm(context, dataProvider.posters[index]);
-                    }),
+                    (index) => posterDataRow(
+                      dataProvider.posters[index],
+                      delete: () {
+                        context.posterProvider.deletePoster(
+                          dataProvider.posters[index],
+                        );
+                      },
+                      edit: () {
+                        showAddPosterForm(context, dataProvider.posters[index]);
+                      },
+                    ),
                   ),
                 );
               },
@@ -73,9 +68,14 @@ DataRow posterDataRow(Poster poster, {Function? edit, Function? delete}) {
               poster.imageUrl ?? '',
               height: 30,
               width: 30,
-              errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
-                return Icon(Icons.error);
-              },
+              errorBuilder:
+                  (
+                    BuildContext context,
+                    Object exception,
+                    StackTrace? stackTrace,
+                  ) {
+                    return Icon(Icons.error);
+                  },
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: defaultPadding),
@@ -84,22 +84,22 @@ DataRow posterDataRow(Poster poster, {Function? edit, Function? delete}) {
           ],
         ),
       ),
-      DataCell(IconButton(
+      DataCell(
+        IconButton(
           onPressed: () {
             if (edit != null) edit();
           },
-          icon: Icon(
-            Icons.edit,
-            color: Colors.white,
-          ))),
-      DataCell(IconButton(
+          icon: Icon(Icons.edit, color: Colors.white),
+        ),
+      ),
+      DataCell(
+        IconButton(
           onPressed: () {
             if (delete != null) delete();
           },
-          icon: Icon(
-            Icons.delete,
-            color: Colors.red,
-          ))),
+          icon: Icon(Icons.delete, color: Colors.red),
+        ),
+      ),
     ],
   );
 }

@@ -1,3 +1,5 @@
+import 'package:admin_panal_start/utility/extensions.dart';
+
 import '../../../core/data/data_provider.dart';
 import 'view_order_form.dart';
 import 'package:flutter/material.dart';
@@ -6,11 +8,8 @@ import '../../../utility/color_list.dart';
 import '../../../models/order.dart';
 import '../../../utility/constants.dart';
 
-
 class OrderListSection extends StatelessWidget {
-  const OrderListSection({
-    Key? key,
-  }) : super(key: key);
+  const OrderListSection({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -23,10 +22,7 @@ class OrderListSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            "All Order",
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
+          Text("All Order", style: Theme.of(context).textTheme.titleMedium),
           SizedBox(
             width: double.infinity,
             child: Consumer<DataProvider>(
@@ -35,35 +31,28 @@ class OrderListSection extends StatelessWidget {
                   columnSpacing: defaultPadding,
                   // minWidth: 600,
                   columns: [
-                    DataColumn(
-                      label: Text("Customer Name"),
-                    ),
-                    DataColumn(
-                      label: Text("Order Amount"),
-                    ),
-                    DataColumn(
-                      label: Text("Payment"),
-                    ),
-                    DataColumn(
-                      label: Text("Status"),
-                    ),
-                    DataColumn(
-                      label: Text("Date"),
-                    ),
-                    DataColumn(
-                      label: Text("Edit"),
-                    ),
-                    DataColumn(
-                      label: Text("Delete"),
-                    ),
+                    DataColumn(label: Text("Customer Name")),
+                    DataColumn(label: Text("Order Amount")),
+                    DataColumn(label: Text("Payment")),
+                    DataColumn(label: Text("Status")),
+                    DataColumn(label: Text("Date")),
+                    DataColumn(label: Text("Edit")),
+                    DataColumn(label: Text("Delete")),
                   ],
                   rows: List.generate(
                     dataProvider.orders.length,
-                    (index) => orderDataRow(dataProvider.orders[index],index+1, delete: () {
-                      //TODO: should complete call deleteOrder
-                    }, edit: () {
-                      showOrderForm(context, dataProvider.orders[index]);
-                    }),
+                    (index) => orderDataRow(
+                      dataProvider.orders[index],
+                      index + 1,
+                      delete: () {
+                        context.orderProvider.deleteOrder(
+                          dataProvider.orders[index],
+                        );
+                      },
+                      edit: () {
+                        showOrderForm(context, dataProvider.orders[index]);
+                      },
+                    ),
                   ),
                 );
               },
@@ -75,7 +64,12 @@ class OrderListSection extends StatelessWidget {
   }
 }
 
-DataRow orderDataRow(Order orderInfo, int index, {Function? edit, Function? delete}) {
+DataRow orderDataRow(
+  Order orderInfo,
+  int index, {
+  Function? edit,
+  Function? delete,
+}) {
   return DataRow(
     cells: [
       DataCell(
@@ -101,22 +95,22 @@ DataRow orderDataRow(Order orderInfo, int index, {Function? edit, Function? dele
       DataCell(Text(orderInfo.paymentMethod ?? '')),
       DataCell(Text(orderInfo.orderStatus ?? '')),
       DataCell(Text(orderInfo.orderDate ?? '')),
-      DataCell(IconButton(
+      DataCell(
+        IconButton(
           onPressed: () {
             if (edit != null) edit();
           },
-          icon: Icon(
-            Icons.edit,
-            color: Colors.white,
-          ))),
-      DataCell(IconButton(
+          icon: Icon(Icons.edit, color: Colors.white),
+        ),
+      ),
+      DataCell(
+        IconButton(
           onPressed: () {
             if (delete != null) delete();
           },
-          icon: Icon(
-            Icons.delete,
-            color: Colors.red,
-          ))),
+          icon: Icon(Icons.delete, color: Colors.red),
+        ),
+      ),
     ],
   );
 }

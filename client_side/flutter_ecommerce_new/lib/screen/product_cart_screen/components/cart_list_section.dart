@@ -1,15 +1,13 @@
+import 'package:e_commerce_flutter/utility/extensions.dart';
+
 import '../../../utility/utility_extention.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cart/model/cart_model.dart';
 
-
 class CartListSection extends StatelessWidget {
   final List<CartModel> cartProducts;
 
-  const CartListSection({
-    super.key,
-    required this.cartProducts,
-  });
+  const CartListSection({super.key, required this.cartProducts});
 
   @override
   Widget build(BuildContext context) {
@@ -48,19 +46,37 @@ class CartListSection extends StatelessWidget {
                             cartItem.productImages.safeElementAt(0) ?? '',
                             width: 100,
                             height: 90,
-                            loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
-                              if (loadingProgress == null) return child;
-                              return Center(
-                                child: CircularProgressIndicator(
-                                  value: loadingProgress.expectedTotalBytes != null
-                                      ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
-                                      : null, // Progress indicator.
-                                ),
-                              );
-                            },
-                            errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
-                              return const Icon(Icons.error, color: Colors.red);
-                            },
+                            loadingBuilder:
+                                (
+                                  BuildContext context,
+                                  Widget child,
+                                  ImageChunkEvent? loadingProgress,
+                                ) {
+                                  if (loadingProgress == null) return child;
+                                  return Center(
+                                    child: CircularProgressIndicator(
+                                      value:
+                                          loadingProgress.expectedTotalBytes !=
+                                              null
+                                          ? loadingProgress
+                                                    .cumulativeBytesLoaded /
+                                                loadingProgress
+                                                    .expectedTotalBytes!
+                                          : null, // Progress indicator.
+                                    ),
+                                  );
+                                },
+                            errorBuilder:
+                                (
+                                  BuildContext context,
+                                  Object exception,
+                                  StackTrace? stackTrace,
+                                ) {
+                                  return const Icon(
+                                    Icons.error,
+                                    color: Colors.red,
+                                  );
+                                },
                           ),
                         ),
                       ),
@@ -109,7 +125,7 @@ class CartListSection extends StatelessWidget {
                         IconButton(
                           splashRadius: 10.0,
                           onPressed: () {
-                            //TODO: should complete call updateCart decrement
+                            context.cartProvider.updateCart(cartItem, -1);
                           },
                           icon: const Icon(
                             Icons.remove,
@@ -126,13 +142,13 @@ class CartListSection extends StatelessWidget {
                         IconButton(
                           splashRadius: 10.0,
                           onPressed: () {
-                            //TODO: should complete updateCart increment
+                            context.cartProvider.updateCart(cartItem, 1);
                           },
                           icon: const Icon(Icons.add, color: Color(0xFFEC6813)),
                         ),
                       ],
                     ),
-                  )
+                  ),
                 ],
               ),
             );

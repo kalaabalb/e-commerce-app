@@ -1,37 +1,32 @@
+import 'package:admin_panal_start/utility/extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../../utility/constants.dart';
 
 class DashBoardHeader extends StatelessWidget {
-  const DashBoardHeader({
-    Key? key,
-  }) : super(key: key);
+  const DashBoardHeader({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Text(
-          "Dashboard",
-          style: Theme.of(context).textTheme.titleLarge,
-        ),
+        Text("Dashboard", style: Theme.of(context).textTheme.titleLarge),
         Spacer(flex: 1),
         Expanded(
-            child: SearchField(
-          onChange: (val) {
-            //TODO: should complete call filterProducts
-          },
-        )),
-        ProfileCard()
+          child: SearchField(
+            onChange: (val) {
+              context.dataProvider.filterProducts(val);
+            },
+          ),
+        ),
+        ProfileCard(),
       ],
     );
   }
 }
 
 class ProfileCard extends StatelessWidget {
-  const ProfileCard({
-    Key? key,
-  }) : super(key: key);
+  const ProfileCard({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -48,10 +43,7 @@ class ProfileCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Image.asset(
-            "assets/images/profile_pic.png",
-            height: 38,
-          ),
+          Image.asset("assets/images/profile_pic.png", height: 38),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: defaultPadding / 2),
             child: Text("Angelina Jolie"),
@@ -66,10 +58,7 @@ class ProfileCard extends StatelessWidget {
 class SearchField extends StatelessWidget {
   final Function(String) onChange;
 
-  const SearchField({
-    Key? key,
-    required this.onChange,
-  }) : super(key: key);
+  const SearchField({Key? key, required this.onChange}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

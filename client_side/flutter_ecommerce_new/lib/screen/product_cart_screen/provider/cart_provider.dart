@@ -1,4 +1,6 @@
 import 'dart:developer';
+import 'package:e_commerce_flutter/utility/utility_extention.dart';
+
 import '../../../models/coupon.dart';
 import '../../login_screen/provider/user_provider.dart';
 import '../../../services/http_services.dart';
@@ -37,28 +39,149 @@ class CartProvider extends ChangeNotifier {
 
   CartProvider(this._userProvider);
 
-  //TODO: should complete updateCart
+  getCartItems() {
+    myCartItems = flutterCart.cartItemsList;
+    notifyListeners();
+  }
 
-  //TODO: should complete getCartSubTotal
+  void updateCart(CartModel cartItem, int quantity) {
+    quantity = cartItem.quantity + quantity;
+    flutterCart.updateQuantity(cartItem.productId, cartItem.variants, quantity);
+    notifyListeners();
+  }
 
-  //TODO: should complete getGrandTotal
+  double getCartSubTotal() {
+    return flutterCart.subtotal;
+  }
 
-  //TODO: should complete getCartItems
+  clearCartItems() {
+    flutterCart.clearCart();
+    notifyListeners();
+  }
 
-  //TODO: should complete clearCartItems
+  double getGrandTotal() {
+    return getCartSubTotal() - couponCodeDiscount;
+  }
 
+  checkCoupon() async {
+    try {
+      if (countryController.text.isEmpty) {
+        SnackBarHelper.showSuccessSnackBar('Enter a coupon code ');
+        return;
+      }
+      List<String> productIds = myCartItems
+          .map((cartItem) => cartItem.productId)
+          .toList();
+      Map<String, dynamic> couponData = {
+        'couponCode': couponController.text,
+        'purchaseAount': getCartSubTotal(),
+        'productIds': productIds,
+      };
+      final response = await service.addItem(
+        endpointUrl: 'couponCodes/check-coupon',
+        itemData: couponData,
+      );
+      if (response.isOk) {
+        final ApiResponse<Coupon> apiResponse = ApiResponse.fromJson(
+          response.body,
+          (json) => Coupon.fromJson(json as Map<String, dynamic>),
+        );
+        if (apiResponse.success == true) {
+          Coupon? coupon = apiResponse.data;
+          if (coupon != null) {
+            couponApplied = coupon;
+            couponCodeDiscount = getCouponDiscountAmount(coupon);
+          }
+          SnackBarHelper.showSuccessSnackBar(apiResponse.message);
+        } else {
+          SnackBarHelper.showErrorSnackBar(
+            'failed to validate coupon: ${apiResponse.message}',
+          );
+        }
+      } else {
+        SnackBarHelper.showErrorSnackBar(
+          'failed to validate :${response.statusText}',
+        );
+      }
+    } catch (e) {
+      print(e);
+      rethrow;
+    }
+  }
 
-  //TODO: should complete checkCoupon
+  double getCouponDiscountAmount(Coupon coupon) {
+    double discountAmount = 0;
+    String discountType = coupon.discountType ?? 'fixed';
+    if (discountType == 'fixed') {
+      discountAmount = coupon.discountAmount ?? 0;
+      return discountAmount;
+    } else {
+      double discountPersentage = coupon.discountAmount ?? 0;
+      double amountAfterDiscountPersentage =
+          getCartSubTotal() * (discountPersentage / 100);
+      return amountAfterDiscountPersentage;
+    }
+  }
 
-  //TODO: should complete getCouponDiscountAmount
+  addOrder(BuildContext context) async {
+    try {
+      Map<String, dynamic> order = {
+        'userID': _userProvider.getLoginUsr()?.sId ?? '',
+        'orderStatus': "pending",
+        'items': cartItemToOrderItem(myCartItems),
+        'totalPrice': getCartSubTotal(),
+        'shippingAddress': {
+          'phone': phoneController.text,
+          'street': streetController.text,
+          'city': cityController.text,
+          'state': streetController.text,
+          'postalCode': postalCodeController.text,
+          'country': countryController.text,
+        },
+        'paymentMethod': selectedPaymentOption,
+        'couponCode': couponApplied?.sId,
+        'orderTotal': {
+          "subtotal": getCartSubTotal(),
+          "discount": couponCodeDiscount,
+          "total": getGrandTotal(),
+        },
+      };
+      final response = await service.addItem(
+        endpointUrl: 'orders',
+        itemData: order,
+      );
+      if (response.isOk) {
+        ApiResponse apiResponse = ApiResponse.fromJson(response.body, null);
+        if (apiResponse.success == true) {
+          SnackBarHelper.showSuccessSnackBar(apiResponse.message);
+        }
+      }
+    } catch (e) {}
+  }
 
+  submitOrder(BuildContext context) async {
+    if (selectedPaymentOption == 'cod') {
+      addOrder(context);
+    } else {
+      await razorpayPayment(
+        operation: () {
+          addOrder(context);
+        },
+      );
+    }
+  }
 
-  //TODO: should complete submitOrder
-
-  //TODO: should complete addOrder
-
-  //TODO: should complete cartItemToOrderItem
-
+  List<Map<String, dynamic>> cartItemToOrderItem(List<CartModel> cartItems) {
+    return cartItems.map((cartItem) {
+      return {
+        "productID": cartItem.productId,
+        "productName": cartItem.productName,
+        "quantity": cartItem.quantity,
+        "price": cartItem.variants.safeElementAt(0)?.price ?? 0,
+        "variant": cartItem.variants.safeElementAt(0)?.color ?? '',
+      };
+    }).toList();
+  }
 
   clearCouponDiscount() {
     couponApplied = null;
@@ -86,13 +209,16 @@ class CartProvider extends ChangeNotifier {
           "city": cityController.text,
           "state": stateController.text,
           "postal_code": postalCodeController.text,
-          "country": "US"
+          "country": "US",
         },
-        "amount":  100, //TODO: should complete amount grand total
+        "amount": getGrandTotal() * 100,
         "currency": "usd",
-        "description": "Your transaction description here"
+        "description": "Your transaction description here",
       };
-      Response response = await service.addItem(endpointUrl: 'payment/stripe', itemData: paymentData);
+      Response response = await service.addItem(
+        endpointUrl: 'payment/stripe',
+        itemData: paymentData,
+      );
       final data = await response.body;
       final paymentIntent = data['paymentIntent'];
       final ephemeralKey = data['ephemeralKey'];
@@ -105,14 +231,14 @@ class CartProvider extends ChangeNotifier {
         phone: '91234123908',
         name: _userProvider.getLoginUsr()?.name,
         address: Address(
-            country: 'US',
-            city: cityController.text,
-            line1: streetController.text,
-            line2: stateController.text,
-            postalCode: postalCodeController.text,
-            state: stateController.text
-            // Other address details
-            ),
+          country: 'US',
+          city: cityController.text,
+          line1: streetController.text,
+          line2: stateController.text,
+          postalCode: postalCodeController.text,
+          state: stateController.text,
+          // Other address details
+        ),
         // Other billing details
       );
       await Stripe.instance.initPaymentSheet(
@@ -133,54 +259,68 @@ class CartProvider extends ChangeNotifier {
         ),
       );
 
-      await Stripe.instance.presentPaymentSheet().then((value) {
-        log('payment success');
-        //? do the success operation
-        ScaffoldMessenger.of(Get.context!).showSnackBar(
-          const SnackBar(content: Text('Payment Success')),
-        );
-        operation();
-      }).onError((error, stackTrace) {
-        if (error is StripeException) {
-          ScaffoldMessenger.of(Get.context!).showSnackBar(
-            SnackBar(content: Text('${error.error.localizedMessage}')),
-          );
-        } else {
-          ScaffoldMessenger.of(Get.context!).showSnackBar(
-            SnackBar(content: Text('Stripe Error: $error')),
-          );
-        }
-      });
+      await Stripe.instance
+          .presentPaymentSheet()
+          .then((value) {
+            log('payment success');
+            //? do the success operation
+            ScaffoldMessenger.of(
+              Get.context!,
+            ).showSnackBar(const SnackBar(content: Text('Payment Success')));
+            operation();
+          })
+          .onError((error, stackTrace) {
+            if (error is StripeException) {
+              ScaffoldMessenger.of(Get.context!).showSnackBar(
+                SnackBar(content: Text('${error.error.localizedMessage}')),
+              );
+            } else {
+              ScaffoldMessenger.of(
+                Get.context!,
+              ).showSnackBar(SnackBar(content: Text('Stripe Error: $error')));
+            }
+          });
     } catch (e) {
-      ScaffoldMessenger.of(Get.context!).showSnackBar(
-        SnackBar(content: Text(e.toString())),
-      );
+      ScaffoldMessenger.of(
+        Get.context!,
+      ).showSnackBar(SnackBar(content: Text(e.toString())));
     }
   }
 
   Future<void> razorpayPayment({required void Function() operation}) async {
     try {
-      Response response = await service.addItem(endpointUrl: 'payment/razorpay', itemData: {});
+      Response response = await service.addItem(
+        endpointUrl: 'payment/razorpay',
+        itemData: {},
+      );
       final data = await response.body;
       String? razorpayKey = data['key'];
       if (razorpayKey != null && razorpayKey != '') {
         var options = {
           'key': razorpayKey,
-          'amount': 100, //TODO: should complete amount grand total
+          'amount': getGrandTotal() * 100,
           'name': "user",
           "currency": 'INR',
           'description': 'Your transaction description',
           'send_sms_hash': true,
-          "prefill": {"email": _userProvider.getLoginUsr()?.name, "contact": ''},
+          "prefill": {
+            "email": _userProvider.getLoginUsr()?.name,
+            "contact": '',
+          },
           "theme": {'color': '#FFE64A'},
-          "image": 'https://store.rapidflutter.com/digitalAssetUpload/rapidlogo.png',
+          "image":
+              'https://store.rapidflutter.com/digitalAssetUpload/rapidlogo.png',
         };
         razorpay.open(options);
-        razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, (PaymentSuccessResponse response) {
+        razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, (
+          PaymentSuccessResponse response,
+        ) {
           operation();
           return;
         });
-        razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, (PaymentFailureResponse response) {
+        razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, (
+          PaymentFailureResponse response,
+        ) {
           SnackBarHelper.showErrorSnackBar('Error ${response.message}');
           return;
         });

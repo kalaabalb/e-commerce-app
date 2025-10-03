@@ -51,10 +51,6 @@ class DashBoardProvider extends ChangeNotifier {
 
   DashBoardProvider(this._dataProvider);
 
-  //TODO: should complete submitProduct
-
-  //TODO: should complete deleteProduct
-
   addProduct() async {
     try {
       if (selectedMainImage == null) {
@@ -168,6 +164,37 @@ class DashBoardProvider extends ChangeNotifier {
     } catch (e) {
       print("$e");
       SnackBarHelper.showErrorSnackBar("an error has occured:$e");
+      rethrow;
+    }
+  }
+
+  submitProduct() {
+    if (productForUpdate != null) {
+      updateProduct();
+    } else {
+      addProduct();
+    }
+  }
+
+  deleteProduct(Product product) async {
+    try {
+      Response response = await service.deleteItem(
+        endpointUrl: 'products',
+        itemId: product.sId ?? '',
+      );
+      if (response.isOk) {
+        ApiResponse apiResponse = ApiResponse.fromJson(response.body, null);
+        if (apiResponse.success) {
+          SnackBarHelper.showSuccessSnackBar("product delted successfully");
+          _dataProvider.getAllProduct();
+        } else {
+          SnackBarHelper.showErrorSnackBar(
+            "Error ${response.body?["message"] ?? response.status}",
+          );
+        }
+      }
+    } catch (e) {
+      print(e);
       rethrow;
     }
   }

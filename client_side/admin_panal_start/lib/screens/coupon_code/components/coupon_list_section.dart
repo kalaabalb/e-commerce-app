@@ -1,3 +1,5 @@
+import 'package:admin_panal_start/utility/extensions.dart';
+
 import '../../../core/data/data_provider.dart';
 import '../../../models/coupon.dart';
 import 'add_coupon_form.dart';
@@ -6,12 +8,8 @@ import 'package:provider/provider.dart';
 import '../../../utility/color_list.dart';
 import '../../../utility/constants.dart';
 
-
-
 class CouponListSection extends StatelessWidget {
-  const CouponListSection({
-    Key? key,
-  }) : super(key: key);
+  const CouponListSection({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -24,10 +22,7 @@ class CouponListSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            "All Coupons",
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
+          Text("All Coupons", style: Theme.of(context).textTheme.titleMedium),
           SizedBox(
             width: double.infinity,
             child: Consumer<DataProvider>(
@@ -36,24 +31,12 @@ class CouponListSection extends StatelessWidget {
                   columnSpacing: defaultPadding,
                   // minWidth: 600,
                   columns: [
-                    DataColumn(
-                      label: Text("Coupon Name"),
-                    ),
-                    DataColumn(
-                      label: Text("Status"),
-                    ),
-                    DataColumn(
-                      label: Text("Type"),
-                    ),
-                    DataColumn(
-                      label: Text("Amount"),
-                    ),
-                    DataColumn(
-                      label: Text("Edit"),
-                    ),
-                    DataColumn(
-                      label: Text("Delete"),
-                    ),
+                    DataColumn(label: Text("Coupon Name")),
+                    DataColumn(label: Text("Status")),
+                    DataColumn(label: Text("Type")),
+                    DataColumn(label: Text("Amount")),
+                    DataColumn(label: Text("Edit")),
+                    DataColumn(label: Text("Delete")),
                   ],
                   rows: List.generate(
                     dataProvider.coupons.length,
@@ -64,7 +47,9 @@ class CouponListSection extends StatelessWidget {
                         showAddCouponForm(context, dataProvider.coupons[index]);
                       },
                       delete: () {
-                        //TODO: should complete call deleteCoupon
+                        context.couponCodeProvider.deleteCoupon(
+                          dataProvider.coupons[index],
+                        );
                       },
                     ),
                   ),
@@ -78,7 +63,12 @@ class CouponListSection extends StatelessWidget {
   }
 }
 
-DataRow couponDataRow(Coupon coupon, int index, {Function? edit, Function? delete}) {
+DataRow couponDataRow(
+  Coupon coupon,
+  int index, {
+  Function? edit,
+  Function? delete,
+}) {
   return DataRow(
     cells: [
       DataCell(
@@ -103,22 +93,22 @@ DataRow couponDataRow(Coupon coupon, int index, {Function? edit, Function? delet
       DataCell(Text(coupon.status ?? '')),
       DataCell(Text(coupon.discountType ?? '')),
       DataCell(Text('${coupon.discountAmount}' ?? '')),
-      DataCell(IconButton(
+      DataCell(
+        IconButton(
           onPressed: () {
             if (edit != null) edit();
           },
-          icon: Icon(
-            Icons.edit,
-            color: Colors.white,
-          ))),
-      DataCell(IconButton(
+          icon: Icon(Icons.edit, color: Colors.white),
+        ),
+      ),
+      DataCell(
+        IconButton(
           onPressed: () {
             if (delete != null) delete();
           },
-          icon: Icon(
-            Icons.delete,
-            color: Colors.red,
-          ))),
+          icon: Icon(Icons.delete, color: Colors.red),
+        ),
+      ),
     ],
   );
 }
