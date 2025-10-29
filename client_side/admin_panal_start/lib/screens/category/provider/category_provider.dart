@@ -1,7 +1,9 @@
+// lib/screens/category/provider/category_provider.dart
 import 'dart:io';
 import 'dart:developer' show log;
 import 'package:admin_panal_start/models/api_response.dart';
 import 'package:admin_panal_start/utility/snack_bar_helper.dart';
+import 'package:admin_panal_start/widgets/camera_picker_dialog.dart';
 import '../../../services/http_services.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart' hide Category;
@@ -132,14 +134,14 @@ class CategoryProvider extends ChangeNotifier {
     }
   }
 
-  void pickImage() async {
-    final ImagePicker picker = ImagePicker();
-    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-    if (image != null) {
-      selectedImage = File(image.path);
-      imgXFile = image;
-      notifyListeners();
-    }
+  void pickImage(BuildContext context) async {
+    showCameraPickerDialog(context, (XFile? image) async {
+      if (image != null) {
+        selectedImage = File(image.path);
+        imgXFile = image;
+        notifyListeners();
+      }
+    });
   }
 
   //? to create form data for sending image with body
