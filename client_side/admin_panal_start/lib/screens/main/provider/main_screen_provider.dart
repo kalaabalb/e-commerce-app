@@ -13,48 +13,52 @@ import 'package:get/get.dart';
 
 import '../../sub_category/sub_category_screen.dart';
 
-class MainScreenProvider extends ChangeNotifier{
-  Widget selectedScreen = DashboardScreen();
+class MainScreenProvider extends ChangeNotifier {
+  Widget _selectedScreen = DashboardScreen();
 
+  Widget get selectedScreen => _selectedScreen;
 
+  void navigateToScreen(String screenName) {
+    Widget newScreen;
 
-  navigateToScreen(String screenName) {
     switch (screenName) {
       case 'Dashboard':
-        selectedScreen = DashboardScreen();
-        break; // Break statement needed here
+        newScreen = DashboardScreen();
+        break;
       case 'Category':
-        selectedScreen = CategoryScreen();
+        newScreen = CategoryScreen();
         break;
       case 'SubCategory':
-        selectedScreen = SubCategoryScreen();
+        newScreen = SubCategoryScreen();
         break;
       case 'Brands':
-        selectedScreen = BrandScreen();
+        newScreen = BrandScreen();
         break;
       case 'VariantType':
-        selectedScreen = VariantsTypeScreen();
+        newScreen = VariantsTypeScreen();
         break;
       case 'Variants':
-        selectedScreen = VariantsScreen();
+        newScreen = VariantsScreen();
         break;
       case 'Coupon':
-        selectedScreen = CouponCodeScreen();
+        newScreen = CouponCodeScreen();
         break;
       case 'Poster':
-        selectedScreen = PosterScreen();
+        newScreen = PosterScreen();
         break;
       case 'Order':
-        selectedScreen = OrderScreen();
+        newScreen = OrderScreen();
         break;
       case 'Notifications':
-        selectedScreen = NotificationScreen();
+        newScreen = NotificationScreen();
         break;
       default:
-        selectedScreen = DashboardScreen();
+        newScreen = DashboardScreen();
     }
-    notifyListeners();
+
+    if (_selectedScreen.runtimeType != newScreen.runtimeType) {
+      _selectedScreen = newScreen;
+      notifyListeners();
+    }
   }
-  
-  
 }
