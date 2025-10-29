@@ -1,110 +1,123 @@
 import 'package:admin_panal_start/utility/constants.dart';
-import 'package:admin_panal_start/utility/responsive.dart';
-
+import 'package:admin_panal_start/utility/responsive_utils.dart';
 import '../../../utility/extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:get/get.dart';
-
-import '../../../utility/extensions.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:get/get.dart';
 
 class SideMenu extends StatelessWidget {
-  const SideMenu({Key? key}) : super(key: key);
+  final VoidCallback onItemSelected;
+  final bool compact;
+
+  const SideMenu({
+    Key? key,
+    required this.onItemSelected,
+    this.compact = false,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final bool isMobile = Responsive.isMobile(context);
-
     return Container(
-      width: isMobile ? 250 : null,
+      width: compact ? 80 : null,
       color: secondaryColor,
       child: ListView(
         children: [
-          if (isMobile)
-            DrawerHeader(child: Image.asset("assets/images/logo.png")),
-          if (!isMobile)
-            DrawerHeader(child: Image.asset("assets/images/logo.png")),
+          if (compact)
+            Container(
+              padding: EdgeInsets.all(defaultPadding / 2),
+              child: Image.asset("assets/images/logo.png", height: 40),
+            )
+          else
+            DrawerHeader(
+              child: Image.asset("assets/images/logo.png"),
+            ),
           DrawerListTile(
             title: "Dashboard",
             svgSrc: "assets/icons/menu_dashboard.svg",
+            compact: compact,
             press: () {
               context.mainScreenProvider.navigateToScreen('Dashboard');
-              if (isMobile) Navigator.pop(context);
+              onItemSelected();
             },
           ),
           DrawerListTile(
             title: "Category",
             svgSrc: "assets/icons/menu_tran.svg",
+            compact: compact,
             press: () {
               context.mainScreenProvider.navigateToScreen('Category');
-              if (isMobile) Navigator.pop(context);
+              onItemSelected();
             },
           ),
           DrawerListTile(
             title: "Sub Category",
             svgSrc: "assets/icons/menu_task.svg",
+            compact: compact,
             press: () {
               context.mainScreenProvider.navigateToScreen('SubCategory');
-              if (isMobile) Navigator.pop(context);
+              onItemSelected();
             },
           ),
           DrawerListTile(
             title: "Brands",
             svgSrc: "assets/icons/menu_doc.svg",
+            compact: compact,
             press: () {
               context.mainScreenProvider.navigateToScreen('Brands');
-              if (isMobile) Navigator.pop(context);
+              onItemSelected();
             },
           ),
           DrawerListTile(
             title: "Variant Type",
             svgSrc: "assets/icons/menu_store.svg",
+            compact: compact,
             press: () {
               context.mainScreenProvider.navigateToScreen('VariantType');
-              if (isMobile) Navigator.pop(context);
+              onItemSelected();
             },
           ),
           DrawerListTile(
             title: "Variants",
             svgSrc: "assets/icons/menu_notification.svg",
+            compact: compact,
             press: () {
               context.mainScreenProvider.navigateToScreen('Variants');
-              if (isMobile) Navigator.pop(context);
+              onItemSelected();
             },
           ),
           DrawerListTile(
             title: "Orders",
             svgSrc: "assets/icons/menu_profile.svg",
+            compact: compact,
             press: () {
               context.mainScreenProvider.navigateToScreen('Order');
-              if (isMobile) Navigator.pop(context);
+              onItemSelected();
             },
           ),
           DrawerListTile(
             title: "Coupons",
             svgSrc: "assets/icons/menu_setting.svg",
+            compact: compact,
             press: () {
               context.mainScreenProvider.navigateToScreen('Coupon');
-              if (isMobile) Navigator.pop(context);
+              onItemSelected();
             },
           ),
           DrawerListTile(
             title: "Posters",
             svgSrc: "assets/icons/menu_doc.svg",
+            compact: compact,
             press: () {
               context.mainScreenProvider.navigateToScreen('Poster');
-              if (isMobile) Navigator.pop(context);
+              onItemSelected();
             },
           ),
           DrawerListTile(
             title: "Notifications",
             svgSrc: "assets/icons/menu_notification.svg",
+            compact: compact,
             press: () {
               context.mainScreenProvider.navigateToScreen('Notifications');
-              if (isMobile) Navigator.pop(context);
+              onItemSelected();
             },
           ),
         ],
@@ -119,22 +132,29 @@ class DrawerListTile extends StatelessWidget {
     required this.title,
     required this.svgSrc,
     required this.press,
+    this.compact = false,
   }) : super(key: key);
 
   final String title, svgSrc;
   final VoidCallback press;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
     return ListTile(
       onTap: press,
-      horizontalTitleGap: 0.0,
+      horizontalTitleGap: compact ? 0.0 : 16.0,
       leading: SvgPicture.asset(
         svgSrc,
         colorFilter: ColorFilter.mode(Colors.white54, BlendMode.srcIn),
         height: 16,
       ),
-      title: Text(title, style: TextStyle(color: Colors.white54)),
+      title: compact
+          ? null
+          : Text(
+              title,
+              style: TextStyle(color: Colors.white54),
+            ),
     );
   }
 }
