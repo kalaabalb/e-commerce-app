@@ -1,5 +1,6 @@
+// lib/screens/posters/poster_screen.dart
 import 'package:admin_panal_start/utility/extensions.dart';
-
+import 'package:admin_panal_start/utility/responsive_utils.dart';
 import 'components/add_poster_form.dart';
 import 'components/poster_header.dart';
 import 'components/poster_list_section.dart';
@@ -13,7 +14,7 @@ class PosterScreen extends StatelessWidget {
     return SafeArea(
       child: SingleChildScrollView(
         primary: false,
-        padding: EdgeInsets.all(defaultPadding),
+        padding: EdgeInsets.all(ResponsiveUtils.getPadding(context)),
         child: Column(
           children: [
             PosterHeader(),
@@ -37,8 +38,12 @@ class PosterScreen extends StatelessWidget {
                           ElevatedButton.icon(
                             style: TextButton.styleFrom(
                               padding: EdgeInsets.symmetric(
-                                horizontal: defaultPadding * 1.5,
-                                vertical: defaultPadding,
+                                horizontal: ResponsiveUtils.isMobile(context)
+                                    ? defaultPadding
+                                    : defaultPadding * 1.5,
+                                vertical: ResponsiveUtils.isMobile(context)
+                                    ? defaultPadding / 2
+                                    : defaultPadding,
                               ),
                             ),
                             onPressed: () {
@@ -47,12 +52,11 @@ class PosterScreen extends StatelessWidget {
                             icon: Icon(Icons.add),
                             label: Text("Add New"),
                           ),
-                          Gap(20),
+                          Gap(ResponsiveUtils.isMobile(context) ? 8 : 20),
                           IconButton(
                             onPressed: () {
-                              context.dataProvider.getAllPosters(
-                                showSnack: true,
-                              );
+                              context.dataProvider
+                                  .getAllPosters(showSnack: true);
                             },
                             icon: Icon(Icons.refresh),
                           ),
