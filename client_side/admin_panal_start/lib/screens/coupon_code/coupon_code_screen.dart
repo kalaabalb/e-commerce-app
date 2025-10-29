@@ -1,5 +1,6 @@
+// lib/screens/coupon_code/coupon_code_screen.dart
 import 'package:admin_panal_start/utility/extensions.dart';
-
+import 'package:admin_panal_start/utility/responsive_utils.dart';
 import 'components/coupon_code_header.dart';
 import 'components/coupon_list_section.dart';
 import 'package:flutter/material.dart';
@@ -13,7 +14,7 @@ class CouponCodeScreen extends StatelessWidget {
     return SafeArea(
       child: SingleChildScrollView(
         primary: false,
-        padding: EdgeInsets.all(defaultPadding),
+        padding: EdgeInsets.all(ResponsiveUtils.getPadding(context)),
         child: Column(
           children: [
             CouponCodeHeader(),
@@ -30,15 +31,19 @@ class CouponCodeScreen extends StatelessWidget {
                         children: [
                           Expanded(
                             child: Text(
-                              "My Sub Categories",
+                              "My Coupons",
                               style: Theme.of(context).textTheme.titleMedium,
                             ),
                           ),
                           ElevatedButton.icon(
                             style: TextButton.styleFrom(
                               padding: EdgeInsets.symmetric(
-                                horizontal: defaultPadding * 1.5,
-                                vertical: defaultPadding,
+                                horizontal: ResponsiveUtils.isMobile(context)
+                                    ? defaultPadding
+                                    : defaultPadding * 1.5,
+                                vertical: ResponsiveUtils.isMobile(context)
+                                    ? defaultPadding / 2
+                                    : defaultPadding,
                               ),
                             ),
                             onPressed: () {
@@ -47,12 +52,11 @@ class CouponCodeScreen extends StatelessWidget {
                             icon: Icon(Icons.add),
                             label: Text("Add New"),
                           ),
-                          Gap(20),
+                          Gap(ResponsiveUtils.isMobile(context) ? 8 : 20),
                           IconButton(
                             onPressed: () {
-                              context.dataProvider.getAllCoupons(
-                                showSnack: true,
-                              );
+                              context.dataProvider
+                                  .getAllCoupons(showSnack: true);
                             },
                             icon: Icon(Icons.refresh),
                           ),
