@@ -1,6 +1,7 @@
+// lib/screens/dashboard/provider/dash_board_provider.dart
 import 'dart:io';
 import 'package:admin_panal_start/utility/snack_bar_helper.dart';
-
+import 'package:admin_panal_start/widgets/camera_picker_dialog.dart';
 import '../../../models/brand.dart';
 import '../../../models/sub_category.dart';
 import '../../../models/variant_type.dart';
@@ -199,28 +200,29 @@ class DashBoardProvider extends ChangeNotifier {
     }
   }
 
-  void pickImage({required int imageCardNumber}) async {
-    final ImagePicker picker = ImagePicker();
-    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-    if (image != null) {
-      if (imageCardNumber == 1) {
-        selectedMainImage = File(image.path);
-        mainImgXFile = image;
-      } else if (imageCardNumber == 2) {
-        selectedSecondImage = File(image.path);
-        secondImgXFile = image;
-      } else if (imageCardNumber == 3) {
-        selectedThirdImage = File(image.path);
-        thirdImgXFile = image;
-      } else if (imageCardNumber == 4) {
-        selectedFourthImage = File(image.path);
-        fourthImgXFile = image;
-      } else if (imageCardNumber == 5) {
-        selectedFifthImage = File(image.path);
-        fifthImgXFile = image;
+  void pickImage(
+      {required int imageCardNumber, required BuildContext context}) async {
+    showCameraPickerDialog(context, (XFile? image) async {
+      if (image != null) {
+        if (imageCardNumber == 1) {
+          selectedMainImage = File(image.path);
+          mainImgXFile = image;
+        } else if (imageCardNumber == 2) {
+          selectedSecondImage = File(image.path);
+          secondImgXFile = image;
+        } else if (imageCardNumber == 3) {
+          selectedThirdImage = File(image.path);
+          thirdImgXFile = image;
+        } else if (imageCardNumber == 4) {
+          selectedFourthImage = File(image.path);
+          fourthImgXFile = image;
+        } else if (imageCardNumber == 5) {
+          selectedFifthImage = File(image.path);
+          fifthImgXFile = image;
+        }
+        notifyListeners();
       }
-      notifyListeners();
-    }
+    });
   }
 
   Future<FormData> createFormDataForMultipleImage({
@@ -287,9 +289,8 @@ class DashBoardProvider extends ChangeNotifier {
     final newList = _dataProvider.variants
         .where((variant) => variant.variantTypeId?.sId == variantType.sId)
         .toList();
-    variantsByVariantType = newList
-        .map((variant) => variant.name ?? '')
-        .toList();
+    variantsByVariantType =
+        newList.map((variant) => variant.name ?? '').toList();
     notifyListeners();
   }
 
@@ -339,9 +340,8 @@ class DashBoardProvider extends ChangeNotifier {
                 variant.variantTypeId?.sId == product.proVariantTypeId?.sId,
           )
           .toList();
-      final List<String> variantNames = newListVariant
-          .map((variant) => variant.name ?? '')
-          .toList();
+      final List<String> variantNames =
+          newListVariant.map((variant) => variant.name ?? '').toList();
       variantsByVariantType = variantNames;
       selectedVariants = product.proVariantId ?? [];
     } else {
