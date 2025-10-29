@@ -1,3 +1,4 @@
+// lib/screens/notification/components/notification_list_section.dart
 import '../../../core/data/data_provider.dart';
 import '../../../models/my_notification.dart';
 import 'view_notification_form.dart';
@@ -5,7 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../utility/color_list.dart';
 import '../../../utility/constants.dart';
-
+import 'package:admin_panal_start/utility/responsive_utils.dart';
+import 'package:admin_panal_start/widgets/responsive_data_table.dart';
 
 class NotificationListSection extends StatelessWidget {
   const NotificationListSection({
@@ -15,7 +17,7 @@ class NotificationListSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(defaultPadding),
+      padding: EdgeInsets.all(ResponsiveUtils.getPadding(context)),
       decoration: BoxDecoration(
         color: secondaryColor,
         borderRadius: const BorderRadius.all(Radius.circular(10)),
@@ -31,32 +33,22 @@ class NotificationListSection extends StatelessWidget {
             width: double.infinity,
             child: Consumer<DataProvider>(
               builder: (context, dataProvider, child) {
-                return DataTable(
-                  columnSpacing: defaultPadding,
-                  // minWidth: 600,
+                return ResponsiveDataTable(
                   columns: [
-                    DataColumn(
-                      label: Text("Title"),
-                    ),
-                    DataColumn(
-                      label: Text("Description"),
-                    ),
-                    DataColumn(
-                      label: Text("Send Date"),
-                    ),
-                    DataColumn(
-                      label: Text("View"),
-                    ),
-                    DataColumn(
-                      label: Text("Delete"),
-                    ),
+                    DataColumn(label: Text("Title")),
+                    DataColumn(label: Text("Description")),
+                    DataColumn(label: Text("Send Date")),
+                    DataColumn(label: Text("View")),
+                    DataColumn(label: Text("Delete")),
                   ],
                   rows: List.generate(
                     dataProvider.notifications.length,
-                    (index) => notificationDataRow(dataProvider.notifications[index], index + 1, edit: () {
-                      viewNotificationStatics(context, dataProvider.notifications[index]);
+                    (index) => notificationDataRow(
+                        dataProvider.notifications[index], index + 1, edit: () {
+                      viewNotificationStatics(
+                          context, dataProvider.notifications[index]);
                     }, delete: () {
-                      //TODO: should complete call deleteNotification
+                      // TODO: should complete call deleteNotification
                     }),
                   ),
                 );
@@ -69,7 +61,8 @@ class NotificationListSection extends StatelessWidget {
   }
 }
 
-DataRow notificationDataRow(MyNotification notificationInfo, int index, {Function? edit, Function? delete}) {
+DataRow notificationDataRow(MyNotification notificationInfo, int index,
+    {Function? edit, Function? delete}) {
   return DataRow(
     cells: [
       DataCell(
@@ -85,14 +78,26 @@ DataRow notificationDataRow(MyNotification notificationInfo, int index, {Functio
               child: Text(index.toString(), textAlign: TextAlign.center),
             ),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: defaultPadding),
-              child: Text(notificationInfo.title!),
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Text(
+                notificationInfo.title!,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+              ),
             ),
           ],
         ),
       ),
-      DataCell(Text(notificationInfo.description ?? '')),
-      DataCell(Text(notificationInfo.createdAt ?? '')),
+      DataCell(Text(
+        notificationInfo.description ?? '',
+        overflow: TextOverflow.ellipsis,
+        maxLines: 1,
+      )),
+      DataCell(Text(
+        notificationInfo.createdAt ?? '',
+        overflow: TextOverflow.ellipsis,
+        maxLines: 1,
+      )),
       DataCell(IconButton(
           onPressed: () {
             if (edit != null) edit();
