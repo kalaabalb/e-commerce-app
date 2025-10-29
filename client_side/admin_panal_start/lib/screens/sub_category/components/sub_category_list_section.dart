@@ -1,5 +1,6 @@
 import 'package:admin_panal_start/utility/extensions.dart';
-
+import 'package:admin_panal_start/utility/responsive_utils.dart';
+import 'package:admin_panal_start/widgets/responsive_data_table.dart';
 import '../../../core/data/data_provider.dart';
 import '../../../models/sub_category.dart';
 import 'add_sub_category_form.dart';
@@ -14,7 +15,7 @@ class SubCategoryListSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(defaultPadding),
+      padding: EdgeInsets.all(ResponsiveUtils.getPadding(context)),
       decoration: BoxDecoration(
         color: secondaryColor,
         borderRadius: const BorderRadius.all(Radius.circular(10)),
@@ -26,17 +27,37 @@ class SubCategoryListSection extends StatelessWidget {
             "All SubCategory",
             style: Theme.of(context).textTheme.titleMedium,
           ),
+          SizedBox(height: defaultPadding),
           SizedBox(
             width: double.infinity,
             child: Consumer<DataProvider>(
               builder: (context, dataProvider, child) {
-                return DataTable(
-                  columnSpacing: defaultPadding,
-                  // minWidth: 600,
+                return ResponsiveDataTable(
                   columns: [
-                    DataColumn(label: Text("SubCategory Name")),
-                    DataColumn(label: Text("Category")),
-                    DataColumn(label: Text("Added Date")),
+                    DataColumn(
+                      label: Expanded(
+                        child: Text(
+                          "SubCategory Name",
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ),
+                    DataColumn(
+                      label: Expanded(
+                        child: Text(
+                          "Category",
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ),
+                    DataColumn(
+                      label: Expanded(
+                        child: Text(
+                          "Added Date",
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ),
                     DataColumn(label: Text("Edit")),
                     DataColumn(label: Text("Delete")),
                   ],
@@ -47,14 +68,11 @@ class SubCategoryListSection extends StatelessWidget {
                       index + 1,
                       edit: () {
                         showAddSubCategoryForm(
-                          context,
-                          dataProvider.subCategories[index],
-                        );
+                            context, dataProvider.subCategories[index]);
                       },
                       delete: () {
                         context.subCategoryProvider.deleteSubCategory(
-                          dataProvider.subCategories[index],
-                        );
+                            dataProvider.subCategories[index]);
                       },
                     ),
                   ),
@@ -68,41 +86,71 @@ class SubCategoryListSection extends StatelessWidget {
   }
 }
 
-DataRow subCategoryDataRow(
-  SubCategory subCatInfo,
-  int index, {
-  Function? edit,
-  Function? delete,
-}) {
+DataRow subCategoryDataRow(SubCategory subCatInfo, int index,
+    {Function? edit, Function? delete}) {
   return DataRow(
     cells: [
       DataCell(
-        Row(
-          children: [
-            Container(
-              height: 24,
-              width: 24,
-              decoration: BoxDecoration(
-                color: colors[index % colors.length],
-                shape: BoxShape.circle,
+        Container(
+          constraints: BoxConstraints(maxWidth: 150),
+          child: Row(
+            children: [
+              Container(
+                height: 24,
+                width: 24,
+                decoration: BoxDecoration(
+                  color: colors[index % colors.length],
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: Text(
+                    index.toString(),
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
               ),
-              child: Text(index.toString(), textAlign: TextAlign.center),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: defaultPadding),
-              child: Text(subCatInfo.name ?? ''),
-            ),
-          ],
+              SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  subCatInfo.name ?? '',
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
-      DataCell(Text(subCatInfo.categoryId?.name ?? '')),
-      DataCell(Text(subCatInfo.createdAt ?? '')),
+      DataCell(
+        Container(
+          constraints: BoxConstraints(maxWidth: 120),
+          child: Text(
+            subCatInfo.categoryId?.name ?? '',
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+          ),
+        ),
+      ),
+      DataCell(
+        Container(
+          constraints: BoxConstraints(maxWidth: 120),
+          child: Text(
+            subCatInfo.createdAt ?? '',
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+          ),
+        ),
+      ),
       DataCell(
         IconButton(
           onPressed: () {
             if (edit != null) edit();
           },
-          icon: Icon(Icons.edit, color: Colors.white),
+          icon: Icon(Icons.edit, color: Colors.white, size: 20),
         ),
       ),
       DataCell(
@@ -110,7 +158,7 @@ DataRow subCategoryDataRow(
           onPressed: () {
             if (delete != null) delete();
           },
-          icon: Icon(Icons.delete, color: Colors.red),
+          icon: Icon(Icons.delete, color: Colors.red, size: 20),
         ),
       ),
     ],
