@@ -1,9 +1,10 @@
+// lib/screens/variants_type/components/variant_type_list_section.dart
 import 'package:admin_panal_start/utility/extensions.dart';
-
+import 'package:admin_panal_start/utility/responsive_utils.dart';
+import 'package:admin_panal_start/widgets/responsive_data_table.dart';
 import '../../../core/data/data_provider.dart';
 import 'add_variant_type_form.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:provider/provider.dart';
 import '../../../utility/color_list.dart';
 import '../../../utility/constants.dart';
@@ -15,7 +16,7 @@ class VariantsTypeListSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(defaultPadding),
+      padding: EdgeInsets.all(ResponsiveUtils.getPadding(context)),
       decoration: BoxDecoration(
         color: secondaryColor,
         borderRadius: const BorderRadius.all(Radius.circular(10)),
@@ -31,9 +32,7 @@ class VariantsTypeListSection extends StatelessWidget {
             width: double.infinity,
             child: Consumer<DataProvider>(
               builder: (context, dataProvider, child) {
-                return DataTable(
-                  columnSpacing: defaultPadding,
-                  // minWidth: 600,
+                return ResponsiveDataTable(
                   columns: [
                     DataColumn(label: Text("Variant Name")),
                     DataColumn(label: Text("Variant Type")),
@@ -48,14 +47,11 @@ class VariantsTypeListSection extends StatelessWidget {
                       index + 1,
                       edit: () {
                         showAddVariantsTypeForm(
-                          context,
-                          dataProvider.variantTypes[index],
-                        );
+                            context, dataProvider.variantTypes[index]);
                       },
                       delete: () {
                         context.variantTypeProvider.deleteVariantType(
-                          dataProvider.variantTypes[index],
-                        );
+                            dataProvider.variantTypes[index]);
                       },
                     ),
                   ),
@@ -69,12 +65,8 @@ class VariantsTypeListSection extends StatelessWidget {
   }
 }
 
-DataRow variantTypeDataRow(
-  VariantType VariantTypeInfo,
-  int index, {
-  Function? edit,
-  Function? delete,
-}) {
+DataRow variantTypeDataRow(VariantType variantTypeInfo, int index,
+    {Function? edit, Function? delete}) {
   return DataRow(
     cells: [
       DataCell(
@@ -90,14 +82,26 @@ DataRow variantTypeDataRow(
               child: Text(index.toString(), textAlign: TextAlign.center),
             ),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: defaultPadding),
-              child: Text(VariantTypeInfo.name ?? ''),
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Text(
+                variantTypeInfo.name ?? '',
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+              ),
             ),
           ],
         ),
       ),
-      DataCell(Text(VariantTypeInfo.type ?? '')),
-      DataCell(Text(VariantTypeInfo.createdAt ?? '')),
+      DataCell(Text(
+        variantTypeInfo.type ?? '',
+        overflow: TextOverflow.ellipsis,
+        maxLines: 1,
+      )),
+      DataCell(Text(
+        variantTypeInfo.createdAt ?? '',
+        overflow: TextOverflow.ellipsis,
+        maxLines: 1,
+      )),
       DataCell(
         IconButton(
           onPressed: () {
