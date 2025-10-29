@@ -1,20 +1,19 @@
+// lib/screens/notification/notification_screen.dart
 import 'components/notification_header.dart';
 import 'components/notification_list_section.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import '../../utility/constants.dart';
 import 'components/send_notification_form.dart';
-
-
-
+import 'package:admin_panal_start/utility/responsive_utils.dart';
 
 class NotificationScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return  SafeArea(
+    return SafeArea(
       child: SingleChildScrollView(
         primary: false,
-        padding: EdgeInsets.all(defaultPadding),
+        padding: EdgeInsets.all(ResponsiveUtils.getPadding(context)),
         child: Column(
           children: [
             NotificationHeader(),
@@ -32,18 +31,18 @@ class NotificationScreen extends StatelessWidget {
                           Expanded(
                             child: Text(
                               "My Notification",
-                              style: Theme
-                                  .of(context)
-                                  .textTheme
-                                  .titleMedium,
+                              style: Theme.of(context).textTheme.titleMedium,
                             ),
                           ),
                           ElevatedButton.icon(
                             style: TextButton.styleFrom(
                               padding: EdgeInsets.symmetric(
-                                horizontal: defaultPadding * 1.5,
-                                vertical:
-                                defaultPadding,
+                                horizontal: ResponsiveUtils.isMobile(context)
+                                    ? defaultPadding
+                                    : defaultPadding * 1.5,
+                                vertical: ResponsiveUtils.isMobile(context)
+                                    ? defaultPadding / 2
+                                    : defaultPadding,
                               ),
                             ),
                             onPressed: () {
@@ -52,10 +51,10 @@ class NotificationScreen extends StatelessWidget {
                             icon: Icon(Icons.add),
                             label: Text("Send New"),
                           ),
-                          Gap(20),
+                          Gap(ResponsiveUtils.isMobile(context) ? 8 : 20),
                           IconButton(
                               onPressed: () {
-                                //TODO: should complete call getAllNotifications
+                                // TODO: should complete call getAllNotifications
                               },
                               icon: Icon(Icons.refresh)),
                         ],
