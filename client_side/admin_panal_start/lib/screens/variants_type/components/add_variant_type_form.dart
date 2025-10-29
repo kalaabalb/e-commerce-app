@@ -1,7 +1,9 @@
+// lib/screens/variants_type/components/add_variant_type_form.dart
 import '../../../models/variant_type.dart';
+import '../../../utility/responsive_utils.dart';
+import '../../../widgets/compact_form_dialog.dart';
 import '../../../utility/extensions.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import '../../../utility/constants.dart';
 import '../../../widgets/custom_text_field.dart';
 
@@ -12,114 +14,114 @@ class VariantTypeSubmitForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var size = MediaQuery.of(context).size;
     context.variantTypeProvider.setDataForUpdateVariantTYpe(variantType);
     return SingleChildScrollView(
       child: Form(
         key: context.variantTypeProvider.addVariantsTypeFormKey,
-        child: Container(
-          padding: EdgeInsets.all(defaultPadding),
-          width: size.width * 0.5,
-          decoration: BoxDecoration(
-            color: bgColor,
-            borderRadius: BorderRadius.circular(12.0),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              SizedBox(height: defaultPadding),
-              Row(
-                children: [
-                  Expanded(
-                    child: CustomTextField(
-                      controller: context.variantTypeProvider.variantNameCtrl,
-                      labelText: 'Variant Name',
-                      onSave: (val) {},
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter a variant name';
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
-                  Expanded(
-                    child: CustomTextField(
-                      controller: context.variantTypeProvider.variantTypeCtrl,
-                      labelText: 'Variant Type',
-                      onSave: (val) {},
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter a type name';
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: defaultPadding * 2),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      backgroundColor: secondaryColor,
-                    ),
-                    onPressed: () {
-                      Navigator.of(context).pop(); // Close the popup
-                    },
-                    child: Text('Cancel'),
-                  ),
-                  SizedBox(width: defaultPadding),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      backgroundColor: primaryColor,
-                    ),
-                    onPressed: () {
-                      // Validate and save the form
-                      if (context
-                          .variantTypeProvider
-                          .addVariantsTypeFormKey
-                          .currentState!
-                          .validate()) {
-                        context
-                            .variantTypeProvider
-                            .addVariantsTypeFormKey
-                            .currentState!
-                            .save();
-                        context.variantTypeProvider.submitVariantType();
-                        Navigator.of(context).pop();
-                      }
-                    },
-                    child: Text('Submit'),
-                  ),
-                ],
-              ),
-            ],
-          ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(height: ResponsiveUtils.getPadding(context)),
+            _buildFormFields(context),
+            SizedBox(height: ResponsiveUtils.getPadding(context) * 2),
+            _buildActionButtons(context),
+          ],
         ),
       ),
     );
   }
+
+  Widget _buildFormFields(BuildContext context) {
+    if (ResponsiveUtils.isMobile(context)) {
+      return Column(
+        children: [
+          _buildNameField(context),
+          SizedBox(height: 8),
+          _buildTypeField(context),
+        ],
+      );
+    } else {
+      return Row(
+        children: [
+          Expanded(child: _buildNameField(context)),
+          SizedBox(width: 8),
+          Expanded(child: _buildTypeField(context)),
+        ],
+      );
+    }
+  }
+
+  Widget _buildNameField(BuildContext context) {
+    return CustomTextField(
+      controller: context.variantTypeProvider.variantNameCtrl,
+      labelText: 'Variant Name',
+      onSave: (val) {},
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Please enter a variant name';
+        }
+        return null;
+      },
+    );
+  }
+
+  Widget _buildTypeField(BuildContext context) {
+    return CustomTextField(
+      controller: context.variantTypeProvider.variantTypeCtrl,
+      labelText: 'Variant Type',
+      onSave: (val) {},
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Please enter a type name';
+        }
+        return null;
+      },
+    );
+  }
+
+  Widget _buildActionButtons(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            foregroundColor: Colors.white,
+            backgroundColor: secondaryColor,
+          ),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+          child: Text('Cancel'),
+        ),
+        SizedBox(width: ResponsiveUtils.getPadding(context)),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            foregroundColor: Colors.white,
+            backgroundColor: primaryColor,
+          ),
+          onPressed: () {
+            if (context.variantTypeProvider.addVariantsTypeFormKey.currentState!
+                .validate()) {
+              context.variantTypeProvider.addVariantsTypeFormKey.currentState!
+                  .save();
+              context.variantTypeProvider.submitVariantType();
+              Navigator.of(context).pop();
+            }
+          },
+          child: Text('Submit'),
+        ),
+      ],
+    );
+  }
 }
 
-// How to show the category popup
 void showAddVariantsTypeForm(BuildContext context, VariantType? variantType) {
   showDialog(
     context: context,
     builder: (BuildContext context) {
-      return AlertDialog(
-        backgroundColor: bgColor,
-        title: Center(
-          child: Text(
-            'Add Variant Type'.toUpperCase(),
-            style: TextStyle(color: primaryColor),
-          ),
-        ),
-        content: VariantTypeSubmitForm(variantType: variantType),
+      return CompactFormDialog(
+        title: 'Add Variant Type',
+        child: VariantTypeSubmitForm(variantType: variantType),
       );
     },
   );
