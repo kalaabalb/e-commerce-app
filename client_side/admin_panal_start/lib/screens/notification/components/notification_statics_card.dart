@@ -1,3 +1,4 @@
+// lib/screens/notification/components/notification_statics_card.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gap/gap.dart';
@@ -20,7 +21,7 @@ class NotificationCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(vertical: 5),
+      padding: EdgeInsets.symmetric(vertical: 5, horizontal: 8),
       decoration: BoxDecoration(
         color: secondaryColor,
         borderRadius: const BorderRadius.all(Radius.circular(10)),
@@ -33,16 +34,16 @@ class NotificationCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
-                padding: EdgeInsets.all(defaultPadding * 0.75),
-                height: 40,
-                width: 40,
+                padding: EdgeInsets.all(8),
+                height: 32,
+                width: 32,
                 decoration: BoxDecoration(
                   color: color.withOpacity(0.1),
                   borderRadius: const BorderRadius.all(Radius.circular(10)),
                 ),
                 child: SvgPicture.asset(
                   'assets/icons/notification.svg',
-                  colorFilter: ColorFilter.mode(color ?? Colors.black, BlendMode.srcIn),
+                  colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
                 ),
               ),
             ],
@@ -51,6 +52,7 @@ class NotificationCard extends StatelessWidget {
             "${number}",
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
           ProgressLine(
             color: color,
@@ -62,7 +64,10 @@ class NotificationCard extends StatelessWidget {
             children: [
               Text(
                 "$text",
-                style: Theme.of(context).textTheme.bodySmall!.copyWith(color: Colors.white70),
+                style: Theme.of(context)
+                    .textTheme
+                    .bodySmall!
+                    .copyWith(color: Colors.white70),
               ),
             ],
           )
