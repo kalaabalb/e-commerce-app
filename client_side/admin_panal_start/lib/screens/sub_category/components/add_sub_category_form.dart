@@ -1,4 +1,7 @@
+// lib/screens/sub_category/components/add_sub_category_form.dart
 import '../../../models/sub_category.dart';
+import '../../../utility/responsive_utils.dart';
+import '../../../widgets/compact_form_dialog.dart';
 import '../provider/sub_category_provider.dart';
 import '../../../utility/extensions.dart';
 import 'package:flutter/material.dart';
@@ -17,128 +20,130 @@ class SubCategorySubmitForm extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     context.subCategoryProvider.setDataForUpdateSubCategory(subCategory);
-    var size = MediaQuery.of(context).size;
-    return SingleChildScrollView(
+    return Padding(
+      padding: EdgeInsets.all(ResponsiveUtils.getPadding(context)),
       child: Form(
         key: context.subCategoryProvider.addSubCategoryFormKey,
-        child: Container(
-          padding: EdgeInsets.all(defaultPadding),
-          width: size.width * 0.5,
-          decoration: BoxDecoration(
-            color: bgColor,
-            borderRadius: BorderRadius.circular(12.0),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Gap(defaultPadding),
-              Row(
-                children: [
-                  Expanded(
-                    child: Consumer<SubCategoryProvider>(
-                      builder: (context, subCatProvider, child) {
-                        return CustomDropdown(
-                          initialValue: subCatProvider.selectedCategory,
-                          hintText:
-                              subCatProvider.selectedCategory?.name ??
-                              'Select category',
-                          items: context.dataProvider.categories,
-                          displayItem: (Category? category) =>
-                              category?.name ?? '',
-                          onChanged: (newValue) {
-                            if (newValue != null) {
-                              subCatProvider.selectedCategory = newValue;
-                              subCatProvider.updateUi();
-                            }
-                          },
-                          validator: (value) {
-                            if (value == null) {
-                              return 'Please select a category';
-                            }
-                            return null;
-                          },
-                        );
-                      },
-                    ),
-                  ),
-                  Expanded(
-                    child: CustomTextField(
-                      controller:
-                          context.subCategoryProvider.subCategoryNameCtrl,
-                      labelText: 'Sub Category Name',
-                      onSave: (val) {},
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter a sub category name';
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              Gap(defaultPadding * 2),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      backgroundColor: secondaryColor,
-                    ),
-                    onPressed: () {
-                      Navigator.of(context).pop(); // Close the popup
-                    },
-                    child: Text('Cancel'),
-                  ),
-                  Gap(defaultPadding),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      backgroundColor: primaryColor,
-                    ),
-                    onPressed: () {
-                      // Validate and save the form
-                      if (context
-                          .subCategoryProvider
-                          .addSubCategoryFormKey
-                          .currentState!
-                          .validate()) {
-                        context
-                            .subCategoryProvider
-                            .addSubCategoryFormKey
-                            .currentState!
-                            .save();
-                        context.subCategoryProvider.submitSubCategory();
-                        Navigator.of(context).pop();
-                      }
-                    },
-                    child: Text('Submit'),
-                  ),
-                ],
-              ),
-            ],
-          ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildFormFields(context),
+            Gap(ResponsiveUtils.getPadding(context)),
+            _buildActionButtons(context),
+          ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildFormFields(BuildContext context) {
+    if (ResponsiveUtils.isMobile(context)) {
+      return Column(
+        children: [
+          _buildCategoryDropdown(context),
+          Gap(8),
+          _buildNameField(context),
+        ],
+      );
+    } else {
+      return Row(
+        children: [
+          Expanded(child: _buildCategoryDropdown(context)),
+          Gap(8),
+          Expanded(child: _buildNameField(context)),
+        ],
+      );
+    }
+  }
+
+  Widget _buildCategoryDropdown(BuildContext context) {
+    return Consumer<SubCategoryProvider>(
+      builder: (context, subCatProvider, child) {
+        return CustomDropdown(
+          initialValue: subCatProvider.selectedCategory,
+          hintText: subCatProvider.selectedCategory?.name ?? 'Select category',
+          items: context.dataProvider.categories,
+          displayItem: (Category? category) => category?.name ?? '',
+          onChanged: (newValue) {
+            if (newValue != null) {
+              subCatProvider.selectedCategory = newValue;
+              subCatProvider.updateUi();
+            }
+          },
+          validator: (value) {
+            if (value == null) {
+              return 'Please select a category';
+            }
+            return null;
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildNameField(BuildContext context) {
+    return CustomTextField(
+      controller: context.subCategoryProvider.subCategoryNameCtrl,
+      labelText: 'Sub Category Name',
+      onSave: (val) {},
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Please enter a sub category name';
+        }
+        return null;
+      },
+    );
+  }
+
+  Widget _buildActionButtons(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.only(top: 16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              foregroundColor: Colors.white,
+              backgroundColor: secondaryColor,
+              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            ),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: Text('Cancel'),
+          ),
+          Gap(ResponsiveUtils.getPadding(context)),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              foregroundColor: Colors.white,
+              backgroundColor: primaryColor,
+              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            ),
+            onPressed: () {
+              if (context
+                  .subCategoryProvider.addSubCategoryFormKey.currentState!
+                  .validate()) {
+                context.subCategoryProvider.addSubCategoryFormKey.currentState!
+                    .save();
+                context.subCategoryProvider.submitSubCategory();
+                Navigator.of(context).pop();
+              }
+            },
+            child: Text('Submit'),
+          ),
+        ],
       ),
     );
   }
 }
 
-// How to show the category popup
 void showAddSubCategoryForm(BuildContext context, SubCategory? subCategory) {
   showDialog(
     context: context,
     builder: (BuildContext context) {
-      return AlertDialog(
-        backgroundColor: bgColor,
-        title: Center(
-          child: Text(
-            'Add Sub Category'.toUpperCase(),
-            style: TextStyle(color: primaryColor),
-          ),
-        ),
-        content: SubCategorySubmitForm(subCategory: subCategory),
+      return CompactFormDialog(
+        title: 'Add Sub Category',
+        child: SubCategorySubmitForm(subCategory: subCategory),
       );
     },
   );
