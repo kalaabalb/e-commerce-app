@@ -1,4 +1,6 @@
+// lib/screens/dashboard/components/product_summery_section.dart
 import 'package:admin_panal_start/utility/extensions.dart';
+import 'package:admin_panal_start/utility/responsive_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/data/data_provider.dart';
@@ -11,16 +13,14 @@ class ProductSummerySection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Size _size = MediaQuery.of(context).size;
-
     return Consumer<DataProvider>(
       builder: (context, dataProvider, _) {
-        int totalProduct = 1;
-        totalProduct = context.dataProvider.calculateProductWithQuantity(null);
-        int outOfStockProduct = context.dataProvider
-            .calculateProductWithQuantity(0);
-        int limitedStockProduct = context.dataProvider
-            .calculateProductWithQuantity(1);
+        int totalProduct =
+            context.dataProvider.calculateProductWithQuantity(null);
+        int outOfStockProduct =
+            context.dataProvider.calculateProductWithQuantity(0);
+        int limitedStockProduct =
+            context.dataProvider.calculateProductWithQuantity(1);
         int otherStockProduct =
             totalProduct - outOfStockProduct - limitedStockProduct;
 
@@ -61,30 +61,30 @@ class ProductSummerySection extends StatelessWidget {
           ),
         ];
 
-        return Column(
-          children: [
-            GridView.builder(
-              physics: NeverScrollableScrollPhysics(),
-              shrinkWrap: true,
-              itemCount: productSummeryItems.length,
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 4,
-                crossAxisSpacing: defaultPadding,
-                mainAxisSpacing: defaultPadding,
-                childAspectRatio: _size.width < 1400 ? 1.1 : 1.4,
-              ),
-              itemBuilder: (context, index) => ProductSummeryCard(
-                info: productSummeryItems[index],
-                onTap: (productType) {
-                  context.dataProvider.filterProductsByQuantity(
-                    productType ?? '',
-                  );
-                },
-              ),
-            ),
-          ],
+        return GridView.builder(
+          physics: NeverScrollableScrollPhysics(),
+          shrinkWrap: true,
+          itemCount: productSummeryItems.length,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: ResponsiveUtils.getGridCrossAxisCount(context),
+            crossAxisSpacing: defaultPadding,
+            mainAxisSpacing: defaultPadding,
+            childAspectRatio: _getAspectRatio(context),
+          ),
+          itemBuilder: (context, index) => ProductSummeryCard(
+            info: productSummeryItems[index],
+            onTap: (productType) {
+              context.dataProvider.filterProductsByQuantity(productType ?? '');
+            },
+          ),
         );
       },
     );
+  }
+
+  double _getAspectRatio(BuildContext context) {
+    if (ResponsiveUtils.isMobile(context)) return 1.2;
+    if (ResponsiveUtils.isTablet(context)) return 1.3;
+    return 1.4;
   }
 }
