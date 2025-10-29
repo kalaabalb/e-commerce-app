@@ -1,4 +1,6 @@
+// lib/screens/brands/brand_screen.dart
 import 'package:admin_panal_start/utility/extensions.dart';
+import 'package:admin_panal_start/utility/responsive_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import '../../utility/constants.dart';
@@ -12,7 +14,7 @@ class BrandScreen extends StatelessWidget {
     return SafeArea(
       child: SingleChildScrollView(
         primary: false,
-        padding: EdgeInsets.all(defaultPadding),
+        padding: EdgeInsets.all(ResponsiveUtils.getPadding(context)),
         child: Column(
           children: [
             BrandHeader(),
@@ -29,15 +31,19 @@ class BrandScreen extends StatelessWidget {
                         children: [
                           Expanded(
                             child: Text(
-                              "My Categories",
+                              "My Brands",
                               style: Theme.of(context).textTheme.titleMedium,
                             ),
                           ),
                           ElevatedButton.icon(
                             style: TextButton.styleFrom(
                               padding: EdgeInsets.symmetric(
-                                horizontal: defaultPadding * 1.5,
-                                vertical: defaultPadding,
+                                horizontal: ResponsiveUtils.isMobile(context)
+                                    ? defaultPadding
+                                    : defaultPadding * 1.5,
+                                vertical: ResponsiveUtils.isMobile(context)
+                                    ? defaultPadding / 2
+                                    : defaultPadding,
                               ),
                             ),
                             onPressed: () {
@@ -46,12 +52,11 @@ class BrandScreen extends StatelessWidget {
                             icon: Icon(Icons.add),
                             label: Text("Add New"),
                           ),
-                          Gap(20),
+                          Gap(ResponsiveUtils.isMobile(context) ? 8 : 20),
                           IconButton(
                             onPressed: () {
-                              context.dataProvider.getAllBrands(
-                                showSnack: true,
-                              );
+                              context.dataProvider
+                                  .getAllBrands(showSnack: true);
                             },
                             icon: Icon(Icons.refresh),
                           ),
