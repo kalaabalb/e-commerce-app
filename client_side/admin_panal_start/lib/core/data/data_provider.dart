@@ -1,3 +1,4 @@
+import 'dart:convert';
 import '../../models/api_response.dart';
 import '../../models/coupon.dart';
 import '../../models/my_notification.dart';
@@ -24,7 +25,6 @@ class DataProvider extends ChangeNotifier {
 
   List<SubCategory> _allSubCategories = [];
   List<SubCategory> _filteredSubCategories = [];
-
   List<SubCategory> get subCategories => _filteredSubCategories;
 
   List<Brand> _allBrands = [];
@@ -59,35 +59,85 @@ class DataProvider extends ChangeNotifier {
   List<MyNotification> _filteredNotifications = [];
   List<MyNotification> get notifications => _filteredNotifications;
 
+  bool _isLoading = false;
+  bool get isLoading => _isLoading;
+
   DataProvider() {
-    getAllProduct();
-    getAllVariant();
-    getAllCategory();
-    getAllSubCategory();
-    getAllBrands();
-    getAllVariantType();
-    getAllPosters();
-    getAllCoupons();
-    getAllOrders();
+    _initializeData();
+  }
+
+  void _initializeData() async {
+    try {
+      _isLoading = true;
+      notifyListeners();
+
+      await Future.wait([
+        getAllProduct(),
+        getAllVariant(),
+        getAllCategory(),
+        getAllSubCategory(),
+        getAllBrands(),
+        getAllVariantType(),
+        getAllPosters(),
+        getAllCoupons(),
+        getAllOrders(),
+      ], eagerError: false);
+    } catch (e) {
+      print('Error initializing DataProvider: $e');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
   Future<List<Category>> getAllCategory({bool showSnack = false}) async {
     try {
       Response response = await service.getItems(endpointUrl: 'categories');
+
+      if (response.body == null) {
+        if (showSnack) {
+          SnackBarHelper.showErrorSnackBar('No response from server');
+        }
+        return _filteredCategories;
+      }
+
+      dynamic responseBody = response.body;
+      if (responseBody is String) {
+        try {
+          responseBody = json.decode(responseBody);
+        } catch (e) {
+          if (showSnack) {
+            SnackBarHelper.showErrorSnackBar('Invalid response format');
+          }
+          return _filteredCategories;
+        }
+      }
+
+      if (responseBody is! Map<String, dynamic>) {
+        if (showSnack) {
+          SnackBarHelper.showErrorSnackBar('Invalid response format');
+        }
+        return _filteredCategories;
+      }
+
       ApiResponse<List<Category>> apiResponse = ApiResponse.fromJson(
-        response.body,
+        responseBody,
         (json) =>
             (json as List).map((item) => Category.fromJson(item)).toList(),
       );
+
       _allCategories = apiResponse.data ?? [];
       _filteredCategories = List.from(_allCategories);
       notifyListeners();
-      if (showSnack) {
+
+      if (showSnack && apiResponse.message.isNotEmpty) {
         SnackBarHelper.showSuccessSnackBar(apiResponse.message);
       }
     } catch (e) {
-      if (showSnack) SnackBarHelper.showSuccessSnackBar(e.toString());
-      rethrow;
+      print('Error in getAllCategory: $e');
+      if (showSnack) {
+        SnackBarHelper.showErrorSnackBar('Failed to load categories: $e');
+      }
     }
     return _filteredCategories;
   }
@@ -107,20 +157,47 @@ class DataProvider extends ChangeNotifier {
   Future<List<SubCategory>> getAllSubCategory({bool showSnack = false}) async {
     try {
       Response response = await service.getItems(endpointUrl: 'subCategories');
+
+      if (response.body == null) {
+        if (showSnack)
+          SnackBarHelper.showErrorSnackBar('No response from server');
+        return _filteredSubCategories;
+      }
+
+      dynamic responseBody = response.body;
+      if (responseBody is String) {
+        try {
+          responseBody = json.decode(responseBody);
+        } catch (e) {
+          if (showSnack)
+            SnackBarHelper.showErrorSnackBar('Invalid response format');
+          return _filteredSubCategories;
+        }
+      }
+
+      if (responseBody is! Map<String, dynamic>) {
+        if (showSnack)
+          SnackBarHelper.showErrorSnackBar('Invalid response format');
+        return _filteredSubCategories;
+      }
+
       ApiResponse<List<SubCategory>> apiResponse = ApiResponse.fromJson(
-        response.body,
+        responseBody,
         (json) =>
             (json as List).map((item) => SubCategory.fromJson(item)).toList(),
       );
+
       _allSubCategories = apiResponse.data ?? [];
       _filteredSubCategories = List.from(_allSubCategories);
       notifyListeners();
-      if (showSnack) {
+
+      if (showSnack && apiResponse.message.isNotEmpty) {
         SnackBarHelper.showSuccessSnackBar(apiResponse.message);
       }
     } catch (e) {
-      if (showSnack) SnackBarHelper.showSuccessSnackBar(e.toString());
-      rethrow;
+      print('Error in getAllSubCategory: $e');
+      if (showSnack)
+        SnackBarHelper.showErrorSnackBar('Failed to load subcategories: $e');
     }
     return _filteredSubCategories;
   }
@@ -140,19 +217,46 @@ class DataProvider extends ChangeNotifier {
   Future<List<Brand>> getAllBrands({bool showSnack = false}) async {
     try {
       Response response = await service.getItems(endpointUrl: 'brands');
+
+      if (response.body == null) {
+        if (showSnack)
+          SnackBarHelper.showErrorSnackBar('No response from server');
+        return _filteredBrands;
+      }
+
+      dynamic responseBody = response.body;
+      if (responseBody is String) {
+        try {
+          responseBody = json.decode(responseBody);
+        } catch (e) {
+          if (showSnack)
+            SnackBarHelper.showErrorSnackBar('Invalid response format');
+          return _filteredBrands;
+        }
+      }
+
+      if (responseBody is! Map<String, dynamic>) {
+        if (showSnack)
+          SnackBarHelper.showErrorSnackBar('Invalid response format');
+        return _filteredBrands;
+      }
+
       ApiResponse<List<Brand>> apiResponse = ApiResponse.fromJson(
-        response.body,
+        responseBody,
         (json) => (json as List).map((item) => Brand.fromJson(item)).toList(),
       );
+
       _allBrands = apiResponse.data ?? [];
       _filteredBrands = List.from(_allBrands);
       notifyListeners();
-      if (showSnack) {
+
+      if (showSnack && apiResponse.message.isNotEmpty) {
         SnackBarHelper.showSuccessSnackBar(apiResponse.message);
       }
     } catch (e) {
-      if (showSnack) SnackBarHelper.showSuccessSnackBar(e.toString());
-      rethrow;
+      print('Error in getAllBrands: $e');
+      if (showSnack)
+        SnackBarHelper.showErrorSnackBar('Failed to load brands: $e');
     }
     return _filteredBrands;
   }
@@ -172,20 +276,47 @@ class DataProvider extends ChangeNotifier {
   Future<List<VariantType>> getAllVariantType({bool showSnack = false}) async {
     try {
       Response response = await service.getItems(endpointUrl: 'variantTypes');
+
+      if (response.body == null) {
+        if (showSnack)
+          SnackBarHelper.showErrorSnackBar('No response from server');
+        return _filteredVariantTypes;
+      }
+
+      dynamic responseBody = response.body;
+      if (responseBody is String) {
+        try {
+          responseBody = json.decode(responseBody);
+        } catch (e) {
+          if (showSnack)
+            SnackBarHelper.showErrorSnackBar('Invalid response format');
+          return _filteredVariantTypes;
+        }
+      }
+
+      if (responseBody is! Map<String, dynamic>) {
+        if (showSnack)
+          SnackBarHelper.showErrorSnackBar('Invalid response format');
+        return _filteredVariantTypes;
+      }
+
       ApiResponse<List<VariantType>> apiResponse = ApiResponse.fromJson(
-        response.body,
+        responseBody,
         (json) =>
             (json as List).map((item) => VariantType.fromJson(item)).toList(),
       );
+
       _allVariantTypes = apiResponse.data ?? [];
       _filteredVariantTypes = List.from(_allVariantTypes);
       notifyListeners();
-      if (showSnack) {
+
+      if (showSnack && apiResponse.message.isNotEmpty) {
         SnackBarHelper.showSuccessSnackBar(apiResponse.message);
       }
     } catch (e) {
-      if (showSnack) SnackBarHelper.showSuccessSnackBar(e.toString());
-      rethrow;
+      print('Error in getAllVariantType: $e');
+      if (showSnack)
+        SnackBarHelper.showErrorSnackBar('Failed to load variant types: $e');
     }
     return _filteredVariantTypes;
   }
@@ -205,19 +336,46 @@ class DataProvider extends ChangeNotifier {
   Future<List<Variant>> getAllVariant({bool showSnack = false}) async {
     try {
       Response response = await service.getItems(endpointUrl: 'variants');
+
+      if (response.body == null) {
+        if (showSnack)
+          SnackBarHelper.showErrorSnackBar('No response from server');
+        return _filteredVariants;
+      }
+
+      dynamic responseBody = response.body;
+      if (responseBody is String) {
+        try {
+          responseBody = json.decode(responseBody);
+        } catch (e) {
+          if (showSnack)
+            SnackBarHelper.showErrorSnackBar('Invalid response format');
+          return _filteredVariants;
+        }
+      }
+
+      if (responseBody is! Map<String, dynamic>) {
+        if (showSnack)
+          SnackBarHelper.showErrorSnackBar('Invalid response format');
+        return _filteredVariants;
+      }
+
       ApiResponse<List<Variant>> apiResponse = ApiResponse.fromJson(
-        response.body,
+        responseBody,
         (json) => (json as List).map((item) => Variant.fromJson(item)).toList(),
       );
+
       _allVariants = apiResponse.data ?? [];
       _filteredVariants = List.from(_allVariants);
       notifyListeners();
-      if (showSnack) {
+
+      if (showSnack && apiResponse.message.isNotEmpty) {
         SnackBarHelper.showSuccessSnackBar(apiResponse.message);
       }
     } catch (e) {
-      if (showSnack) SnackBarHelper.showSuccessSnackBar(e.toString());
-      rethrow;
+      print('Error in getAllVariant: $e');
+      if (showSnack)
+        SnackBarHelper.showErrorSnackBar('Failed to load variants: $e');
     }
     return _filteredVariants;
   }
@@ -237,19 +395,46 @@ class DataProvider extends ChangeNotifier {
   Future<List<Product>> getAllProduct({bool showSnack = false}) async {
     try {
       Response response = await service.getItems(endpointUrl: 'products');
+
+      if (response.body == null) {
+        if (showSnack)
+          SnackBarHelper.showErrorSnackBar('No response from server');
+        return _filteredProducts;
+      }
+
+      dynamic responseBody = response.body;
+      if (responseBody is String) {
+        try {
+          responseBody = json.decode(responseBody);
+        } catch (e) {
+          if (showSnack)
+            SnackBarHelper.showErrorSnackBar('Invalid response format');
+          return _filteredProducts;
+        }
+      }
+
+      if (responseBody is! Map<String, dynamic>) {
+        if (showSnack)
+          SnackBarHelper.showErrorSnackBar('Invalid response format');
+        return _filteredProducts;
+      }
+
       ApiResponse<List<Product>> apiResponse = ApiResponse.fromJson(
-        response.body,
+        responseBody,
         (json) => (json as List).map((item) => Product.fromJson(item)).toList(),
       );
+
       _allProducts = apiResponse.data ?? [];
       _filteredProducts = List.from(_allProducts);
       notifyListeners();
-      if (showSnack) {
+
+      if (showSnack && apiResponse.message.isNotEmpty) {
         SnackBarHelper.showSuccessSnackBar(apiResponse.message);
       }
     } catch (e) {
-      if (showSnack) SnackBarHelper.showSuccessSnackBar(e.toString());
-      rethrow;
+      print('Error in getAllProduct: $e');
+      if (showSnack)
+        SnackBarHelper.showErrorSnackBar('Failed to load products: $e');
     }
     return _filteredProducts;
   }
@@ -261,15 +446,14 @@ class DataProvider extends ChangeNotifier {
       final lowcase = keyword.toLowerCase();
 
       _filteredProducts = _allProducts.where((product) {
-        final ProductNameContainsKeyword = (product.name ?? '')
-            .toLowerCase()
-            .contains(lowcase);
+        final ProductNameContainsKeyword =
+            (product.name ?? '').toLowerCase().contains(lowcase);
         final categoryNameContainsKeyword =
             product.proCategoryId?.name?.toLowerCase().contains(lowcase) ??
-            false;
+                false;
         final subCategoryNameContainsKeyword =
             product.proSubCategoryId?.name?.toLowerCase().contains(lowcase) ??
-            false;
+                false;
         final brandNameContainsKeyword =
             product.proBrandId?.name?.toLowerCase().contains(lowcase) ?? false;
 
@@ -284,20 +468,47 @@ class DataProvider extends ChangeNotifier {
 
   Future<List<Coupon>> getAllCoupons({bool showSnack = false}) async {
     try {
-      Response response = await service.getItems(endpointUrl: 'coupons');
+      Response response = await service.getItems(endpointUrl: 'couponCodes');
+
+      if (response.body == null) {
+        if (showSnack)
+          SnackBarHelper.showErrorSnackBar('No response from server');
+        return _filteredCoupons;
+      }
+
+      dynamic responseBody = response.body;
+      if (responseBody is String) {
+        try {
+          responseBody = json.decode(responseBody);
+        } catch (e) {
+          if (showSnack)
+            SnackBarHelper.showErrorSnackBar('Invalid response format');
+          return _filteredCoupons;
+        }
+      }
+
+      if (responseBody is! Map<String, dynamic>) {
+        if (showSnack)
+          SnackBarHelper.showErrorSnackBar('Invalid response format');
+        return _filteredCoupons;
+      }
+
       ApiResponse<List<Coupon>> apiResponse = ApiResponse.fromJson(
-        response.body,
+        responseBody,
         (json) => (json as List).map((item) => Coupon.fromJson(item)).toList(),
       );
+
       _allCoupons = apiResponse.data ?? [];
       _filteredCoupons = List.from(_allCoupons);
       notifyListeners();
-      if (showSnack) {
+
+      if (showSnack && apiResponse.message.isNotEmpty) {
         SnackBarHelper.showSuccessSnackBar(apiResponse.message);
       }
     } catch (e) {
-      if (showSnack) SnackBarHelper.showSuccessSnackBar(e.toString());
-      rethrow;
+      print('Error in getAllCoupons: $e');
+      if (showSnack)
+        SnackBarHelper.showErrorSnackBar('Failed to load coupons: $e');
     }
     return _filteredCoupons;
   }
@@ -307,7 +518,7 @@ class DataProvider extends ChangeNotifier {
       _filteredCoupons = List.from(_allCoupons);
     } else {
       final lowcase = keyword.toLowerCase();
-      _filteredCoupons = _filteredCoupons.where((coupon) {
+      _filteredCoupons = _allCoupons.where((coupon) {
         return (coupon.couponCode ?? '').toLowerCase().contains(lowcase);
       }).toList();
     }
@@ -317,19 +528,46 @@ class DataProvider extends ChangeNotifier {
   Future<List<Poster>> getAllPosters({bool showSnack = false}) async {
     try {
       Response response = await service.getItems(endpointUrl: 'posters');
+
+      if (response.body == null) {
+        if (showSnack)
+          SnackBarHelper.showErrorSnackBar('No response from server');
+        return _filteredPosters;
+      }
+
+      dynamic responseBody = response.body;
+      if (responseBody is String) {
+        try {
+          responseBody = json.decode(responseBody);
+        } catch (e) {
+          if (showSnack)
+            SnackBarHelper.showErrorSnackBar('Invalid response format');
+          return _filteredPosters;
+        }
+      }
+
+      if (responseBody is! Map<String, dynamic>) {
+        if (showSnack)
+          SnackBarHelper.showErrorSnackBar('Invalid response format');
+        return _filteredPosters;
+      }
+
       ApiResponse<List<Poster>> apiResponse = ApiResponse.fromJson(
-        response.body,
+        responseBody,
         (json) => (json as List).map((item) => Poster.fromJson(item)).toList(),
       );
+
       _allPosters = apiResponse.data ?? [];
       _filteredPosters = List.from(_allPosters);
       notifyListeners();
-      if (showSnack) {
+
+      if (showSnack && apiResponse.message.isNotEmpty) {
         SnackBarHelper.showSuccessSnackBar(apiResponse.message);
       }
     } catch (e) {
-      if (showSnack) SnackBarHelper.showSuccessSnackBar(e.toString());
-      rethrow;
+      print('Error in getAllPosters: $e');
+      if (showSnack)
+        SnackBarHelper.showErrorSnackBar('Failed to load posters: $e');
     }
     return _filteredPosters;
   }
@@ -346,29 +584,53 @@ class DataProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // In DataProvider class, add these missing methods:
-  Future<List<MyNotification>> getAllNotifications({
-    bool showSnack = false,
-  }) async {
+  Future<List<MyNotification>> getAllNotifications(
+      {bool showSnack = false}) async {
     try {
-      Response response = await service.getItems(
-        endpointUrl: 'notification/all-notification',
-      );
+      Response response =
+          await service.getItems(endpointUrl: 'notification/all-notification');
+
+      if (response.body == null) {
+        if (showSnack)
+          SnackBarHelper.showErrorSnackBar('No response from server');
+        return _filteredNotifications;
+      }
+
+      dynamic responseBody = response.body;
+      if (responseBody is String) {
+        try {
+          responseBody = json.decode(responseBody);
+        } catch (e) {
+          if (showSnack)
+            SnackBarHelper.showErrorSnackBar('Invalid response format');
+          return _filteredNotifications;
+        }
+      }
+
+      if (responseBody is! Map<String, dynamic>) {
+        if (showSnack)
+          SnackBarHelper.showErrorSnackBar('Invalid response format');
+        return _filteredNotifications;
+      }
+
       ApiResponse<List<MyNotification>> apiResponse = ApiResponse.fromJson(
-        response.body,
+        responseBody,
         (json) => (json as List)
             .map((item) => MyNotification.fromJson(item))
             .toList(),
       );
+
       _allNotifications = apiResponse.data ?? [];
       _filteredNotifications = List.from(_allNotifications);
       notifyListeners();
-      if (showSnack) {
+
+      if (showSnack && apiResponse.message.isNotEmpty) {
         SnackBarHelper.showSuccessSnackBar(apiResponse.message);
       }
     } catch (e) {
-      if (showSnack) SnackBarHelper.showSuccessSnackBar(e.toString());
-      rethrow;
+      print('Error in getAllNotifications: $e');
+      if (showSnack)
+        SnackBarHelper.showErrorSnackBar('Failed to load notifications: $e');
     }
     return _filteredNotifications;
   }
@@ -389,19 +651,46 @@ class DataProvider extends ChangeNotifier {
   Future<List<Order>> getAllOrders({bool showSnack = false}) async {
     try {
       Response response = await service.getItems(endpointUrl: 'orders');
+
+      if (response.body == null) {
+        if (showSnack)
+          SnackBarHelper.showErrorSnackBar('No response from server');
+        return _filteredOrders;
+      }
+
+      dynamic responseBody = response.body;
+      if (responseBody is String) {
+        try {
+          responseBody = json.decode(responseBody);
+        } catch (e) {
+          if (showSnack)
+            SnackBarHelper.showErrorSnackBar('Invalid response format');
+          return _filteredOrders;
+        }
+      }
+
+      if (responseBody is! Map<String, dynamic>) {
+        if (showSnack)
+          SnackBarHelper.showErrorSnackBar('Invalid response format');
+        return _filteredOrders;
+      }
+
       ApiResponse<List<Order>> apiResponse = ApiResponse<List<Order>>.fromJson(
-        response.body,
+        responseBody,
         (json) => (json as List).map((item) => Order.fromJson(item)).toList(),
       );
+
       _allOrders = apiResponse.data ?? [];
       _filteredOrders = List.from(_allOrders);
       notifyListeners();
-      if (showSnack) {
+
+      if (showSnack && apiResponse.message.isNotEmpty) {
         SnackBarHelper.showSuccessSnackBar(apiResponse.message);
       }
     } catch (e) {
-      if (showSnack) SnackBarHelper.showSuccessSnackBar(e.toString());
-      rethrow;
+      print('Error in getAllOrders: $e');
+      if (showSnack)
+        SnackBarHelper.showErrorSnackBar('Failed to load orders: $e');
     }
     return _filteredOrders;
   }
@@ -412,12 +701,10 @@ class DataProvider extends ChangeNotifier {
     } else {
       final lowcase = keyword.toLowerCase();
       _filteredOrders = _allOrders.where((order) {
-        bool nameMatches = (order.userID?.name ?? '').toLowerCase().contains(
-          lowcase,
-        );
-        bool statusMatches = (order.orderStatus ?? '').toLowerCase().contains(
-          lowcase,
-        );
+        bool nameMatches =
+            (order.userID?.name ?? '').toLowerCase().contains(lowcase);
+        bool statusMatches =
+            (order.orderStatus ?? '').toLowerCase().contains(lowcase);
         return nameMatches || statusMatches;
       }).toList();
     }
