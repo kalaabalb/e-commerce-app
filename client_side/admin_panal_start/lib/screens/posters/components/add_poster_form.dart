@@ -1,3 +1,6 @@
+// lib/screens/posters/components/add_poster_form.dart
+import '../../../utility/responsive_utils.dart';
+import '../../../widgets/compact_form_dialog.dart';
 import '../provider/poster_provider.dart';
 import '../../../utility/extensions.dart';
 import 'package:flutter/material.dart';
@@ -15,103 +18,121 @@ class PosterSubmitForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var size = MediaQuery.of(context).size;
     context.posterProvider.setDataForUpdatePoster(poster);
-    return SingleChildScrollView(
+    return Padding(
+      padding: EdgeInsets.all(ResponsiveUtils.getPadding(context)),
       child: Form(
         key: context.posterProvider.addPosterFormKey,
-        child: Container(
-          padding: EdgeInsets.all(defaultPadding),
-          width: size.width * 0.3,
-          decoration: BoxDecoration(
-            color: bgColor,
-            borderRadius: BorderRadius.circular(12.0),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Gap(defaultPadding),
-              Consumer<PosterProvider>(
-                builder: (context, posterProvider, child) {
-                  return CategoryImageCard(
-                    labelText: "Poster",
-                    imageFile: posterProvider.selectedImage,
-                    imageUrlForUpdateImage: poster?.imageUrl,
-                    onTap: () {
-                      posterProvider.pickImage();
-                    },
-                  );
-                },
-              ),
-              Gap(defaultPadding),
-              CustomTextField(
-                controller: context.posterProvider.posterNameCtrl,
-                labelText: 'Poster Name',
-                onSave: (val) {},
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter a poster name';
-                  }
-                  return null;
-                },
-              ),
-              Gap(defaultPadding * 2),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      backgroundColor: secondaryColor,
-                    ),
-                    onPressed: () {
-                      Navigator.of(context).pop(); // Close the popup
-                    },
-                    child: Text('Cancel'),
-                  ),
-                  Gap(defaultPadding),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      backgroundColor: primaryColor,
-                    ),
-                    onPressed: () {
-                      // Validate and save the form
-                      if (context.posterProvider.addPosterFormKey.currentState!
-                          .validate()) {
-                        context.posterProvider.addPosterFormKey.currentState!
-                            .save();
-                        context.posterProvider.submitPoster();
-
-                        Navigator.of(context).pop();
-                      }
-                    },
-                    child: Text('Submit'),
-                  ),
-                ],
-              ),
-            ],
-          ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildImageSection(context),
+            Gap(ResponsiveUtils.getPadding(context)),
+            _buildNameField(context),
+            Gap(ResponsiveUtils.getPadding(context)),
+            _buildActionButtons(context),
+          ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildImageSection(BuildContext context) {
+    return Consumer<PosterProvider>(
+      builder: (context, posterProvider, child) {
+        return Column(
+          children: [
+            SizedBox(
+              width: ResponsiveUtils.isMobile(context) ? 120 : 150,
+              child: CategoryImageCard(
+                labelText: "Poster",
+                imageFile: posterProvider.selectedImage,
+                imageUrlForUpdateImage: poster?.imageUrl,
+                onTap: () {
+                  posterProvider.pickImage(context);
+                },
+                onRemoveImage: () {
+                  posterProvider.selectedImage = null;
+                  posterProvider.imgXFile = null;
+                  posterProvider.notifyListeners();
+                },
+              ),
+            ),
+            SizedBox(height: 8),
+            Text(
+              'Tap to add poster image',
+              style: TextStyle(
+                color: Colors.white70,
+                fontSize: 12,
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildNameField(BuildContext context) {
+    return CustomTextField(
+      controller: context.posterProvider.posterNameCtrl,
+      labelText: 'Poster Name',
+      onSave: (val) {},
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Please enter a poster name';
+        }
+        return null;
+      },
+    );
+  }
+
+  Widget _buildActionButtons(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.only(top: 16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              foregroundColor: Colors.white,
+              backgroundColor: secondaryColor,
+              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            ),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: Text('Cancel'),
+          ),
+          Gap(ResponsiveUtils.getPadding(context)),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              foregroundColor: Colors.white,
+              backgroundColor: primaryColor,
+              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            ),
+            onPressed: () {
+              if (context.posterProvider.addPosterFormKey.currentState!
+                  .validate()) {
+                context.posterProvider.addPosterFormKey.currentState!.save();
+                context.posterProvider.submitPoster();
+                Navigator.of(context).pop();
+              }
+            },
+            child: Text('Submit'),
+          ),
+        ],
       ),
     );
   }
 }
 
-// How to show the category popup
 void showAddPosterForm(BuildContext context, Poster? poster) {
   showDialog(
     context: context,
     builder: (BuildContext context) {
-      return AlertDialog(
-        backgroundColor: bgColor,
-        title: Center(
-          child: Text(
-            'Add Poster'.toUpperCase(),
-            style: TextStyle(color: primaryColor),
-          ),
-        ),
-        content: PosterSubmitForm(poster: poster),
+      return CompactFormDialog(
+        title: 'Add Poster',
+        child: PosterSubmitForm(poster: poster),
       );
     },
   );
