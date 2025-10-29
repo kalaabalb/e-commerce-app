@@ -16,17 +16,14 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(helmet());
 
-// Static folders
+// FIX: Change '/image/posters' to '/image/poster' to match your database URLs
 app.use('/image/products', express.static(path.join(__dirname, 'public/products')));
 app.use('/image/category', express.static(path.join(__dirname, 'public/category')));
-app.use('/image/poster', express.static(path.join(__dirname, 'public/posters')));
+app.use('/image/poster', express.static(path.join(__dirname, 'public/posters'))); // <- REMOVE THE 's'
 
 // MongoDB connection
 mongoose.set('strictQuery', true);
-mongoose.connect(process.env.MONGO_URL, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-});
+mongoose.connect(process.env.MONGO_URL);
 const db = mongoose.connection;
 db.on('error', console.error);
 db.once('open', () => console.log('Connected to Database'));
@@ -61,4 +58,3 @@ app.use((error, req, res, next) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-
