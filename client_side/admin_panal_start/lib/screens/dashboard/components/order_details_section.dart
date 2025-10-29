@@ -6,20 +6,24 @@ import 'chart.dart';
 import 'order_info_card.dart';
 
 class OrderDetailsSection extends StatelessWidget {
-  const OrderDetailsSection({
-    Key? key,
-  }) : super(key: key);
+  const OrderDetailsSection({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Consumer<DataProvider>(
       builder: (context, dataProvider, child) {
-   int totalOrder = dataProvider.calculateOrdersWithStatus( ); 
-    int pendingOrder = dataProvider.calculateOrdersWithStatus('pending');
-    int processingOrder = dataProvider.calculateOrdersWithStatus('processing');
-    int cancelledOrder = dataProvider.calculateOrdersWithStatus('cancelled');
-    int shippedOrder = dataProvider.calculateOrdersWithStatus('shipped');
-    int deliveredOrder =dataProvider.calculateOrdersWithStatus('delivered');
+        int totalOrder = dataProvider.calculateOrdersWithStatus(null);
+        int pendingOrder = dataProvider.calculateOrdersWithStatus('pending');
+        int processingOrder = dataProvider.calculateOrdersWithStatus(
+          'processing',
+        );
+        int cancelledOrder = dataProvider.calculateOrdersWithStatus(
+          'cancelled',
+        );
+        int shippedOrder = dataProvider.calculateOrdersWithStatus('shipped');
+        int deliveredOrder = dataProvider.calculateOrdersWithStatus(
+          'delivered',
+        );
         return Container(
           padding: EdgeInsets.all(defaultPadding),
           decoration: BoxDecoration(
@@ -31,10 +35,7 @@ class OrderDetailsSection extends StatelessWidget {
             children: [
               Text(
                 "Orders Details",
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w500,
-                ),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
               ),
               SizedBox(height: defaultPadding),
               Chart(),
