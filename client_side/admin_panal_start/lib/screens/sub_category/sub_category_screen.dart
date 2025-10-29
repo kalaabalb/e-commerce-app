@@ -1,4 +1,6 @@
+// lib/screens/sub_category/sub_category_screen.dart
 import 'package:admin_panal_start/utility/extensions.dart';
+import 'package:admin_panal_start/utility/responsive_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import '../../utility/constants.dart';
@@ -12,7 +14,7 @@ class SubCategoryScreen extends StatelessWidget {
     return SafeArea(
       child: SingleChildScrollView(
         primary: false,
-        padding: EdgeInsets.all(defaultPadding),
+        padding: EdgeInsets.all(ResponsiveUtils.getPadding(context)),
         child: Column(
           children: [
             SubCategoryHeader(),
@@ -36,8 +38,12 @@ class SubCategoryScreen extends StatelessWidget {
                           ElevatedButton.icon(
                             style: TextButton.styleFrom(
                               padding: EdgeInsets.symmetric(
-                                horizontal: defaultPadding * 1.5,
-                                vertical: defaultPadding,
+                                horizontal: ResponsiveUtils.isMobile(context)
+                                    ? defaultPadding
+                                    : defaultPadding * 1.5,
+                                vertical: ResponsiveUtils.isMobile(context)
+                                    ? defaultPadding / 2
+                                    : defaultPadding,
                               ),
                             ),
                             onPressed: () {
@@ -46,13 +52,11 @@ class SubCategoryScreen extends StatelessWidget {
                             icon: Icon(Icons.add),
                             label: Text("Add New"),
                           ),
-                          Gap(20),
+                          Gap(ResponsiveUtils.isMobile(context) ? 8 : 20),
                           IconButton(
                             onPressed: () {
-                              context.subCategoryProvider.addSubCategory();
-                              context.dataProvider.getAllSubCategory(
-                                showSnack: true,
-                              );
+                              context.dataProvider
+                                  .getAllSubCategory(showSnack: true);
                             },
                             icon: Icon(Icons.refresh),
                           ),
