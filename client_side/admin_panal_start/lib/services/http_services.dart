@@ -3,43 +3,83 @@ import 'package:get/get_connect.dart';
 import 'package:get/get.dart';
 import '../utility/constants.dart';
 
-class HttpService  {
+class HttpService extends GetConnect {
   final String baseUrl = MAIN_URL;
+
+  @override
+  void onInit() {
+    httpClient.baseUrl = baseUrl;
+    httpClient.timeout = Duration(seconds: 30);
+    httpClient.addRequestModifier<void>((request) {
+      print('🚀 Making ${request.method} request to: ${request.url}');
+      return request;
+    });
+    super.onInit();
+  }
 
   Future<Response> getItems({required String endpointUrl}) async {
     try {
-      return await GetConnect().get('$baseUrl/$endpointUrl');
-    } catch (e) {
-      return Response(body: json.encode({'error': e.toString()}), statusCode: 500);
-    }
-  }
-
-
-  Future<Response> addItem({required String endpointUrl, required dynamic itemData}) async {
-    try {
-      final response = await GetConnect().post('$baseUrl/$endpointUrl',itemData);
-      print(response.body);
+      final response = await get('/$endpointUrl');
+      print('✅ GET $endpointUrl - Status: ${response.statusCode}');
       return response;
     } catch (e) {
-      print('Error: $e');
-      return Response(body: json.encode({'message': e.toString()}), statusCode: 500);
+      print('❌ Error in getItems $endpointUrl: $e');
+      return Response(
+        statusCode: 500,
+        statusText: 'Network error',
+        body: {'success': false, 'message': 'Network error: $e'},
+      );
     }
   }
 
-
-  Future<Response> updateItem({required String endpointUrl, required String itemId, required dynamic itemData}) async {
+  Future<Response> addItem(
+      {required String endpointUrl, required dynamic itemData}) async {
     try {
-      return await GetConnect().put('$baseUrl/$endpointUrl/$itemId', itemData);
+      final response = await post('/$endpointUrl', itemData);
+      print('✅ POST $endpointUrl - Status: ${response.statusCode}');
+      print('Response: ${response.body}');
+      return response;
     } catch (e) {
-      return Response(body: json.encode({'message': e.toString()}), statusCode: 500);
+      print('❌ Error in addItem $endpointUrl: $e');
+      return Response(
+        statusCode: 500,
+        statusText: 'Network error',
+        body: {'success': false, 'message': 'Network error: $e'},
+      );
     }
   }
 
-  Future<Response> deleteItem({required String endpointUrl, required String itemId}) async {
+  Future<Response> updateItem(
+      {required String endpointUrl,
+      required String itemId,
+      required dynamic itemData}) async {
     try {
-      return await GetConnect().delete('$baseUrl/$endpointUrl/$itemId');
+      final response = await put('/$endpointUrl/$itemId', itemData);
+      print('✅ PUT $endpointUrl/$itemId - Status: ${response.statusCode}');
+      return response;
     } catch (e) {
-      return Response(body: json.encode({'message': e.toString()}), statusCode: 500);
+      print('❌ Error in updateItem $endpointUrl/$itemId: $e');
+      return Response(
+        statusCode: 500,
+        statusText: 'Network error',
+        body: {'success': false, 'message': 'Network error: $e'},
+      );
+    }
+  }
+
+  Future<Response> deleteItem(
+      {required String endpointUrl, required String itemId}) async {
+    try {
+      final response = await delete('/$endpointUrl/$itemId');
+      print('✅ DELETE $endpointUrl/$itemId - Status: ${response.statusCode}');
+      return response;
+    } catch (e) {
+      print('❌ Error in deleteItem $endpointUrl/$itemId: $e');
+      return Response(
+        statusCode: 500,
+        statusText: 'Network error',
+        body: {'success': false, 'message': 'Network error: $e'},
+      );
     }
   }
 }
