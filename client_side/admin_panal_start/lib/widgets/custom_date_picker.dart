@@ -1,6 +1,8 @@
+// lib/widgets/custom_date_picker.dart
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../utility/constants.dart';
+import 'package:admin_panal_start/utility/responsive_utils.dart';
 
 class CustomDatePicker extends StatefulWidget {
   final String labelText;
@@ -35,13 +37,14 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
         return Theme(
           data: ThemeData.light().copyWith(
             colorScheme: ColorScheme.light(
-              primary: primaryColor, // header background color
-              onPrimary: Colors.white, // header text color
-              onSurface: Colors.black, // body text color
+              primary: primaryColor,
+              onPrimary: Colors.white,
+              onSurface: Colors.black,
             ),
+            dialogBackgroundColor: Colors.white,
             textButtonTheme: TextButtonThemeData(
               style: TextButton.styleFrom(
-                foregroundColor: secondaryColor, // button text color
+                foregroundColor: primaryColor,
               ),
             ),
           ),
@@ -65,13 +68,39 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
         controller: widget.controller,
         decoration: InputDecoration(
           labelText: widget.labelText,
-          suffixIcon: Icon(Icons.calendar_today),
+          labelStyle: TextStyle(
+            color: Colors.grey.shade600,
+            fontSize: ResponsiveUtils.isMobile(context) ? 14 : 16,
+          ),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8.0),
+            borderRadius: BorderRadius.circular(12.0),
+            borderSide: BorderSide(color: Colors.grey.shade400),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12.0),
+            borderSide: BorderSide(color: Colors.grey.shade400),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12.0),
+            borderSide: BorderSide(color: primaryColor, width: 2),
+          ),
+          filled: true,
+          fillColor: Colors.grey[50],
+          contentPadding: EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: ResponsiveUtils.isMobile(context) ? 12 : 16,
+          ),
+          suffixIcon: IconButton(
+            icon: Icon(Icons.calendar_today, color: primaryColor),
+            onPressed: () => _selectDate(context),
           ),
         ),
         readOnly: true,
         onTap: () => _selectDate(context),
+        style: TextStyle(
+          fontSize: ResponsiveUtils.isMobile(context) ? 14 : 16,
+          color: Colors.black87,
+        ),
       ),
     );
   }
