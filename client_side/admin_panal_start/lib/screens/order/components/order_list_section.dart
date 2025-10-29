@@ -1,5 +1,7 @@
+// lib/screens/order/components/order_list_section.dart
 import 'package:admin_panal_start/utility/extensions.dart';
-
+import 'package:admin_panal_start/utility/responsive_utils.dart';
+import 'package:admin_panal_start/widgets/responsive_data_table.dart';
 import '../../../core/data/data_provider.dart';
 import 'view_order_form.dart';
 import 'package:flutter/material.dart';
@@ -14,7 +16,7 @@ class OrderListSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(defaultPadding),
+      padding: EdgeInsets.all(ResponsiveUtils.getPadding(context)),
       decoration: BoxDecoration(
         color: secondaryColor,
         borderRadius: const BorderRadius.all(Radius.circular(10)),
@@ -27,9 +29,7 @@ class OrderListSection extends StatelessWidget {
             width: double.infinity,
             child: Consumer<DataProvider>(
               builder: (context, dataProvider, child) {
-                return DataTable(
-                  columnSpacing: defaultPadding,
-                  // minWidth: 600,
+                return ResponsiveDataTable(
                   columns: [
                     DataColumn(label: Text("Customer Name")),
                     DataColumn(label: Text("Order Amount")),
@@ -45,9 +45,8 @@ class OrderListSection extends StatelessWidget {
                       dataProvider.orders[index],
                       index + 1,
                       delete: () {
-                        context.orderProvider.deleteOrder(
-                          dataProvider.orders[index],
-                        );
+                        context.orderProvider
+                            .deleteOrder(dataProvider.orders[index]);
                       },
                       edit: () {
                         showOrderForm(context, dataProvider.orders[index]);
@@ -64,12 +63,8 @@ class OrderListSection extends StatelessWidget {
   }
 }
 
-DataRow orderDataRow(
-  Order orderInfo,
-  int index, {
-  Function? edit,
-  Function? delete,
-}) {
+DataRow orderDataRow(Order orderInfo, int index,
+    {Function? edit, Function? delete}) {
   return DataRow(
     cells: [
       DataCell(
@@ -85,16 +80,36 @@ DataRow orderDataRow(
               child: Text(index.toString(), textAlign: TextAlign.center),
             ),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: defaultPadding),
-              child: Text(orderInfo.userID?.name ?? ''),
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Text(
+                orderInfo.userID?.name ?? '',
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+              ),
             ),
           ],
         ),
       ),
-      DataCell(Text('${orderInfo.orderTotal?.total}')),
-      DataCell(Text(orderInfo.paymentMethod ?? '')),
-      DataCell(Text(orderInfo.orderStatus ?? '')),
-      DataCell(Text(orderInfo.orderDate ?? '')),
+      DataCell(Text(
+        '${orderInfo.orderTotal?.total}',
+        overflow: TextOverflow.ellipsis,
+        maxLines: 1,
+      )),
+      DataCell(Text(
+        orderInfo.paymentMethod ?? '',
+        overflow: TextOverflow.ellipsis,
+        maxLines: 1,
+      )),
+      DataCell(Text(
+        orderInfo.orderStatus ?? '',
+        overflow: TextOverflow.ellipsis,
+        maxLines: 1,
+      )),
+      DataCell(Text(
+        orderInfo.orderDate ?? '',
+        overflow: TextOverflow.ellipsis,
+        maxLines: 1,
+      )),
       DataCell(
         IconButton(
           onPressed: () {
