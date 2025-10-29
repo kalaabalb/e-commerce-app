@@ -6,12 +6,24 @@ class ApiResponse<T> {
   ApiResponse({required this.success, required this.message, this.data});
 
   factory ApiResponse.fromJson(
-      Map<String, dynamic> json,
-      T Function(Object? json)? fromJsonT,
-      ) =>
-      ApiResponse(
-        success: json['success'] as bool,
-        message: json['message'] as String,
-        data: json['data'] != null ? fromJsonT!(json['data']) : null,
+    Map<String, dynamic> json,
+    T Function(Object? json)? fromJsonT,
+  ) {
+    try {
+      return ApiResponse(
+        success: json['success'] as bool? ?? false,
+        message: json['message'] as String? ?? 'No message',
+        data: (json['data'] != null && fromJsonT != null)
+            ? fromJsonT(json['data'])
+            : null,
       );
+    } catch (e) {
+      print('Error parsing ApiResponse: $e');
+      return ApiResponse(
+        success: false,
+        message: 'Error parsing response: $e',
+        data: null,
+      );
+    }
+  }
 }
