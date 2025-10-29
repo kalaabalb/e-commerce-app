@@ -1,6 +1,9 @@
+// lib/screens/order/components/view_order_form.dart
 import '../../../models/order.dart';
 import '../../../utility/constants.dart';
 import '../../../utility/extensions.dart';
+import '../../../utility/responsive_utils.dart';
+import '../../../widgets/compact_form_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:provider/provider.dart';
@@ -15,93 +18,25 @@ class OrderSubmitForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var size = MediaQuery.of(context).size;
     context.orderProvider.trackingUrlCtrl.text = order?.trackingUrl ?? '';
     context.orderProvider.orderForUpdate = order;
     return SingleChildScrollView(
       child: Container(
-        padding: EdgeInsets.all(defaultPadding),
-        width: size.width * 0.5, // Adjust width based on screen size
-        decoration: BoxDecoration(
-          color: bgColor,
-          borderRadius: BorderRadius.circular(12.0),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              spreadRadius: 5,
-              blurRadius: 7,
-              offset: Offset(0, 3),
-            ),
-          ],
-        ),
+        padding: EdgeInsets.all(ResponsiveUtils.getPadding(context)),
         child: Form(
           key: Provider.of<OrderProvider>(context, listen: false).orderFormKey,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: formRow(
-                      'Name:',
-                      Text(
-                        order?.userID?.name ?? 'N/A',
-                        style: TextStyle(fontSize: 16),
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    child: formRow(
-                      'Order Id:',
-                      Text(order?.sId ?? 'N/A', style: TextStyle(fontSize: 12)),
-                    ),
-                  ),
-                ],
-              ),
-              itemsSection(),
-              addressSection(),
+              _buildBasicInfo(context),
+              _buildItemsSection(context),
+              _buildAddressSection(context),
               Gap(10),
-              paymentDetailsSection(),
-              formRow(
-                'Order Status:',
-                Consumer<OrderProvider>(
-                  builder: (context, orderProvider, child) {
-                    return CustomDropdown(
-                      hintText: 'Status',
-                      initialValue: orderProvider.selectedOrderStatus,
-                      items: [
-                        'pending',
-                        'processing',
-                        'shipped',
-                        'delivered',
-                        'cancelled',
-                      ],
-                      displayItem: (val) => val,
-                      onChanged: (newValue) {
-                        orderProvider.selectedOrderStatus =
-                            newValue ?? 'pending';
-                        orderProvider.updateUI();
-                      },
-                      validator: (value) {
-                        if (value == null) {
-                          return 'Please select status';
-                        }
-                        return null;
-                      },
-                    );
-                  },
-                ),
-              ),
-              formRow(
-                'Tracking URL:',
-                CustomTextField(
-                  labelText: 'Tracking Url',
-                  onSave: (val) {},
-                  controller: context.orderProvider.trackingUrlCtrl,
-                ),
-              ),
-              Gap(defaultPadding * 2),
-              actionButtons(context),
+              _buildPaymentDetailsSection(context),
+              _buildStatusSection(context),
+              _buildTrackingSection(context),
+              Gap(ResponsiveUtils.getPadding(context) * 2),
+              _buildActionButtons(context),
             ],
           ),
         ),
@@ -109,83 +44,31 @@ class OrderSubmitForm extends StatelessWidget {
     );
   }
 
-  Widget formRow(String label, Widget dataWidget) {
+  Widget _buildBasicInfo(BuildContext context) {
+    return Column(
+      children: [
+        _buildInfoRow('Name:', order?.userID?.name ?? 'N/A'),
+        _buildInfoRow('Order Id:', order?.sId ?? 'N/A'),
+      ],
+    );
+  }
+
+  Widget _buildInfoRow(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Text(
+            label,
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+          ),
+          SizedBox(width: 8),
           Expanded(
-            flex: 1,
             child: Text(
-              label,
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-            ),
-          ),
-          Expanded(flex: 2, child: dataWidget),
-        ],
-      ),
-    );
-  }
-
-  Widget addressSection() {
-    return Container(
-      margin: EdgeInsets.only(top: 20),
-      padding: EdgeInsets.all(defaultPadding),
-      decoration: BoxDecoration(
-        color: secondaryColor, // Light grey background to stand out
-        borderRadius: BorderRadius.circular(8.0),
-        border: Border.all(
-          color: Colors.blueAccent,
-        ), // Blue border for emphasis
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: EdgeInsets.symmetric(vertical: 8.0),
-            child: Text(
-              'Shipping Address',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.blueAccent,
-              ),
-            ),
-          ),
-          formRow(
-            'Phone:',
-            Text(
-              order?.shippingAddress?.phone ?? 'N/A',
-              style: TextStyle(fontSize: 16),
-            ),
-          ),
-          formRow(
-            'Street:',
-            Text(
-              order?.shippingAddress?.street ?? 'N/A',
-              style: TextStyle(fontSize: 16),
-            ),
-          ),
-          formRow(
-            'City:',
-            Text(
-              order?.shippingAddress?.city ?? 'N/A',
-              style: TextStyle(fontSize: 16),
-            ),
-          ),
-          formRow(
-            'Postal Code:',
-            Text(
-              order?.shippingAddress?.postalCode ?? 'N/A',
-              style: TextStyle(fontSize: 16),
-            ),
-          ),
-          formRow(
-            'Country:',
-            Text(
-              order?.shippingAddress?.country ?? 'N/A',
-              style: TextStyle(fontSize: 16),
+              value,
+              style: TextStyle(fontSize: 14),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
@@ -193,116 +76,31 @@ class OrderSubmitForm extends StatelessWidget {
     );
   }
 
-  Widget paymentDetailsSection() {
+  Widget _buildItemsSection(BuildContext context) {
     return Container(
-      margin: EdgeInsets.only(top: 20),
-      padding: EdgeInsets.all(defaultPadding),
+      margin: EdgeInsets.only(top: 12),
+      padding: EdgeInsets.all(ResponsiveUtils.getPadding(context)),
       decoration: BoxDecoration(
         color: secondaryColor,
         border: Border.all(color: Colors.blueAccent),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.2),
-            spreadRadius: 1,
-            blurRadius: 3,
-            offset: Offset(0, 1),
-          ),
-        ],
         borderRadius: BorderRadius.circular(8.0),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: EdgeInsets.symmetric(vertical: 8.0),
-            child: Text(
-              'Payment Details',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: primaryColor,
-              ),
+          Text(
+            'Items',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: primaryColor,
             ),
           ),
-          formRow(
-            'Payment Method:',
-            Text(order?.paymentMethod ?? 'N/A', style: TextStyle(fontSize: 16)),
-          ),
-          formRow(
-            'Coupon Code:',
-            Text(
-              order?.couponCode?.couponCode ?? 'N/A',
-              style: TextStyle(fontSize: 16),
-            ),
-          ),
-          formRow(
-            'Order Sub Total:',
-            Text(
-              '\$${order?.orderTotal?.subtotal?.toStringAsFixed(2) ?? 'N/A'}',
-              style: TextStyle(fontSize: 16),
-            ),
-          ),
-          formRow(
-            'Discount:',
-            Text(
-              '\$${order?.orderTotal?.discount?.toStringAsFixed(2) ?? 'N/A'}',
-              style: TextStyle(fontSize: 16, color: Colors.red),
-            ),
-          ),
-          formRow(
-            'Grand Total:',
-            Text(
-              '\$${order?.orderTotal?.total?.toStringAsFixed(2) ?? 'N/A'}',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget itemsSection() {
-    return Container(
-      margin: EdgeInsets.only(top: 20),
-      padding: EdgeInsets.all(defaultPadding),
-      decoration: BoxDecoration(
-        color: secondaryColor,
-        border: Border.all(color: Colors.blueAccent),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.2),
-            spreadRadius: 1,
-            blurRadius: 3,
-            offset: Offset(0, 1),
-          ),
-        ],
-        borderRadius: BorderRadius.circular(8.0),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: EdgeInsets.symmetric(vertical: 8.0),
-            child: Text(
-              'Items',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: primaryColor,
-              ),
-            ),
-          ),
+          SizedBox(height: 8),
           _buildItemsList(),
-          SizedBox(
-            height: defaultPadding,
-          ), // Add some spacing before the total price
-          formRow(
-            'Total Price:',
-            Text(
-              '\$${order?.totalPrice?.toStringAsFixed(2) ?? 'N/A'}',
-              style: TextStyle(fontSize: 16, color: Colors.green),
-            ),
-          ),
+          SizedBox(height: 8),
+          _buildInfoRow('Total Price:',
+              '\$${order?.totalPrice?.toStringAsFixed(2) ?? 'N/A'}'),
         ],
       ),
     );
@@ -310,27 +108,152 @@ class OrderSubmitForm extends StatelessWidget {
 
   Widget _buildItemsList() {
     if (order?.items == null || order!.items!.isEmpty) {
-      return Text('No items', style: TextStyle(fontSize: 16));
+      return Text('No items', style: TextStyle(fontSize: 14));
     }
-    return ListView.builder(
-      shrinkWrap: true,
-      physics:
-          NeverScrollableScrollPhysics(), // Disable scrolling within ListView
-      itemCount: order!.items!.length,
-      itemBuilder: (context, index) {
-        final item = order!.items![index];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: order!.items!.map((item) {
         return Padding(
-          padding: EdgeInsets.only(bottom: 4.0), // Add spacing between items
+          padding: EdgeInsets.only(bottom: 4.0),
           child: Text(
             '${item.productName}: ${item.quantity} x \$${item.price?.toStringAsFixed(2)}',
-            style: TextStyle(fontSize: 16),
+            style: TextStyle(fontSize: 14),
           ),
         );
-      },
+      }).toList(),
     );
   }
 
-  Widget actionButtons(BuildContext context) {
+  Widget _buildAddressSection(BuildContext context) {
+    return Container(
+      margin: EdgeInsets.only(top: 12),
+      padding: EdgeInsets.all(ResponsiveUtils.getPadding(context)),
+      decoration: BoxDecoration(
+        color: secondaryColor,
+        border: Border.all(color: Colors.blueAccent),
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Shipping Address',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.blueAccent,
+            ),
+          ),
+          SizedBox(height: 8),
+          _buildInfoRow('Phone:', order?.shippingAddress?.phone ?? 'N/A'),
+          _buildInfoRow('Street:', order?.shippingAddress?.street ?? 'N/A'),
+          _buildInfoRow('City:', order?.shippingAddress?.city ?? 'N/A'),
+          _buildInfoRow(
+              'Postal Code:', order?.shippingAddress?.postalCode ?? 'N/A'),
+          _buildInfoRow('Country:', order?.shippingAddress?.country ?? 'N/A'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPaymentDetailsSection(BuildContext context) {
+    return Container(
+      margin: EdgeInsets.only(top: 12),
+      padding: EdgeInsets.all(ResponsiveUtils.getPadding(context)),
+      decoration: BoxDecoration(
+        color: secondaryColor,
+        border: Border.all(color: Colors.blueAccent),
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Payment Details',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: primaryColor,
+            ),
+          ),
+          SizedBox(height: 8),
+          _buildInfoRow('Payment Method:', order?.paymentMethod ?? 'N/A'),
+          _buildInfoRow('Coupon Code:', order?.couponCode?.couponCode ?? 'N/A'),
+          _buildInfoRow('Sub Total:',
+              '\$${order?.orderTotal?.subtotal?.toStringAsFixed(2) ?? 'N/A'}'),
+          _buildInfoRow('Discount:',
+              '\$${order?.orderTotal?.discount?.toStringAsFixed(2) ?? 'N/A'}'),
+          _buildInfoRow('Grand Total:',
+              '\$${order?.orderTotal?.total?.toStringAsFixed(2) ?? 'N/A'}'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatusSection(BuildContext context) {
+    return Container(
+      margin: EdgeInsets.only(top: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Order Status:',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+          ),
+          SizedBox(height: 4),
+          Consumer<OrderProvider>(
+            builder: (context, orderProvider, child) {
+              return CustomDropdown(
+                hintText: 'Status',
+                initialValue: orderProvider.selectedOrderStatus,
+                items: [
+                  'pending',
+                  'processing',
+                  'shipped',
+                  'delivered',
+                  'cancelled',
+                ],
+                displayItem: (val) => val,
+                onChanged: (newValue) {
+                  orderProvider.selectedOrderStatus = newValue ?? 'pending';
+                  orderProvider.updateUI();
+                },
+                validator: (value) {
+                  if (value == null) {
+                    return 'Please select status';
+                  }
+                  return null;
+                },
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTrackingSection(BuildContext context) {
+    return Container(
+      margin: EdgeInsets.only(top: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Tracking URL:',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+          ),
+          SizedBox(height: 4),
+          CustomTextField(
+            labelText: 'Tracking Url',
+            onSave: (val) {},
+            controller: context.orderProvider.trackingUrlCtrl,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionButtons(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -339,18 +262,18 @@ class OrderSubmitForm extends StatelessWidget {
           onPressed: () => Navigator.of(context).pop(),
           child: const Text('Cancel'),
         ),
-        Gap(defaultPadding),
+        Gap(ResponsiveUtils.getPadding(context)),
         ElevatedButton(
           style: ElevatedButton.styleFrom(backgroundColor: primaryColor),
           onPressed: () {
-            if (Provider.of<OrderProvider>(
-              context,
-              listen: false,
-            ).orderFormKey.currentState!.validate()) {
-              Provider.of<OrderProvider>(
-                context,
-                listen: false,
-              ).orderFormKey.currentState!.save();
+            if (Provider.of<OrderProvider>(context, listen: false)
+                .orderFormKey
+                .currentState!
+                .validate()) {
+              Provider.of<OrderProvider>(context, listen: false)
+                  .orderFormKey
+                  .currentState!
+                  .save();
               context.orderProvider.updateOrder();
               Navigator.of(context).pop();
             }
@@ -362,20 +285,14 @@ class OrderSubmitForm extends StatelessWidget {
   }
 }
 
-// How to show the order popup
 void showOrderForm(BuildContext context, Order? order) {
   showDialog(
     context: context,
     builder: (BuildContext context) {
-      return AlertDialog(
-        backgroundColor: bgColor,
-        title: Center(
-          child: Text(
-            'Order Details'.toUpperCase(),
-            style: TextStyle(color: primaryColor),
-          ),
-        ),
-        content: OrderSubmitForm(order: order),
+      return CompactFormDialog(
+        title: 'Order Details',
+        maxWidth: ResponsiveUtils.isMobile(context) ? double.infinity : 600,
+        child: OrderSubmitForm(order: order),
       );
     },
   );
