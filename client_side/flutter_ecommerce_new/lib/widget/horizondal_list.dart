@@ -38,6 +38,3 @@ class HorizontalList<T> extends StatelessWidget {
     );
   }
 }
-
-
-
