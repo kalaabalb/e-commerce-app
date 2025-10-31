@@ -1,68 +1,84 @@
-import 'product_cart_screen/cart_screen.dart';
-import 'product_favorite_screen/favorite_screen.dart';
-import 'product_list_screen/product_list_screen.dart';
-import 'profile_screen/profile_screen.dart';
+import 'package:e_commerce_flutter/core/data/data_provider.dart';
+import 'package:e_commerce_flutter/screen/product_list_screen/product_list_screen.dart';
+import 'package:e_commerce_flutter/screen/product_cart_screen/cart_screen.dart';
+import 'package:e_commerce_flutter/screen/profile_screen/profile_screen.dart';
+import 'package:e_commerce_flutter/screen/product_favorite_screen/favorite_screen.dart';
+import 'package:e_commerce_flutter/utility/app_color.dart';
+import 'package:e_commerce_flutter/utility/bottom_navy_bar_item.dart';
 import 'package:flutter/material.dart';
-import 'package:animations/animations.dart';
-import 'package:bottom_navy_bar/bottom_navy_bar.dart';
-import '../../../utility/app_data.dart';
-import '../../../widget/page_wrapper.dart';
+import 'package:provider/provider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
-
-  static const List<Widget> screens = [
-    ProductListScreen(),
-    FavoriteScreen(),
-    CartScreen(),
-    ProfileScreen()
-  ];
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int newIndex = 0;
+  int _currentIndex = 0;
+
+  final List<Widget> _screens = [
+    const ProductListScreen(),
+    const FavoriteScreen(),
+    const CartScreen(),
+    const ProfileScreen(),
+  ];
 
   @override
   Widget build(BuildContext context) {
-    return PageWrapper(
-      child: Scaffold(
-        bottomNavigationBar: BottomNavyBar(
-          itemCornerRadius: 10,
-          selectedIndex: newIndex,
-          items: AppData.bottomNavyBarItems
-              .map(
-                (item) => BottomNavyBarItem(
-                  icon: item.icon,
-                  title: Text(item.title),
-                  activeColor: item.activeColor,
-                  inactiveColor: item.inActiveColor,
-                ),
-              )
-              .toList(),
-          onItemSelected: (currentIndex) {
-            newIndex = currentIndex;
-            setState(() {});
-          },
-        ),
-        body: PageTransitionSwitcher(
-          duration: const Duration(seconds: 1),
-          transitionBuilder: (
-            Widget child,
-            Animation<double> animation,
-            Animation<double> secondaryAnimation,
-          ) {
-            return FadeThroughTransition(
-              animation: animation,
-              secondaryAnimation: secondaryAnimation,
-              child: child,
-            );
-          },
-          child: HomeScreen.screens[newIndex],
-        ),
-      ),
+    return Scaffold(
+      body: _screens[_currentIndex],
+      bottomNavigationBar: _buildBottomNavigationBar(),
+    );
+  }
+
+  Widget _buildBottomNavigationBar() {
+    return Consumer<DataProvider>(
+      builder: (context, dataProvider, child) {
+        return Container(
+          decoration: BoxDecoration(
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.3),
+                blurRadius: 10,
+                offset: const Offset(0, -2),
+              ),
+            ],
+          ),
+          child: BottomNavigationBar(
+            currentIndex: _currentIndex,
+            onTap: (index) {
+              setState(() {
+                _currentIndex = index;
+              });
+            },
+            type: BottomNavigationBarType.fixed,
+            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+            selectedItemColor: AppColor.darkOrange,
+            unselectedItemColor: Colors.grey,
+            selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold),
+            items: [
+              BottomNavigationBarItem(
+                icon: const Icon(Icons.home),
+                label: dataProvider.translate('home'),
+              ),
+              BottomNavigationBarItem(
+                icon: const Icon(Icons.favorite),
+                label: dataProvider.translate('favorites'),
+              ),
+              BottomNavigationBarItem(
+                icon: const Icon(Icons.shopping_cart),
+                label: dataProvider.translate('cart'),
+              ),
+              BottomNavigationBarItem(
+                icon: const Icon(Icons.person),
+                label: dataProvider.translate('profile'),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
