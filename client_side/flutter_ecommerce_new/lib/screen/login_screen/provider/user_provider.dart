@@ -1,104 +1,113 @@
+// lib/screen/login_screen/provider/user_provider.dart
+import 'package:e_commerce_flutter/screen/home_screen.dart';
 import 'package:e_commerce_flutter/utility/snack_bar_helper.dart';
-import 'package:flutter_login/flutter_login.dart';
-import 'package:e_commerce_flutter/models/api_response.dart';
-
-import '../../../core/data/data_provider.dart';
-import '../../../models/user.dart';
-import '../login_screen.dart';
-import '../../../services/http_services.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
+import '../../../models/api_response.dart';
+import '../../../models/user.dart';
+import '../../../services/http_services.dart';
+import '../login_screen.dart';
 import 'package:get_storage/get_storage.dart';
 import '../../../utility/constants.dart';
 
 class UserProvider extends ChangeNotifier {
   HttpService service = HttpService();
-  final DataProvider _dataProvider;
   final box = GetStorage();
 
-  UserProvider(this._dataProvider);
+  UserProvider();
 
-  Future<String?> login(LoginData data) async {
+  User? getLoginUsr() {
+    Map<String, dynamic>? userJson = box.read(USER_INFO_BOX);
+    if (userJson == null || userJson.isEmpty) return null;
+    try {
+      User? userLogged = User.fromJson(userJson);
+      return userLogged;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<void> loginUser(String name, String password) async {
     try {
       Map<String, dynamic> loginData = {
-        'name': data.name.toLowerCase(),
-        'password': data.password,
+        'name': name.toLowerCase(),
+        'password': password,
       };
+
       final response = await service.addItem(
         endpointUrl: 'users/login',
         itemData: loginData,
       );
+
       if (response.isOk) {
         final ApiResponse<User> apiResponse = ApiResponse<User>.fromJson(
           response.body,
           (json) => User.fromJson(json as Map<String, dynamic>),
         );
+
         if (apiResponse.success == true) {
           User? user = apiResponse.data;
-          saveLoginInfo(user);
+          await saveLoginInfo(user); // persist BEFORE navigating
           SnackBarHelper.showSuccessSnackBar(apiResponse.message);
-          return null;
+
+          Get.offAll(const HomeScreen());
         } else {
-          SnackBarHelper.showErrorSnackBar(
-            'failed to login: ${apiResponse.message}',
-          );
-          return 'failed to login';
+          throw Exception(apiResponse.message);
         }
       } else {
-        SnackBarHelper.showErrorSnackBar(
-          'error ${response.body?['message'] ?? response.statusText}',
-        );
-        return 'error ${response.body?['message'] ?? response.statusText}';
+        throw Exception('Login failed: ${response.statusText}');
       }
     } catch (e) {
-      print(e);
-      SnackBarHelper.showErrorSnackBar('an error occured $e');
-      return 'an error occured $e';
+      SnackBarHelper.showErrorSnackBar('Login failed: $e');
+      rethrow;
     }
   }
 
-  Future<String?> register(SignupData data) async {
+  Future<void> registerUser(String name, String password) async {
     try {
       Map<String, dynamic> user = {
-        "name": data.name?.toLowerCase(),
-        "password": data.password,
+        "name": name.toLowerCase(),
+        "password": password,
       };
+
       final response = await service.addItem(
         endpointUrl: 'users/register',
         itemData: user,
       );
+
       if (response.isOk) {
         ApiResponse apiResponse = ApiResponse.fromJson(response.body, null);
         if (apiResponse.success == true) {
           SnackBarHelper.showSuccessSnackBar(apiResponse.message);
-          return null;
+          await loginUser(name, password);
         } else {
-          SnackBarHelper.showErrorSnackBar(
-            'failed to register ${apiResponse.message}',
-          );
-          return 'Failed to register ${apiResponse.message}';
+          throw Exception(apiResponse.message);
         }
+      } else {
+        throw Exception('Registration failed');
       }
     } catch (e) {
-      print(e);
-      SnackBarHelper.showErrorSnackBar('an error occured $e');
-      return 'an error occured $e';
+      SnackBarHelper.showErrorSnackBar('Registration failed: $e');
+      rethrow;
     }
   }
 
   Future<void> saveLoginInfo(User? loginUser) async {
-    await box.write(USER_INFO_BOX, loginUser?.toJson());
-    Map<String, dynamic>? userJson = box.read(USER_INFO_BOX);
+    // Defensive: only write non-null and ensure we don't wipe out user data
+    if (loginUser == null) return;
+    try {
+      await box.write(USER_INFO_BOX, loginUser.toJson());
+      notifyListeners();
+    } catch (e) {
+      print('Failed to save login info: $e');
+    }
   }
 
-  User? getLoginUsr() {
-    Map<String, dynamic>? userJson = box.read(USER_INFO_BOX);
-    User? userLogged = User.fromJson(userJson ?? {});
-    return userLogged;
-  }
-
-  logOutUser() {
+  void logOutUser() {
+    // Be explicit: remove only the user info — don't clear other app prefs
     box.remove(USER_INFO_BOX);
     Get.offAll(const LoginScreen());
+    notifyListeners();
   }
 }
