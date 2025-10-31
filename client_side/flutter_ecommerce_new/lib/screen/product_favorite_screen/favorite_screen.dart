@@ -1,5 +1,4 @@
 import 'package:e_commerce_flutter/utility/extensions.dart';
-
 import 'provider/favorite_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -11,26 +10,43 @@ class FavoriteScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Future.delayed(Duration.zero, () {
-      context.favoriteProvider.loadFavoriteItems();
-    });
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          "Favorites",
-          style: TextStyle(
+        title: Text(
+          context.dataProvider.translate('my_favorites'),
+          style: const TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.bold,
             color: AppColor.darkOrange,
           ),
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Consumer<FavoriteProvider>(
-          builder: (context, favoriteProvider, child) {
-            return ProductGridView(items: favoriteProvider.favoriteProduct);
-          },
+      body: RefreshIndicator(
+        onRefresh: () async {
+          final favoriteProvider = context.favoriteProvider;
+          final dataProvider = context.dataProvider;
+          await dataProvider.refreshAllData();
+          favoriteProvider.loadFavoriteItems(dataProvider.allProducts);
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Consumer<FavoriteProvider>(
+            builder: (context, favoriteProvider, child) {
+              final dataProvider = context.dataProvider;
+              favoriteProvider.loadFavoriteItems(dataProvider.allProducts);
+
+              if (favoriteProvider.favoriteProduct.isEmpty) {
+                return Center(
+                  child: Text(
+                    context.dataProvider.translate('no_favorite_items'),
+                    style: const TextStyle(fontSize: 18, color: Colors.grey),
+                  ),
+                );
+              }
+
+              return ProductGridView(items: favoriteProvider.favoriteProduct);
+            },
+          ),
         ),
       ),
     );
