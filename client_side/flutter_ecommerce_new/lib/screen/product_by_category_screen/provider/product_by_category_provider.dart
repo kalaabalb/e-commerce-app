@@ -1,12 +1,10 @@
+import 'package:flutter/cupertino.dart';
 import '../../../models/brand.dart';
 import '../../../models/category.dart';
-import 'package:flutter/cupertino.dart';
-import '../../../core/data/data_provider.dart';
 import '../../../models/product.dart';
 import '../../../models/sub_category.dart';
 
 class ProductByCategoryProvider extends ChangeNotifier {
-  final DataProvider _dataProvider;
   Category? mySelectedCategory;
   SubCategory? mySelectedSubCategory;
   List<SubCategory> subCategories = [];
@@ -14,28 +12,41 @@ class ProductByCategoryProvider extends ChangeNotifier {
   List<Brand> selectedBrands = [];
   List<Product> filteredProduct = [];
 
-  ProductByCategoryProvider(this._dataProvider);
-
-  filterInitialProductAndSubCategory(Category selectedCategory) {
+  filterInitialProductAndSubCategory(
+    Category selectedCategory,
+    List<Product> allProducts,
+    List<SubCategory> allSubCategories,
+    List<Brand> allBrands,
+  ) {
     mySelectedSubCategory = SubCategory(name: 'All');
     mySelectedCategory = selectedCategory;
-    subCategories = _dataProvider.subCategories
+    subCategories = allSubCategories
         .where((element) => element.categoryId?.sId == selectedCategory.sId)
         .toList();
     subCategories.insert(0, SubCategory(name: 'All'));
-    filteredProduct = _dataProvider.products
+    filteredProduct = allProducts
         .where(
           (element) => element.proCategoryId?.name == selectedCategory.name,
+        )
+        .toList();
+
+    brands = allBrands
+        .where(
+          (element) => element.subcategoryId?.name == selectedCategory.name,
         )
         .toList();
 
     notifyListeners();
   }
 
-  filterProductBySubCategory(SubCategory subCategory) {
+  filterProductBySubCategory(
+    SubCategory subCategory,
+    List<Product> allProducts,
+    List<Brand> allBrands,
+  ) {
     mySelectedSubCategory = subCategory;
     if (subCategory.name?.toLowerCase() == 'all') {
-      filteredProduct = _dataProvider.products
+      filteredProduct = allProducts
           .where(
             (element) =>
                 element.proCategoryId?.name == mySelectedCategory?.name,
@@ -43,34 +54,29 @@ class ProductByCategoryProvider extends ChangeNotifier {
           .toList();
       brands = [];
     } else {
-      filteredProduct = _dataProvider.products
+      filteredProduct = allProducts
           .where(
-            (element) =>
-                element.proCategoryId?.name == mySelectedCategory?.name,
+            (element) => element.proSubCategoryId?.name == subCategory.name,
           )
           .toList();
-      brands = _dataProvider.brands
-          .where(
-            (element) =>
-                element.subcategoryId?.name == mySelectedCategory?.name,
-          )
+      brands = allBrands
+          .where((element) => element.subcategoryId?.name == subCategory.name)
           .toList();
-      ;
     }
 
     notifyListeners();
   }
 
-  void filterProductByBrand() {
+  void filterProductByBrand(List<Product> allProducts) {
     if (selectedBrands.isEmpty) {
-      filteredProduct = _dataProvider.products
+      filteredProduct = allProducts
           .where(
             (product) =>
                 product.proSubCategoryId?.name == mySelectedSubCategory?.name,
           )
           .toList();
     } else {
-      filteredProduct = _dataProvider.products
+      filteredProduct = allProducts
           .where(
             (product) =>
                 product.proSubCategoryId?.name == mySelectedSubCategory?.name &&
