@@ -8,103 +8,149 @@ class MyAddressPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    context.profileProvider.retrieveSavedAddress();
+    final profileProvider = context.profileProvider;
+    profileProvider.retrieveSavedAddress();
+
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
-        title: const Text(
-          "My Address",
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColor.darkOrange),
+        title: Text(
+          context.dataProvider.translate('my_address'),
+          style: const TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: AppColor.darkOrange,
+          ),
         ),
       ),
-      body: SingleChildScrollView(
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Form(
-              key: context.profileProvider.addressFormKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.max,
-                children: [
-                  Card(
-                    elevation: 4,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    surfaceTintColor: Colors.white,
-                    child: Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          CustomTextField(
-                            labelText: 'Phone',
-                            onSave: (value) {},
-                            inputType: TextInputType.number,
-                            controller: context.profileProvider.phoneController,
-                            validator: (value) => value!.isEmpty ? 'Please enter a phone number' : null,
-                          ),
-                          CustomTextField(
-                            labelText: 'Street',
-                            onSave: (val) {},
-                            controller: context.profileProvider.streetController,
-                            validator: (value) => value!.isEmpty ? 'Please enter a street' : null,
-                          ),
-                          CustomTextField(
-                            labelText: 'City',
-                            onSave: (value) {},
-                            controller: context.profileProvider.cityController,
-                            validator: (value) => value!.isEmpty ? 'Please enter a city' : null,
-                          ),
-                          CustomTextField(
-                            labelText: 'State',
-                            onSave: (value) {},
-                            controller: context.profileProvider.stateController,
-                            validator: (value) => value!.isEmpty ? 'Please enter a state' : null,
-                          ),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: CustomTextField(
-                                  labelText: 'Postal Code',
-                                  onSave: (value) {},
-                                  inputType: TextInputType.number,
-                                  controller: context.profileProvider.postalCodeController,
-                                  validator: (value) => value!.isEmpty ? 'Please enter a code' : null,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20.0),
+          child: Form(
+            key: profileProvider.addressFormKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Card(
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  surfaceTintColor: Colors.white,
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        CustomTextField(
+                          labelText: context.dataProvider.translate('phone'),
+                          onSave: (value) {},
+                          inputType: TextInputType.number,
+                          controller: profileProvider.phoneController,
+                          validator: (value) => value!.isEmpty
+                              ? context.dataProvider.translate(
+                                  'please_enter_phone',
+                                )
+                              : null,
+                        ),
+                        CustomTextField(
+                          labelText: context.dataProvider.translate('street'),
+                          onSave: (val) {},
+                          controller: profileProvider.streetController,
+                          validator: (value) => value!.isEmpty
+                              ? context.dataProvider.translate(
+                                  'please_enter_street',
+                                )
+                              : null,
+                        ),
+                        CustomTextField(
+                          labelText: context.dataProvider.translate('city'),
+                          onSave: (value) {},
+                          controller: profileProvider.cityController,
+                          validator: (value) => value!.isEmpty
+                              ? context.dataProvider.translate(
+                                  'please_enter_city',
+                                )
+                              : null,
+                        ),
+                        CustomTextField(
+                          labelText: context.dataProvider.translate('state'),
+                          onSave: (value) {},
+                          controller: profileProvider.stateController,
+                          validator: (value) => value!.isEmpty
+                              ? context.dataProvider.translate(
+                                  'please_enter_state',
+                                )
+                              : null,
+                        ),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: CustomTextField(
+                                labelText: context.dataProvider.translate(
+                                  'postal_code',
                                 ),
+                                onSave: (value) {},
+                                inputType: TextInputType.number,
+                                controller:
+                                    profileProvider.postalCodeController,
+                                validator: (value) => value!.isEmpty
+                                    ? context.dataProvider.translate(
+                                        'please_enter_code',
+                                      )
+                                    : null,
                               ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: CustomTextField(
-                                  labelText: 'Country',
-                                  onSave: (value) {},
-                                  controller: context.profileProvider.countryController,
-                                  validator: (value) => value!.isEmpty ? 'Please enter a country' : null,
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: CustomTextField(
+                                labelText: context.dataProvider.translate(
+                                  'country',
                                 ),
+                                onSave: (value) {},
+                                controller: profileProvider.countryController,
+                                validator: (value) => value!.isEmpty
+                                    ? context.dataProvider.translate(
+                                        'please_enter_country',
+                                      )
+                                    : null,
                               ),
-                            ],
-                          ),
-                        ],
-                      ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 20),
-                  Center(
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColor.darkOrange,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                ),
+                const SizedBox(height: 20),
+                Center(
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColor.darkOrange,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 40,
+                        vertical: 16,
                       ),
-                      onPressed: () {
-                        if (context.profileProvider.addressFormKey.currentState!.validate()) {
-                          context.profileProvider.storeAddress();
-                        }
-                      },
-                      child: const Text('Update Address', style: TextStyle(fontSize: 18)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                    ),
+                    onPressed: () {
+                      if (profileProvider.addressFormKey.currentState!
+                          .validate()) {
+                        profileProvider.storeAddress();
+                      }
+                    },
+                    child: Text(
+                      context.dataProvider.translate('update_address'),
+                      style: const TextStyle(fontSize: 18),
                     ),
                   ),
-                ],
-              ),
+                ),
+                SizedBox(height: MediaQuery.of(context).viewInsets.bottom + 20),
+              ],
             ),
           ),
         ),
