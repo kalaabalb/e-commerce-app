@@ -5,33 +5,84 @@
 *.swp
 .DS_Store
 .atom/
-.build/
 .buildlog/
 .history
 .svn/
 .swiftpm/
 migrate_working_dir/
+Thumbs.db
 
 # IntelliJ related
 *.iml
 *.ipr
 *.iws
 .idea/
+modules.xml
+workspace.xml
 
-# The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
-#.vscode/
+# VS Code related
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
 
 # Flutter/Dart/Pub related
 **/doc/api/
-**/ios/Flutter/.last_build_id
 .dart_tool/
+.flutter-plugins
 .flutter-plugins-dependencies
+.packages
 .pub-cache/
 .pub/
 /build/
 /coverage/
+
+# Android related
+**/android/**/gradle-wrapper.jar
+**/android/.gradle/
+**/android/captures/
+**/android/gradlew
+**/android/gradlew.bat
+**/android/local.properties
+**/android/**/GeneratedPluginRegistrant.java
+**/android/app/src/main/java/io/flutter/plugins/
+
+# iOS related
+**/ios/**/*.mode1v3
+**/ios/**/*.mode2v3
+**/ios/**/*.moved-aside
+**/ios/**/*.pbxuser
+**/ios/**/*.perspectivev3
+**/ios/**/*sync/
+**/ios/**/.sconsign.dblite
+**/ios/**/.tags*
+**/ios/**/.vagrant/
+**/ios/**/DerivedData/
+**/ios/**/Icon?
+**/ios/**/Pods/
+**/ios/**/.symlinks/
+**/ios/**/profile
+**/ios/**/xcuserdata
+**/ios/.generated/
+**/ios/Flutter/App.framework
+**/ios/Flutter/Flutter.framework
+**/ios/Flutter/Flutter.podspec
+**/ios/Flutter/GeneratedPluginRegistrant.*
+
+# Windows related
+**/windows/flutter/generated_plugin_registrant.*
+**/windows/flutter/generated_plugins.cmake
+
+# Linux related
+**/linux/flutter/generated_plugin_registrant.*
+**/linux/flutter/generated_plugins.cmake
+
+# macOS related
+**/macos/Flutter/GeneratedPluginRegistrant.*
+
+# Web related
+**/web/splash/
 
 # Symbolication related
 app.*.symbols
@@ -39,7 +90,40 @@ app.*.symbols
 # Obfuscation related
 app.*.map.json
 
-# Android Studio will place build artifacts here
-/android/app/debug
-/android/app/profile
-/android/app/release
+# Exclude large media files and generated assets
+/assets/images/raw/  # if you have raw images that get processed
+/assets/images/temp/
+
+# Exclude backup files
+*.backup
+*_backup.txt
+server_backup_*.txt
+
+# Exclude extracted code files
+all_code*.txt
+clientfinal.txt
+
+# Exclude script files used for processing
+extract_and_replace.py
+
+# Exclude native splash configuration (can be regenerated)
+flutter_native_splash.yaml
+assets/flutter_native_splash.yaml
+
+# Exclude generated Flutter files
+.flutter-plugins
+.packages
+
+# Exclude environment configuration files (if any)
+.env
+.env.local
+.env.production
+
+# Exclude build outputs from other platforms
+**/android/app/debug/
+**/android/app/profile/
+**/android/app/release/
+
+# Temporary files
+*.tmp
+*.temp
