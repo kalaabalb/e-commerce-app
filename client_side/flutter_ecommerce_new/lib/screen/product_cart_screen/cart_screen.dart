@@ -8,96 +8,116 @@ import 'components/buy_now_bottom_sheet.dart';
 import 'components/cart_list_section.dart';
 import 'components/empty_cart.dart';
 
-class CartScreen extends StatelessWidget {
+class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    Future.delayed(Duration.zero, () {
-      context.cartProvider.getCartItems();
+  State<CartScreen> createState() => _CartScreenState();
+}
+
+class _CartScreenState extends State<CartScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final cartProvider = context.read<CartProvider>();
+      cartProvider.getCartItems();
     });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          "My Cart",
-          style: TextStyle(
+        title: Text(
+          context.dataProvider.translate('my_cart'),
+          style: const TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.bold,
             color: AppColor.darkOrange,
           ),
         ),
       ),
-      body: Consumer<CartProvider>(
-        builder: (context, cartProvider, child) {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              cartProvider.myCartItems.isEmpty
-                  ? const EmptyCart()
-                  : Consumer<CartProvider>(
-                      builder: (context, cartProvider, child) {
-                        return CartListSection(
-                          cartProducts: cartProvider.myCartItems,
-                        );
-                      },
-                    ),
+      body: RefreshIndicator(
+        onRefresh: () async {
+          final cartProvider = context.read<CartProvider>();
+          cartProvider.getCartItems();
+        },
+        child: Consumer<CartProvider>(
+          builder: (context, cartProvider, child) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                cartProvider.myCartItems.isEmpty
+                    ? const EmptyCart()
+                    : CartListSection(cartProducts: cartProvider.myCartItems),
 
-              //? total price section
-              Container(
-                margin: const EdgeInsets.only(bottom: 15),
-                padding: const EdgeInsets.symmetric(horizontal: 30),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      "Total",
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w400,
+                // Total price section
+                Container(
+                  margin: const EdgeInsets.only(bottom: 15),
+                  padding: const EdgeInsets.symmetric(horizontal: 30),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        context.dataProvider.translate('total'),
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w400,
+                          color: Theme.of(context).textTheme.bodyLarge?.color,
+                        ),
                       ),
+                      AnimatedSwitcherWrapper(
+                        child: Text(
+                          "\$${cartProvider.getCartSubTotal().toStringAsFixed(2)}",
+                          key: ValueKey<double>(cartProvider.getCartSubTotal()),
+                          style: TextStyle(
+                            fontSize: 25,
+                            fontWeight: FontWeight.w900,
+                            color: AppColor.darkOrange,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Buy now button
+                // Buy now button
+                SizedBox(
+                  width: double.infinity,
+                  child: Padding(
+                    padding: const EdgeInsets.only(
+                      left: 30,
+                      right: 30,
+                      bottom: 20,
                     ),
-                    AnimatedSwitcherWrapper(
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.all(20),
+                        backgroundColor: AppColor.darkOrange,
+                        foregroundColor: Colors.white,
+                      ),
+                      onPressed: cartProvider.myCartItems.isEmpty
+                          ? null
+                          : () {
+                              showCustomBottomSheet(context);
+                            },
                       child: Text(
-                        "\$${context.cartProvider.getCartSubTotal()}",
-                        // key: ValueKey<double>(cartProvider.getCartSubTotal()),
+                        context.dataProvider.translate('buy_now'),
                         style: const TextStyle(
-                          fontSize: 25,
-                          fontWeight: FontWeight.w900,
-                          color: Color(0xFFEC6813),
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),
-                  ],
-                ),
-              ),
-              //? buy now button
-              SizedBox(
-                width: double.infinity,
-                child: Padding(
-                  padding: const EdgeInsets.only(
-                    left: 30,
-                    right: 30,
-                    bottom: 20,
-                  ),
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.all(20),
-                    ),
-                    onPressed: context.cartProvider.myCartItems.isEmpty
-                        ? null
-                        : () {
-                            showCustomBottomSheet(context);
-                          },
-                    child: const Text(
-                      "Buy Now",
-                      style: TextStyle(color: Colors.white),
-                    ),
                   ),
                 ),
-              ),
-            ],
-          );
-        },
+              ],
+            );
+          },
+        ),
       ),
     );
   }
