@@ -17,15 +17,9 @@ Thumbs.db
 *.ipr
 *.iws
 .idea/
-modules.xml
-workspace.xml
 
 # VS Code related
 .vscode/
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
 
 # Flutter/Dart/Pub related
 **/doc/api/
@@ -47,6 +41,10 @@ workspace.xml
 **/android/local.properties
 **/android/**/GeneratedPluginRegistrant.java
 **/android/app/src/main/java/io/flutter/plugins/
+**/android/app/src/main/res/drawable-*/
+**/android/app/src/main/res/drawable-*-v31/
+**/android/app/src/main/res/mipmap-anydpi-*/
+**/android/app/src/main/res/values-*-v31/
 
 # iOS related
 **/ios/**/*.mode1v3
@@ -91,8 +89,7 @@ app.*.symbols
 app.*.map.json
 
 # Exclude large media files and generated assets
-/assets/images/raw/  # if you have raw images that get processed
-/assets/images/temp/
+/assets/images/raw/
 
 # Exclude backup files
 *.backup
@@ -106,24 +103,12 @@ clientfinal.txt
 # Exclude script files used for processing
 extract_and_replace.py
 
-# Exclude native splash configuration (can be regenerated)
+# Exclude native splash configuration
 flutter_native_splash.yaml
-assets/flutter_native_splash.yaml
-
-# Exclude generated Flutter files
-.flutter-plugins
-.packages
-
-# Exclude environment configuration files (if any)
-.env
-.env.local
-.env.production
-
-# Exclude build outputs from other platforms
-**/android/app/debug/
-**/android/app/profile/
-**/android/app/release/
 
 # Temporary files
 *.tmp
 *.temp
+
+# Admin panel files (separate project)
+../admin_panal_start/
