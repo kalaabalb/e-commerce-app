@@ -19,11 +19,18 @@ class ProductByCategoryScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final proByCProvider = context.proByCProvider;
+    final dataProvider = context.dataProvider;
+
     Future.delayed(Duration.zero, () {
-      context.proByCProvider.filterInitialProductAndSubCategory(
+      proByCProvider.filterInitialProductAndSubCategory(
         selectedCategory,
+        dataProvider.allProducts,
+        dataProvider.subCategories,
+        dataProvider.brands,
       );
     });
+
     return Scaffold(
       body: SafeArea(
         child: CustomScrollView(
@@ -67,8 +74,12 @@ class ProductByCategoryScreen extends StatelessWidget {
                                         proByCatProvider.mySelectedSubCategory,
                                     onSelect: (val) {
                                       if (val != null) {
-                                        context.proByCProvider
-                                            .filterProductBySubCategory(val);
+                                        proByCatProvider
+                                            .filterProductBySubCategory(
+                                              val,
+                                              dataProvider.allProducts,
+                                              dataProvider.brands,
+                                            );
                                       }
                                     },
                                   ),
@@ -83,11 +94,11 @@ class ProductByCategoryScreen extends StatelessWidget {
                                     items: const ['Low To High', 'High To Low'],
                                     onChanged: (val) {
                                       if (val?.toLowerCase() == 'low to high') {
-                                        context.proByCProvider.sortProducts(
+                                        proByCProvider.sortProducts(
                                           ascending: true,
                                         );
                                       } else {
-                                        context.proByCProvider.sortProducts(
+                                        proByCProvider.sortProducts(
                                           ascending: false,
                                         );
                                       }
@@ -105,8 +116,10 @@ class ProductByCategoryScreen extends StatelessWidget {
                                             onSelectionChanged: (val) {
                                               proByCatProvider.selectedBrands =
                                                   val;
-                                              context.proByCProvider
-                                                  .filterProductByBrand();
+                                              proByCatProvider
+                                                  .filterProductByBrand(
+                                                    dataProvider.allProducts,
+                                                  );
                                               proByCatProvider.updateUI();
                                             },
                                             displayItem: (val) =>
