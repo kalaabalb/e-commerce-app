@@ -1,73 +1,63 @@
 import 'package:flutter/material.dart';
+import 'package:e_commerce_flutter/utility/extensions.dart';
+import '../utility/app_color.dart';
 
-class CustomSearchBar extends StatefulWidget {
+class CustomSearchBar extends StatelessWidget {
   final TextEditingController controller;
-  final void Function(String)? onChanged;
+  final ValueChanged<String>? onChanged;
+  final String? hintText;
+  final VoidCallback? onClear;
 
   const CustomSearchBar({
     super.key,
     required this.controller,
     this.onChanged,
+    this.hintText,
+    this.onClear,
   });
 
   @override
-  CustomSearchBarState createState() => CustomSearchBarState();
-}
-
-class CustomSearchBarState extends State<CustomSearchBar> {
-  bool isExpanded = false;
-  final FocusNode _focusNode = FocusNode();
-
-  @override
-  void dispose() {
-    _focusNode.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          isExpanded = !isExpanded;
-          if (!isExpanded) {
-            _focusNode.unfocus();
-          }
-        });
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
-          color: isExpanded ? Colors.white : Colors.grey[200],
-        ),
-        height: 50,
-        padding: const EdgeInsets.symmetric(horizontal: 15),
-        child: FocusScope(
-          node: FocusScopeNode(),
-          child: Row(
-            children: [
-              const Icon(Icons.search),
-              const SizedBox(width: 10),
-              Expanded(
-                child: TextField(
-                  focusNode: _focusNode,
-                  controller: widget.controller,
-                  decoration: const InputDecoration(
-                    hintText: 'Search...',
-                    border: InputBorder.none,
-                  ),
-                  autofocus: false,
-                  onChanged: widget.onChanged,
-                ),
+    return Container(
+      height: 50,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(25),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.3),
+            spreadRadius: 1,
+            blurRadius: 5,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: TextField(
+        controller: controller,
+        onChanged: onChanged,
+        decoration: InputDecoration(
+          hintText:
+              hintText ??
+              context.safeDataProvider.safeTranslate(
+                'search_hint',
+                fallback: 'Search...',
               ),
-              GestureDetector(
-                onTap: () {
-                  widget.controller.clear();
-                  _focusNode.unfocus();
-                },
-                child: const Icon(Icons.close),
-              ),
-            ],
+          hintStyle: const TextStyle(color: Colors.grey),
+          prefixIcon: const Icon(Icons.search, color: AppColor.darkOrange),
+          suffixIcon: controller.text.isNotEmpty
+              ? IconButton(
+                  icon: const Icon(Icons.clear, color: Colors.grey),
+                  onPressed: () {
+                    controller.clear();
+                    onChanged?.call('');
+                    onClear?.call();
+                  },
+                )
+              : null,
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(
+            vertical: 15,
+            horizontal: 20,
           ),
         ),
       ),
