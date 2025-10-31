@@ -38,29 +38,32 @@ class ProductGridTile extends StatelessWidget {
               child: Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(30),
-                  color: Colors.white,
+                  color: Theme.of(context).colorScheme.surface,
                 ),
                 width: 80,
                 height: 30,
                 alignment: Alignment.center,
                 child: Text(
                   "OFF ${discountPercentage.toInt()} %",
-                  style: const TextStyle(fontWeight: FontWeight.w600),
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
                 ),
               ),
             ),
             Consumer<FavoriteProvider>(
               builder: (context, favoriteProvider, child) {
+                bool isFavorite = favoriteProvider.checkIsItemFavorite(
+                  product.sId ?? '',
+                );
                 return IconButton(
-                  icon: const Icon(
-                    Icons.favorite,
-                    //TODO: should complete make color dynamic
-                    color: Color(0xFFA6A3A0),
+                  icon: Icon(
+                    isFavorite ? Icons.favorite : Icons.favorite_border,
+                    color: isFavorite ? Colors.red : Colors.grey,
                   ),
                   onPressed: () {
-                    context.favoriteProvider.updateToFavoriteList(
-                      product.sId ?? '',
-                    );
+                    favoriteProvider.updateToFavoriteList(product.sId ?? '');
                   },
                 );
               },
@@ -73,9 +76,9 @@ class ProductGridTile extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(10),
           height: 70,
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.only(
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            borderRadius: const BorderRadius.only(
               bottomLeft: Radius.circular(15),
               bottomRight: Radius.circular(15),
             ),
@@ -89,9 +92,11 @@ class ProductGridTile extends StatelessWidget {
                   product.name ?? '',
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.w500,
-                    color: Colors.grey,
+                    color:
+                        Theme.of(context).textTheme.bodyMedium?.color ??
+                        Colors.grey,
                   ),
                 ),
               ),
@@ -103,7 +108,10 @@ class ProductGridTile extends StatelessWidget {
                       product.offerPrice != 0
                           ? "\$${product.offerPrice}"
                           : "\$${product.price}",
-                      style: Theme.of(context).textTheme.headlineMedium,
+                      style: Theme.of(context).textTheme.headlineMedium
+                          ?.copyWith(
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
@@ -113,7 +121,7 @@ class ProductGridTile extends StatelessWidget {
                     Flexible(
                       child: Text(
                         "\$${product.price}",
-                        style: const TextStyle(
+                        style: TextStyle(
                           decoration: TextDecoration.lineThrough,
                           color: Colors.grey,
                           fontWeight: FontWeight.w500,
@@ -130,7 +138,9 @@ class ProductGridTile extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(15),
         decoration: BoxDecoration(
-          color: const Color(0xFFE5E6E8),
+          color: Theme.of(context).brightness == Brightness.dark
+              ? Colors.grey[800]
+              : const Color(0xFFE5E6E8),
           borderRadius: BorderRadius.circular(20),
         ),
         child: CustomNetworkImage(
