@@ -163,7 +163,6 @@ class DataProvider extends ChangeNotifier {
       'next': 'Next',
       'get_started': 'Get Started',
     },
-
     'am': {
       'welcome': 'ሰላም',
       'welcome_back': 'እንኳን ደህና መጡ!',
@@ -262,7 +261,6 @@ class DataProvider extends ChangeNotifier {
       'next': 'ቀጣይ',
       'get_started': 'ጀምር',
     },
-
     'es': {
       'welcome': 'Hola',
       'welcome_back': '¡Bienvenido de nuevo!',
@@ -361,7 +359,6 @@ class DataProvider extends ChangeNotifier {
       'next': 'Siguiente',
       'get_started': 'Comenzar',
     },
-
     'fr': {
       'welcome': 'Bonjour',
       'welcome_back': 'Bon retour!',
@@ -506,9 +503,7 @@ class DataProvider extends ChangeNotifier {
         // call orders too so user orders are available early
         getAllOrders(),
       ]);
-    } else {
-      print('🔴 Server is not reachable at $MAIN_URL');
-    }
+    } else {}
 
     _isLoading = false;
     notifyListeners();
@@ -525,7 +520,6 @@ class DataProvider extends ChangeNotifier {
     } catch (e) {
       _isDarkMode = false;
       _currentLanguage = 'en';
-      print('Error loading preferences: $e');
     }
   }
 
@@ -539,8 +533,6 @@ class DataProvider extends ChangeNotifier {
     if (_translations.containsKey(languageCode)) {
       _currentLanguage = languageCode;
       box.write('language', languageCode);
-
-      print('🟡 Language changed to: $languageCode');
 
       // Force immediate rebuild
       notifyListeners();
@@ -781,15 +773,14 @@ class DataProvider extends ChangeNotifier {
       final lowcase = keyword.toLowerCase();
 
       _filteredProducts = _allProducts.where((product) {
-        final ProductNameContainsKeyword = (product.name ?? '')
-            .toLowerCase()
-            .contains(lowcase);
+        final ProductNameContainsKeyword =
+            (product.name ?? '').toLowerCase().contains(lowcase);
         final categoryNameContainsKeyword =
             product.proCategoryId?.name?.toLowerCase().contains(lowcase) ??
-            false;
+                false;
         final subCategoryNameContainsKeyword =
             product.proSubCategoryId?.name?.toLowerCase().contains(lowcase) ??
-            false;
+                false;
         final brandNameContainsKeyword =
             product.proBrandId?.name?.toLowerCase().contains(lowcase) ?? false;
 
@@ -817,6 +808,28 @@ class DataProvider extends ChangeNotifier {
         ((originalPrice - finalDiscountedPrice) / originalPrice) * 100;
 
     return discount;
+  } // In DataProvider, add methods to clear and reload user-specific data
+
+  void clearUserSpecificData() {
+    _allOrders = [];
+    _filteredOrders = [];
+
+    // Notify listeners that data has been cleared
+    notifyListeners();
+  }
+
+  Future<void> reloadUserSpecificData() async {
+    try {
+      _isLoading = true;
+      notifyListeners();
+
+      // Only reload orders (which are user-specific)
+      await getAllOrders();
+    } catch (e) {
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
   // Refresh all data
