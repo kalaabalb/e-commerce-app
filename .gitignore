@@ -57,6 +57,11 @@ server_side/**/tmp/
 server_side/**/dist/
 server_side/**/build/
 server_side/online_store_api/public/payment-proofs/
+server_side/online_store_api/public/products/
+server_side/online_store_api/public/category/
+server_side/online_store_api/public/posters/
+server_side/online_store_api/public/payment-proofs/
+photos/
 
 ########################
 # RUNTIME UPLOADS / IMAGES
