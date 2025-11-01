@@ -1,13 +1,17 @@
+import 'dart:io';
+import 'dart:convert';
 import 'dart:developer';
+import 'package:e_commerce_flutter/utility/app_color.dart';
 import 'package:e_commerce_flutter/utility/extensions.dart';
 import 'package:e_commerce_flutter/utility/utility_extention.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../../../models/coupon.dart';
+import '../../../models/order.dart';
 import '../../login_screen/provider/user_provider.dart';
 import '../../../services/http_services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cart/flutter_cart.dart';
-import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import '../../../core/data/data_provider.dart';
@@ -33,7 +37,19 @@ class CartProvider extends ChangeNotifier {
 
   Coupon? couponApplied;
   double couponCodeDiscount = 0;
-  String selectedPaymentOption = 'prepaid';
+  String selectedPaymentOption = 'cod';
+
+  // QR Screenshot related
+  File? _paymentProofImage;
+  File? get paymentProofImage => _paymentProofImage;
+  bool _isUploadingPaymentProof = false;
+  bool get isUploadingPaymentProof => _isUploadingPaymentProof;
+  String? _paymentProofUrl;
+  String? get paymentProofUrl => _paymentProofUrl;
+
+  // Payment method states
+  bool _showPaymentInstructions = false;
+  bool get showPaymentInstructions => _showPaymentInstructions;
 
   // Loading states
   bool _isLoading = false;
@@ -51,16 +67,19 @@ class CartProvider extends ChangeNotifier {
   getCartItems() {
     try {
       myCartItems = List<CartModel>.from(flutterCart.cartItemsList);
-      print('🟡 Cart items loaded: ${myCartItems.length} items');
+
       notifyListeners();
     } catch (e) {
-      print('🔴 Error getting cart items: $e');
       myCartItems = [];
       notifyListeners();
     }
   }
 
-  // Add item to cart - FIXED CartModel parameters
+  void updateUI() {
+    notifyListeners();
+  }
+
+  // Add item to cart
   void addToCart({
     required String productId,
     required String productName,
@@ -69,14 +88,10 @@ class CartProvider extends ChangeNotifier {
     List<ProductVariant>? variants,
     int quantity = 1,
   }) {
-    print('🟡 Adding to cart: $productName, quantity: $quantity');
-
     try {
-      // Create variants with the price if not provided
       final cartVariants =
           variants ?? [ProductVariant(price: price, color: null, size: null)];
 
-      // Check if item already exists in cart
       bool itemExists = myCartItems.any(
         (item) =>
             item.productId == productId &&
@@ -84,7 +99,6 @@ class CartProvider extends ChangeNotifier {
       );
 
       if (itemExists) {
-        // Update existing item
         var existingItem = myCartItems.firstWhere(
           (item) =>
               item.productId == productId &&
@@ -97,7 +111,6 @@ class CartProvider extends ChangeNotifier {
           existingItem.quantity + 1,
         );
       } else {
-        // Add new item
         CartModel newItem = CartModel(
           productId: productId,
           productName: productName,
@@ -110,41 +123,31 @@ class CartProvider extends ChangeNotifier {
         flutterCart.addToCart(cartModel: newItem);
       }
 
-      // Refresh cart and show success message
       getCartItems();
       SnackBarHelper.showSuccessSnackBar('Item added to cart');
-
-      print('🟢 Cart updated. Total items: ${myCartItems.length}');
     } catch (e) {
-      print('🔴 Error adding to cart: $e');
       SnackBarHelper.showErrorSnackBar('Failed to add item to cart');
     }
   }
 
   // Update cart quantity
   void updateCart(CartModel cartItem, int quantity) {
-    print('🟡 Updating cart: ${cartItem.productName}, quantity: $quantity');
-
     try {
       int newQuantity = cartItem.quantity + quantity;
 
       if (newQuantity <= 0) {
-        // Remove item from cart
         flutterCart.removeItem(cartItem.productId, cartItem.variants);
         SnackBarHelper.showSuccessSnackBar('Item removed from cart');
       } else {
-        // Update quantity
         flutterCart.updateQuantity(
           cartItem.productId,
           cartItem.variants,
           newQuantity,
         );
-        print('🟢 Updated quantity: ${cartItem.productName} to $newQuantity');
       }
 
       getCartItems();
     } catch (e) {
-      print('🔴 Error updating cart: $e');
       SnackBarHelper.showErrorSnackBar('Failed to update cart');
     }
   }
@@ -164,7 +167,7 @@ class CartProvider extends ChangeNotifier {
 
   double getCartSubTotal() {
     double subtotal = flutterCart.subtotal;
-    print('🟡 Cart subtotal: \birr $subtotal');
+
     return subtotal;
   }
 
@@ -172,13 +175,12 @@ class CartProvider extends ChangeNotifier {
     flutterCart.clearCart();
     getCartItems();
     SnackBarHelper.showSuccessSnackBar('Cart cleared');
-    print('🟡 Cart cleared');
   }
 
   double getGrandTotal() {
     double grandTotal = getCartSubTotal() - couponCodeDiscount;
     print(
-      '🟡 Grand total: \birr $grandTotal (discount: \birr $couponCodeDiscount)',
+      '🟡 Grand total: \$$grandTotal (discount: \$$couponCodeDiscount)',
     );
     return grandTotal > 0 ? grandTotal : 0;
   }
@@ -193,9 +195,8 @@ class CartProvider extends ChangeNotifier {
       _isLoading = true;
       notifyListeners();
 
-      List<String> productIds = myCartItems
-          .map((cartItem) => cartItem.productId)
-          .toList();
+      List<String> productIds =
+          myCartItems.map((cartItem) => cartItem.productId).toList();
 
       Map<String, dynamic> couponData = {
         'couponCode': couponController.text,
@@ -230,7 +231,6 @@ class CartProvider extends ChangeNotifier {
         SnackBarHelper.showErrorSnackBar('Failed to validate coupon');
       }
     } catch (e) {
-      print(e);
       SnackBarHelper.showErrorSnackBar('Error validating coupon: $e');
     } finally {
       _isLoading = false;
@@ -254,15 +254,124 @@ class CartProvider extends ChangeNotifier {
         : discountAmount;
   }
 
-  addOrder(BuildContext context) async {
+  // Pick QR Screenshot from gallery
+  Future<void> pickPaymentProofImage() async {
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? image = await picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 80,
+        maxWidth: 1024,
+        maxHeight: 1024,
+      );
+
+      if (image != null) {
+        _paymentProofImage = File(image.path);
+        _paymentProofUrl = null; // Clear previous URL
+        notifyListeners();
+        SnackBarHelper.showSuccessSnackBar('Payment proof image selected');
+
+        // Auto-upload the image
+        await uploadPaymentProof();
+      }
+    } catch (e) {
+      SnackBarHelper.showErrorSnackBar('Failed to select image: $e');
+    }
+  }
+
+  // Remove selected QR screenshot
+  void removePaymentProofImage() {
+    _paymentProofImage = null;
+    _paymentProofUrl = null;
+
+    notifyListeners();
+    SnackBarHelper.showSuccessSnackBar('Payment proof removed');
+  }
+
+  Future<bool> uploadPaymentProof() async {
+    if (_paymentProofImage == null) {
+      SnackBarHelper.showErrorSnackBar('Please select a payment proof image');
+      return false;
+    }
+
+    try {
+      _isUploadingPaymentProof = true;
+      notifyListeners();
+
+      List<int> imageBytes = await _paymentProofImage!.readAsBytes();
+      String base64Image = base64Encode(imageBytes);
+      String fileName =
+          'payment_proof_${DateTime.now().millisecondsSinceEpoch}.jpg';
+
+      Map<String, dynamic> uploadData = {
+        'image': base64Image,
+        'fileName': fileName,
+        'orderAmount': getGrandTotal(),
+      };
+
+      final response = await service.addItem(
+        endpointUrl: 'payment/upload-proof-base64',
+        itemData: uploadData,
+      );
+
+      if (response.isOk && response.body != null) {
+        final responseMap = response.body as Map<String, dynamic>;
+        if (responseMap['success'] == true && responseMap['data'] != null) {
+          final dataMap = responseMap['data'] as Map<String, dynamic>;
+          final imageUrl = dataMap['imageUrl']?.toString();
+
+          if (imageUrl != null && imageUrl.isNotEmpty) {
+            _paymentProofUrl = imageUrl;
+
+            // Force UI update
+            notifyListeners();
+
+            SnackBarHelper.showSuccessSnackBar(
+                'Payment proof uploaded successfully!');
+            return true;
+          }
+        }
+      }
+
+      SnackBarHelper.showErrorSnackBar('Upload failed: Invalid response');
+      return false;
+    } catch (e) {
+      SnackBarHelper.showErrorSnackBar('Upload failed: $e');
+      return false;
+    } finally {
+      _isUploadingPaymentProof = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> addOrder(BuildContext context) async {
     try {
       _isProcessingPayment = true;
       notifyListeners();
 
       final userProvider = Provider.of<UserProvider>(context, listen: false);
+      final user = userProvider.getLoginUsr();
+
+      if (user == null) {
+        SnackBarHelper.showErrorSnackBar('Please login to place order');
+        return;
+      }
+
+      // Determine order and payment status based on payment method
+      String orderStatus = 'pending';
+      String paymentStatus = 'pending';
+
+      if (selectedPaymentOption == 'cod') {
+        orderStatus = 'pending';
+        paymentStatus = 'pending';
+      } else {
+        orderStatus = 'payment_pending';
+        paymentStatus = 'pending';
+      }
+
       Map<String, dynamic> order = {
-        'userID': userProvider.getLoginUsr()?.sId ?? '',
-        'orderStatus': "pending",
+        'userID': user.sId ?? '',
+        'orderStatus': orderStatus,
         'items': cartItemToOrderItem(myCartItems),
         'totalPrice': getGrandTotal(),
         'shippingAddress': {
@@ -274,6 +383,14 @@ class CartProvider extends ChangeNotifier {
           'country': countryController.text,
         },
         'paymentMethod': selectedPaymentOption,
+        'paymentStatus': paymentStatus,
+        'paymentProof': _paymentProofUrl != null
+            ? {
+                'imageUrl': _paymentProofUrl,
+                'uploadedAt': DateTime.now().toIso8601String(),
+                'verified': false,
+              }
+            : null,
         'couponCode': couponApplied?.sId,
         'orderTotal': {
           "subtotal": getCartSubTotal(),
@@ -293,13 +410,16 @@ class CartProvider extends ChangeNotifier {
           SnackBarHelper.showSuccessSnackBar('Order created successfully!');
           saveAddress();
           clearCartItems();
+          _paymentProofImage = null;
+          _paymentProofUrl = null;
 
           if (context.mounted) {
             Navigator.of(context).pop();
           }
 
+          // Navigate to orders screen
           Future.delayed(const Duration(milliseconds: 500), () {
-            Get.offAllNamed('/');
+            _showOrderConfirmation(context);
           });
         } else {
           SnackBarHelper.showErrorSnackBar(
@@ -307,6 +427,8 @@ class CartProvider extends ChangeNotifier {
           );
         }
       } else {
+        print(
+            '🔴 [ADD ORDER] HTTP Error: ${response.statusCode} - ${response.body}');
         SnackBarHelper.showErrorSnackBar(
           'Failed to create order: ${response.statusText}',
         );
@@ -319,7 +441,74 @@ class CartProvider extends ChangeNotifier {
     }
   }
 
-  submitOrder(BuildContext context) async {
+  void _showOrderConfirmation(BuildContext context) {
+    Get.dialog(
+      AlertDialog(
+        title: const Text('🎉 Order Confirmed!'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+                'Payment Method: ${_getPaymentMethodDisplayName(selectedPaymentOption)}'),
+            Text('Total Amount: \$${getGrandTotal().toStringAsFixed(2)}'),
+            const SizedBox(height: 10),
+            if (selectedPaymentOption != 'cod')
+              const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('✅ Payment proof submitted for verification.'),
+                  Text(
+                      'Your order will be processed once payment is verified.'),
+                  Text('You can track the status in "My Orders" section.'),
+                ],
+              ),
+            if (selectedPaymentOption == 'cod')
+              const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('💰 Cash on Delivery order placed successfully.'),
+                  Text('Pay when you receive your order.'),
+                ],
+              ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Get.back();
+              // Navigate to home screen
+              Get.offAllNamed('/');
+            },
+            child: const Text('🛍️ Continue Shopping'),
+          ),
+          TextButton(
+            onPressed: () {
+              Get.back();
+              // Navigate to orders screen
+              Get.toNamed('/orders');
+            },
+            child: const Text('📋 View Orders'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _getPaymentMethodDisplayName(String method) {
+    switch (method) {
+      case 'cod':
+        return '💰 Cash on Delivery';
+      case 'cbe':
+        return '🏦 Commercial Bank of Ethiopia';
+      case 'telebirr':
+        return '📱 Telebirr';
+      default:
+        return method;
+    }
+  }
+
+  void submitOrder(BuildContext context) async {
     if (!buyNowFormKey.currentState!.validate()) {
       SnackBarHelper.showErrorSnackBar('Please fill all required fields');
       return;
@@ -327,6 +516,7 @@ class CartProvider extends ChangeNotifier {
 
     buyNowFormKey.currentState!.save();
 
+    // Validate address if expanded
     if (isExpanded) {
       if (phoneController.text.isEmpty ||
           streetController.text.isEmpty ||
@@ -339,197 +529,473 @@ class CartProvider extends ChangeNotifier {
       }
     }
 
-    if (selectedPaymentOption == 'cod') {
-      await addOrder(context);
+    // Show payment instructions for bank/telebirr methods
+    if (selectedPaymentOption == 'cbe') {
+      final result = await _showCBEPaymentInstructions(context);
+      if (result == true) {
+        await addOrder(context);
+      } else {}
+    } else if (selectedPaymentOption == 'telebirr') {
+      final result = await _showTelebirrPaymentInstructions(context);
+      if (result == true) {
+        print(
+            '🟡 [SUBMIT ORDER] Telebirr payment confirmed, creating order...');
+        await addOrder(context);
+      } else {}
     } else {
-      await stripePayment(
-        context: context,
-        operation: () {
-          addOrder(context);
+      // Directly create order for COD
+
+      await addOrder(context);
+    }
+  }
+
+  Future<bool?> _showCBEPaymentInstructions(BuildContext context) {
+    return showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('🏦 Commercial Bank of Ethiopia Payment'),
+              content: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      'Please complete your payment using one of the methods below and upload the transaction proof:',
+                      style: TextStyle(fontSize: 14),
+                    ),
+                    const SizedBox(height: 15),
+
+                    // CBE Birr App Instructions
+                    _buildPaymentInstructionCard(
+                      icon: Icons.phone_android,
+                      title: 'CBE Birr App',
+                      instructions: [
+                        '1. Open CBE Birr App',
+                        '2. Go to "Payments" or "Send Money"',
+                        '3. Scan QR code or enter merchant details',
+                        '4. Amount: \$${getGrandTotal().toStringAsFixed(2)}',
+                      ],
+                    ),
+
+                    const SizedBox(height: 10),
+
+                    // Bank Transfer Instructions
+                    _buildPaymentInstructionCard(
+                      icon: Icons.account_balance,
+                      title: 'Bank Transfer',
+                      instructions: [
+                        'Account Name: Your Store Name',
+                        'Account Number: 1000 1234 5678',
+                        'Bank: Commercial Bank of Ethiopia',
+                        'Reference: ORDER-${DateTime.now().millisecondsSinceEpoch}',
+                        'Amount: \$${getGrandTotal().toStringAsFixed(2)}',
+                      ],
+                    ),
+
+                    const SizedBox(height: 15),
+
+                    // QR Screenshot Upload Section
+                    Consumer<CartProvider>(
+                      builder: (context, cartProvider, child) {
+                        return _buildPaymentProofUploadSection();
+                      },
+                    ),
+
+                    const SizedBox(height: 10),
+                    const Text(
+                      '💡 After payment, upload the screenshot and click "Confirm Payment".',
+                      style:
+                          TextStyle(fontSize: 12, fontStyle: FontStyle.italic),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Get.back(result: false);
+                  },
+                  child: const Text('Cancel'),
+                ),
+                Consumer<CartProvider>(
+                  builder: (context, cartProvider, child) {
+                    final isReady = cartProvider.isPaymentProofReady;
+                    print(
+                        '🟡 [DIALOG] Confirm button - isReady: $isReady, URL: ${cartProvider.paymentProofUrl}');
+
+                    return TextButton(
+                      onPressed: isReady
+                          ? () {
+                              print(
+                                  '🟡 [DIALOG] Confirm pressed with proof URL: ${cartProvider.paymentProofUrl}');
+                              Get.back(result: true);
+                            }
+                          : null,
+                      child: const Text('Confirm Payment'),
+                    );
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<bool?> _showTelebirrPaymentInstructions(BuildContext context) {
+    return showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('📱 Telebirr Payment'),
+              content: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      'Please complete your payment using Telebirr and upload the transaction proof:',
+                      style: TextStyle(fontSize: 14),
+                    ),
+                    const SizedBox(height: 15),
+
+                    // Telebirr Instructions
+                    _buildPaymentInstructionCard(
+                      icon: Icons.phone_android,
+                      title: 'Telebirr App',
+                      instructions: [
+                        '1. Open Telebirr App',
+                        '2. Go to "Send Money" or "Payments"',
+                        '3. Enter merchant number: 251-XXX-XXXX',
+                        '4. Amount: \$${getGrandTotal().toStringAsFixed(2)}',
+                        '5. Use reference: ORDER-${DateTime.now().millisecondsSinceEpoch}',
+                      ],
+                    ),
+
+                    const SizedBox(height: 15),
+
+                    // QR Screenshot Upload Section
+                    Consumer<CartProvider>(
+                      builder: (context, cartProvider, child) {
+                        return _buildPaymentProofUploadSection();
+                      },
+                    ),
+
+                    const SizedBox(height: 10),
+                    const Text(
+                      '💡 After payment, upload the screenshot and click "Confirm Payment".',
+                      style:
+                          TextStyle(fontSize: 12, fontStyle: FontStyle.italic),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Get.back(result: false);
+                  },
+                  child: const Text('Cancel'),
+                ),
+                Consumer<CartProvider>(
+                  builder: (context, cartProvider, child) {
+                    final isReady = cartProvider.isPaymentProofReady;
+                    return TextButton(
+                      onPressed: isReady
+                          ? () {
+                              Get.back(result: true);
+                            }
+                          : null,
+                      child: const Text('Confirm Payment'),
+                    );
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildPaymentInstructionCard({
+    required IconData icon,
+    required String title,
+    required List<String> instructions,
+  }) {
+    return Card(
+      elevation: 2,
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(icon, size: 20, color: AppColor.darkOrange),
+                const SizedBox(width: 8),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            ...instructions
+                .map((instruction) => Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 2),
+                      child: Text(
+                        instruction,
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                    ))
+                .toList(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPaymentProofUploadSection() {
+    return Consumer<CartProvider>(
+      builder: (context, cartProvider, child) {
+        final hasProof = cartProvider.paymentProofImage != null ||
+            (cartProvider.paymentProofUrl != null &&
+                cartProvider.paymentProofUrl!.isNotEmpty);
+
+        return Column(
+          children: [
+            const Text(
+              '📸 Upload Payment Proof',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 10),
+
+            // Preview container
+            Container(
+              width: 200,
+              height: 200,
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: hasProof ? Colors.green : Colors.grey,
+                  width: hasProof ? 2 : 1,
+                ),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: cartProvider.buildProofPreview(),
+            ),
+
+            const SizedBox(height: 10),
+
+            // Status text
+            if (hasProof)
+              Text(
+                '✓ Proof uploaded successfully',
+                style: TextStyle(
+                  color: Colors.green,
+                  fontWeight: FontWeight.bold,
+                ),
+              )
+            else if (cartProvider.isUploadingPaymentProof)
+              Text(
+                'Uploading...',
+                style: TextStyle(color: Colors.orange),
+              )
+            else
+              Text(
+                'No proof uploaded yet',
+                style: TextStyle(color: Colors.grey),
+              ),
+
+            const SizedBox(height: 10),
+
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton.icon(
+                  onPressed: cartProvider.isUploadingPaymentProof
+                      ? null
+                      : () => cartProvider.pickPaymentProofImage(),
+                  icon: const Icon(Icons.upload),
+                  label: const Text('Upload Proof'),
+                ),
+                if (hasProof)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 8.0),
+                    child: IconButton(
+                      onPressed: cartProvider.isUploadingPaymentProof
+                          ? null
+                          : () => cartProvider.removePaymentProofImage(),
+                      icon: const Icon(Icons.delete, color: Colors.red),
+                    ),
+                  ),
+              ],
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget buildProofPreview() {
+    if (_paymentProofImage != null) {
+      return Image.file(
+        _paymentProofImage!,
+        fit: BoxFit.cover,
+      );
+    } else if (_paymentProofUrl != null && _paymentProofUrl!.isNotEmpty) {
+      return Image.network(
+        _paymentProofUrl!,
+        fit: BoxFit.cover,
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return Center(
+            child: CircularProgressIndicator(
+              value: loadingProgress.expectedTotalBytes != null
+                  ? loadingProgress.cumulativeBytesLoaded /
+                      loadingProgress.expectedTotalBytes!
+                  : null,
+            ),
+          );
         },
+        errorBuilder: (context, error, stackTrace) {
+          return const Center(
+            child: Icon(Icons.error, color: Colors.red),
+          );
+        },
+      );
+    } else {
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.receipt, size: 40, color: Colors.grey),
+            SizedBox(height: 8),
+            Text(
+              'No proof uploaded',
+              style: TextStyle(color: Colors.grey),
+            ),
+          ],
+        ),
       );
     }
   }
 
-  List<Map<String, dynamic>> cartItemToOrderItem(List<CartModel> cartItems) {
-    return cartItems.map((cartItem) {
-      // Get price from the first variant
-      double itemPrice = 0;
-      if (cartItem.variants?.isNotEmpty ?? false) {
-        itemPrice = cartItem.variants!.first.price;
-      }
+  bool get isPaymentProofReady {
+    final hasValidUrl =
+        _paymentProofUrl != null && _paymentProofUrl!.isNotEmpty;
+    final hasImage = _paymentProofImage != null;
 
-      return {
-        "productID": cartItem.productId,
-        "productName": cartItem.productName,
-        "quantity": cartItem.quantity,
-        "price": itemPrice,
-        "variant":
-            (cartItem.variants?.isNotEmpty ?? false) &&
-                cartItem.variants!.first.color != null
-            ? cartItem.variants!.first.color!
-            : '',
-      };
-    }).toList();
+    print(
+        '🟡 [PROOF CHECK] URL: $_paymentProofUrl, Image: $hasImage, Ready: ${hasValidUrl || hasImage}');
+    return hasValidUrl || hasImage;
   }
 
-  clearCouponDiscount() {
+  // Address management
+  void retrieveSavedAddress() {
+    try {
+      final savedAddress = box.read('savedAddress');
+      if (savedAddress != null) {
+        phoneController.text = savedAddress['phone'] ?? '';
+        streetController.text = savedAddress['street'] ?? '';
+        cityController.text = savedAddress['city'] ?? '';
+        stateController.text = savedAddress['state'] ?? '';
+        postalCodeController.text = savedAddress['postalCode'] ?? '';
+        countryController.text = savedAddress['country'] ?? '';
+      }
+    } catch (e) {}
+  }
+
+  void saveAddress() {
+    try {
+      final address = {
+        'phone': phoneController.text,
+        'street': streetController.text,
+        'city': cityController.text,
+        'state': stateController.text,
+        'postalCode': postalCodeController.text,
+        'country': countryController.text,
+      };
+      box.write('savedAddress', address);
+    } catch (e) {}
+  }
+
+  void clearCouponDiscount() {
     couponApplied = null;
     couponCodeDiscount = 0;
     couponController.text = '';
     notifyListeners();
   }
 
-  void retrieveSavedAddress() {
-    phoneController.text = box.read(PHONE_KEY) ?? '';
-    streetController.text = box.read(STREET_KEY) ?? '';
-    cityController.text = box.read(CITY_KEY) ?? '';
-    stateController.text = box.read(STATE_KEY) ?? '';
-    postalCodeController.text = box.read(POSTAL_CODE_KEY) ?? '';
-    countryController.text = box.read(COUNTRY_KEY) ?? '';
-  }
-
-  Future<void> stripePayment({
-    required BuildContext context,
-    required void Function() operation,
-  }) async {
-    try {
-      _isProcessingPayment = true;
-      notifyListeners();
-
-      final userProvider = Provider.of<UserProvider>(context, listen: false);
-
-      // Validate address first
-      if (phoneController.text.isEmpty ||
-          streetController.text.isEmpty ||
-          cityController.text.isEmpty ||
-          stateController.text.isEmpty ||
-          postalCodeController.text.isEmpty ||
-          countryController.text.isEmpty) {
-        SnackBarHelper.showErrorSnackBar('Please fill all address fields');
-        _isProcessingPayment = false;
-        notifyListeners();
-        return;
-      }
-
-      // Prepare payment data with timeout
-      Map<String, dynamic> paymentData = {
-        "email": userProvider.getLoginUsr()?.name ?? 'customer@example.com',
-        "name": userProvider.getLoginUsr()?.name ?? 'Customer',
-        "address": {
-          "line1": streetController.text,
-          "city": cityController.text,
-          "state": stateController.text,
-          "postal_code": postalCodeController.text,
-          "country": countryController.text,
-        },
-        "amount": (getGrandTotal() * 100).round(),
-        "currency": "usd",
-        "description": "Order payment for ${userProvider.getLoginUsr()?.name}",
-      };
-
-      // Add timeout to the payment request
-      Response response = await service
-          .addItem(endpointUrl: 'payment/stripe', itemData: paymentData)
-          .timeout(
-            const Duration(seconds: 30),
-            onTimeout: () {
-              return Response(
-                statusCode: 408,
-                statusText: 'Payment request timeout',
-              );
-            },
-          );
-
-      if (response.isOk && response.body != null) {
-        final data = response.body;
-        final paymentIntent = data['paymentIntent'];
-
-        if (paymentIntent == null) {
-          SnackBarHelper.showErrorSnackBar(
-            'Payment setup failed - no payment intent',
-          );
-          _isProcessingPayment = false;
-          notifyListeners();
-          return;
-        }
-
-        // Initialize Stripe with proper error handling
-        try {
-          await Stripe.instance.initPaymentSheet(
-            paymentSheetParameters: SetupPaymentSheetParameters(
-              customFlow: false,
-              merchantDisplayName: 'MOBIZATE',
-              paymentIntentClientSecret: paymentIntent,
-              customerEphemeralKeySecret: data['ephemeralKey'],
-              customerId: data['customer'],
-              style: ThemeMode.light,
-              billingDetails: BillingDetails(
-                email:
-                    userProvider.getLoginUsr()?.name ?? 'customer@example.com',
-                phone: phoneController.text.isNotEmpty
-                    ? phoneController.text
-                    : '+1234567890',
-                name: userProvider.getLoginUsr()?.name ?? 'Customer',
-                address: Address(
-                  country: countryController.text.isNotEmpty
-                      ? countryController.text
-                      : 'US',
-                  city: cityController.text,
-                  line1: streetController.text,
-                  line2: '', // Added required line2 parameter
-                  postalCode: postalCodeController.text,
-                  state: stateController.text,
-                ),
-              ),
-            ),
-          );
-
-          // Present payment sheet with timeout
-          await Stripe.instance.presentPaymentSheet().timeout(
-            const Duration(seconds: 60),
-            onTimeout: () {
-              throw Exception('Payment process timeout');
-            },
-          );
-
-          SnackBarHelper.showSuccessSnackBar('Payment successful!');
-          operation();
-        } on StripeException catch (e) {
-          SnackBarHelper.showErrorSnackBar(
-            'Payment failed: ${e.error.localizedMessage ?? 'Unknown error'}',
-          );
-        } catch (e) {
-          SnackBarHelper.showErrorSnackBar('Payment failed: $e');
-        }
-      } else {
-        SnackBarHelper.showErrorSnackBar(
-          'Payment setup failed: ${response.statusText ?? 'Unknown error'}',
-        );
-      }
-    } catch (e) {
-      SnackBarHelper.showErrorSnackBar('Payment failed: $e');
-    } finally {
-      _isProcessingPayment = false;
-      notifyListeners();
-    }
-  }
-
-  void updateUI() {
+  void togglePaymentInstructions() {
+    _showPaymentInstructions = !_showPaymentInstructions;
     notifyListeners();
   }
 
-  void saveAddress() {
-    box.write(PHONE_KEY, phoneController.text);
-    box.write(STREET_KEY, streetController.text);
-    box.write(CITY_KEY, cityController.text);
-    box.write(STATE_KEY, stateController.text);
-    box.write(POSTAL_CODE_KEY, postalCodeController.text);
-    box.write(COUNTRY_KEY, countryController.text);
-    SnackBarHelper.showSuccessSnackBar('Address saved successfully');
+  void setPaymentOption(String option) {
+    selectedPaymentOption = option;
+    notifyListeners();
   }
 
-  void refreshCart() {
-    getCartItems();
+  void toggleExpansion() {
+    isExpanded = !isExpanded;
+    notifyListeners();
+  }
+
+  void clearCoupon() {
+    couponApplied = null;
+    couponCodeDiscount = 0;
+    couponController.clear();
+    notifyListeners();
+  }
+
+  void clearForm() {
+    phoneController.clear();
+    streetController.clear();
+    cityController.clear();
+    stateController.clear();
+    postalCodeController.clear();
+    countryController.clear();
+    couponController.clear();
+    _paymentProofImage = null;
+    _paymentProofUrl = null;
+    selectedPaymentOption = 'cod';
+    couponApplied = null;
+    couponCodeDiscount = 0;
+    isExpanded = false;
+    notifyListeners();
+  }
+
+  List<Map<String, dynamic>> cartItemToOrderItem(List<CartModel> cartItems) {
+    return cartItems.map((cartItem) {
+      return {
+        'productID': cartItem.productId,
+        'productName': cartItem.productName,
+        'quantity': cartItem.quantity,
+        'price': cartItem.variants.first.price,
+        'variant': cartItem.variants.first.color ?? 'Default',
+      };
+    }).toList();
+  }
+
+  @override
+  void dispose() {
+    phoneController.dispose();
+    streetController.dispose();
+    cityController.dispose();
+    stateController.dispose();
+    postalCodeController.dispose();
+    countryController.dispose();
+    couponController.dispose();
+    super.dispose();
   }
 }
