@@ -1,0 +1,2755 @@
+const express = require('express');
+const cors = require('cors');
+const mongoose = require('mongoose');
+const asyncHandler = require('express-async-handler');
+const dotenv = require('dotenv');
+const path = require('path');
+const helmet = require('helmet');
+
+dotenv.config();
+
+const app = express();
+
+// Middlewares
+app.use(cors({ origin: '*' }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(helmet());
+
+
+app.use('/image/products', express.static(path.join(__dirname, 'public/products')));
+app.use('/image/category', express.static(path.join(__dirname, 'public/category')));
+app.use('/image/poster', express.static(path.join(__dirname, 'public/posters')));  app.use('/image/payment-proofs', express.static(path.join(__dirname, 'public/payment-proofs')));
+
+// MongoDB connection
+mongoose.set('strictQuery', true);
+mongoose.connect(process.env.MONGO_URL);
+const db = mongoose.connection;
+db.on('error', console.error);
+db.once('open', () => console.log('Connected to Database'));
+
+// Routes
+app.use('/categories', require('./routes/category'));
+app.use('/subCategories', require('./routes/subCategory'));
+app.use('/brands', require('./routes/brand'));
+app.use('/variantTypes', require('./routes/variantType'));
+app.use('/variants', require('./routes/variant'));
+app.use('/products', require('./routes/product'));
+app.use('/couponCodes', require('./routes/couponCode'));
+app.use('/posters', require('./routes/poster'));
+app.use('/users', require('./routes/user'));
+app.use('/orders', require('./routes/order'));
+app.use('/payment', require('./routes/payment'));
+app.use('/notification', require('./routes/notification'));
+app.use('/verification', require('./routes/verification'));
+app.use('/ratings', require('./routes/rating'));
+
+// Test route
+app.get('/', asyncHandler(async (req, res) => {
+    res.json({ success: true, message: 'API working successfully', data: null });
+}));
+
+// Global error handler
+app.use((error, req, res, next) => {
+    res.status(500).json({
+        success: false,
+        message: error.message,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+const multer = require('multer');
+const path = require('path');
+
+const storageCategory = multer.diskStorage({
+  destination: function(req, file, cb) {
+    cb(null, './public/category');
+  },
+  filename: function(req, file, cb) {
+    // Check file type based on its extension
+    const filetypes = /jpeg|jpg|png/;
+    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+
+    if (extname) {
+      cb(null, Date.now() + "_" + Math.floor(Math.random() * 1000) + path.extname(file.originalname));
+    } else {
+      cb("Error: only .jpeg, .jpg, .png files are allowed!");
+    }
+  }
+});
+
+const uploadCategory = multer({
+  storage: storageCategory,
+  limits: {
+    fileSize: 1024 * 1024 * 5 // limit filesize to 5MB
+  },
+});
+
+const storageProduct = multer.diskStorage({
+  destination: function(req, file, cb) {
+    cb(null, './public/products');
+  },
+  filename: function(req, file, cb) {
+    // Check file type based on its extension
+    const filetypes = /jpeg|jpg|png/;
+    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+
+    if (extname) {
+      cb(null, Date.now() + "_" + file.originalname);
+    } else {
+      cb("Error: only .jpeg, .jpg, .png files are allowed!");
+    }
+  }
+});
+
+const uploadProduct = multer({
+  storage: storageProduct,
+  limits: {
+    fileSize: 1024 * 1024 * 5 // limit filesize to 5MB
+  },
+});
+
+
+const storagePoster = multer.diskStorage({
+  destination: function(req, file, cb) {
+    cb(null, './public/posters');
+  },
+  filename: function(req, file, cb) {
+    // Check file type based on its extension
+    const filetypes = /jpeg|jpg|png/;
+    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+
+    if (extname) {
+      cb(null, Date.now() + "_" + file.originalname);
+    } else {
+      cb("Error: only .jpeg, .jpg, .png files are allowed!");
+    }
+  }
+});
+
+const uploadPosters = multer({
+  storage: storagePoster,
+  limits: {
+    fileSize: 1024 * 1024 * 5 // limit filesize to 5MB
+  },
+});
+
+module.exports = {
+    uploadCategory,
+    uploadProduct,
+    uploadPosters,
+};
+const mongoose = require('mongoose');
+
+// Define the Brand schema
+const brandSchema = new mongoose.Schema({
+    name: {
+        type: String,
+        required: [true, 'Name is required'], // Adding custom error message
+        trim: true
+    },
+    subcategoryId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'SubCategory', // This should match the model name you use when you create the SubCategory model
+        required: [true, 'Subcategory ID is required']
+    }
+},{ timestamps: true });
+
+// Create the Brand model
+const Brand = mongoose.model('Brand', brandSchema);
+
+module.exports = Brand;
+const mongoose = require('mongoose');
+
+const categorySchema = new mongoose.Schema({
+    name: { type: String, required: true },
+    image: { type: String, required: true }
+}, { timestamps: true });
+
+module.exports = mongoose.model('Category', categorySchema);
+const mongoose = require('mongoose');
+
+const couponSchema = new mongoose.Schema({
+  couponCode: {
+    type: String,
+    required: true,
+    unique: true
+  },
+  discountType: {
+    type: String,
+    enum: ['fixed', 'percentage'],
+    required: true
+  },
+  discountAmount: {
+    type: Number,
+    required: true
+  },
+  minimumPurchaseAmount: {
+    type: Number,
+    required: true
+  },
+  endDate: {
+    type: Date,
+    required: true
+  },
+  status: {
+    type: String,
+    enum: ['active', 'inactive'],
+    default: 'active'
+  },
+  applicableCategory: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Category'
+  },
+  applicableSubCategory: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'SubCategory'
+  },
+  applicableProduct: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Product'
+  }
+}, { timestamps: true });
+
+const Coupon = mongoose.model('Coupon', couponSchema);
+
+module.exports = Coupon;
+const mongoose = require('mongoose');
+
+// Define the Notification schema
+const notificationSchema = new mongoose.Schema({
+    notificationId: {
+        type: String,
+        required: [true, 'Notification ID is required'],
+        unique: true
+    },
+    title: {
+        type: String,
+        required: [true, 'Title is required'],
+        trim: true
+    },
+    description: {
+        type: String,
+        required: [true, 'Description is required'],
+        trim: true
+    },
+    imageUrl: {
+        type: String,
+        trim: true
+    },
+}, { timestamps: true });
+
+// Create the Notification model
+const Notification = mongoose.model('Notification', notificationSchema);
+
+module.exports = Notification;
+const mongoose = require('mongoose');
+
+const orderSchema = new mongoose.Schema({
+  userID: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  orderDate: {
+    type: Date,
+    default: Date.now
+  },
+orderStatus: {
+  type: String,
+  enum: ['pending', 'processing', 'shipped', 'delivered', 'cancelled', 'payment_pending', 'payment_verified'],
+  default: 'pending'
+},
+  items: [
+    {
+      productID: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Product',
+        required: true
+      },
+      productName: {
+        type: String,
+        required: true
+      },
+      quantity: {
+        type: Number,
+        required: true
+      },
+      price: {
+        type: Number,
+        required: true
+      },
+      variant: {
+        type: String,
+      },
+    }
+  ],
+  totalPrice: {
+    type: Number,
+    required: true
+  },
+  shippingAddress: {
+    phone: String,
+    street: String,
+    city: String,
+    state: String,
+    postalCode: String,
+    country: String
+  },
+  paymentMethod: {
+    type: String,
+    enum: ['cod', 'cbe', 'telebirr'],
+    required: true
+  },
+  paymentStatus: {
+    type: String,
+    enum: ['pending', 'verified', 'failed'],
+    default: 'pending'
+  },
+  paymentProof: {
+    imageUrl: String,
+    uploadedAt: Date,
+    verified: Boolean,
+    verifiedAt: Date
+  },
+  couponCode: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Coupon'
+  },
+  orderTotal: {
+    subtotal: Number,
+    discount: Number,
+    total: Number
+  },
+  trackingUrl: {
+    type: String
+  },
+}, {
+  timestamps: true
+});
+
+const Order = mongoose.model('Order', orderSchema);
+
+module.exports = Order;
+const mongoose = require('mongoose');
+
+const posterSchema = new mongoose.Schema({
+  posterName: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  imageUrl: {
+    type: String,
+    required: true
+  }
+}, {
+  timestamps: true 
+});
+
+const Poster = mongoose.model('Poster', posterSchema);
+
+module.exports = Poster;
+const mongoose = require('mongoose');
+
+const productSchema = new mongoose.Schema({
+    name: {
+        type: String,
+        required: [true, 'Name is required'],
+        trim: true
+    },
+    description: {
+        type: String,
+        trim: true
+    },
+    quantity: {
+        type: Number,
+        required: true
+    },
+    price: {
+        type: Number,
+        required: true
+    },
+    offerPrice: {
+        type: Number
+    },
+    proCategoryId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Category',
+        required: true
+    },
+    proSubCategoryId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'SubCategory',
+        required: true
+    },
+    proBrandId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Brand'
+    },
+    proVariantTypeId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'VariantType'
+    },
+    proVariantId: [String],
+    images: [{
+        image: {
+            type: Number,
+            required: true
+        },
+        url: {
+            type: String,
+            required: true
+        }
+    }]
+}, { timestamps: true });
+
+const Product = mongoose.model('Product', productSchema);
+
+module.exports = Product;
+const mongoose = require('mongoose');
+
+const ratingSchema = new mongoose.Schema({
+  productId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Product',
+    required: true
+  },
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  userName: {
+    type: String,
+    required: true
+  },
+  rating: {
+    type: Number,
+    required: true,
+    min: 1,
+    max: 5
+  },
+  review: {
+    type: String,
+    default: ''
+  },
+  verifiedPurchase: {
+    type: Boolean,
+    default: false
+  }
+}, {
+  timestamps: true
+});
+
+// Create compound index to ensure one rating per user per product
+ratingSchema.index({ productId: 1, userId: 1 }, { unique: true });
+
+module.exports = mongoose.model('Rating', ratingSchema);
+const mongoose = require('mongoose');
+
+// Define the SubCategory schema
+const subCategorySchema = new mongoose.Schema({
+    name: {
+        type: String,
+        required: [true, 'Name is required'], // Adding custom error message
+        trim: true
+    },
+    categoryId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Category', // This should match the model name you use when you create the Category model
+        required: [true, 'Category ID is required']
+    }
+},{ timestamps: true });
+
+// Create the SubCategory model
+const SubCategory = mongoose.model('SubCategory', subCategorySchema);
+
+module.exports = SubCategory;
+
+const mongoose = require('mongoose');
+
+const userSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: true
+  },
+  email: {
+    type: String,
+    unique: true,
+    sparse: true
+  },
+  phone: {
+    type: String,
+    unique: true,
+    sparse: true
+  },
+  password: {
+    type: String,
+    required: true
+  },
+  emailVerified: {
+    type: Boolean,
+    default: false
+  },
+  phoneVerified: {
+    type: Boolean,
+    default: false
+  },
+  verificationCode: {
+    type: String
+  },
+  codeExpires: {
+    type: Date
+  },
+  recoveryEmail: {
+    type: String
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  },
+  updatedAt: {
+    type: Date,
+    default: Date.now
+  }
+});
+
+userSchema.pre('save', function(next) {
+  this.updatedAt = Date.now();
+  next();
+});
+
+const User = mongoose.model('User', userSchema);
+module.exports = User;
+const mongoose = require('mongoose');
+
+const variantSchema = new mongoose.Schema({
+    name: {
+        type: String,
+        required: true
+    },
+    variantTypeId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'VariantType',
+        required: true
+    }
+},{ timestamps: true });
+
+module.exports = mongoose.model('Variant', variantSchema);
+const mongoose = require('mongoose');
+
+// Define the Variant schema
+const variantTypeSchema = new mongoose.Schema({
+    name: {
+        type: String,
+        required: [true, 'Name is required'], 
+        trim: true
+    },
+    type: {
+        type: String,
+        required: [true, 'Type is required'],
+        trim: true
+    }
+},{ timestamps: true });
+
+// Create the Variant model
+const VariantType = mongoose.model('VariantType', variantTypeSchema);
+
+module.exports = VariantType;
+const express = require('express');
+const router = express.Router();
+const Brand = require('../model/brand');
+const Product = require('../model/product');
+const asyncHandler = require('express-async-handler');
+
+// Get all brands
+router.get('/', asyncHandler(async (req, res) => {
+    try {
+        const brands = await Brand.find().populate('subcategoryId').sort({'subcategoryId': 1});
+        res.json({ success: true, message: "Brands retrieved successfully.", data: brands });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// Get a brand by ID
+router.get('/:id', asyncHandler(async (req, res) => {
+    try {
+        const brandID = req.params.id;
+        const brand = await Brand.findById(brandID).populate('subcategoryId');
+        if (!brand) {
+            return res.status(404).json({ success: false, message: "Brand not found." });
+        }
+        res.json({ success: true, message: "Brand retrieved successfully.", data: brand });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// Create a new brand
+router.post('/', asyncHandler(async (req, res) => {
+    const { name, subcategoryId } = req.body;
+    if (!name || !subcategoryId) {
+        return res.status(400).json({ success: false, message: "Name and subcategory ID are required." });
+    }
+
+    try {
+        const brand = new Brand({ name, subcategoryId });
+        const newBrand = await brand.save();
+        res.json({ success: true, message: "Brand created successfully.", data: null });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// Update a brand
+router.put('/:id', asyncHandler(async (req, res) => {
+    const brandID = req.params.id;
+    const { name, subcategoryId } = req.body;
+    if (!name || !subcategoryId) {
+        return res.status(400).json({ success: false, message: "Name and subcategory ID are required." });
+    }
+
+    try {
+        const updatedBrand = await Brand.findByIdAndUpdate(brandID, { name, subcategoryId }, { new: true });
+        if (!updatedBrand) {
+            return res.status(404).json({ success: false, message: "Brand not found." });
+        }
+        res.json({ success: true, message: "Brand updated successfully.", data: null });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// Delete a brand
+router.delete('/:id', asyncHandler(async (req, res) => {
+    const brandID = req.params.id;
+    try {
+        // Check if any products reference this brand
+        const products = await Product.find({ proBrandId: brandID });
+        if (products.length > 0) {
+            return res.status(400).json({ success: false, message: "Cannot delete brand. Products are referencing it." });
+        }
+
+        // If no products are referencing the brand, proceed with deletion
+        const brand = await Brand.findByIdAndDelete(brandID);
+        if (!brand) {
+            return res.status(404).json({ success: false, message: "Brand not found." });
+        }
+        res.json({ success: true, message: "Brand deleted successfully." });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+
+module.exports = router;
+const express = require('express');
+const router = express.Router();
+const Category = require('../model/category');
+const SubCategory = require('../model/subCategory');
+const Product = require('../model/product');
+const { uploadCategory } = require('../uploadFile');
+const multer = require('multer');
+const asyncHandler = require('express-async-handler');
+
+// Get SERVER_BASE_URL from environment variables
+const SERVER_BASE_URL = process.env.SERVER_BASE_URL || 'http://localhost:3000';
+
+// Get all categories
+router.get('/', asyncHandler(async (req, res) => {
+    try {
+        const categories = await Category.find();
+        res.json({ success: true, message: "Categories retrieved successfully.", data: categories });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// Get a category by ID
+router.get('/:id', asyncHandler(async (req, res) => {
+    try {
+        const categoryID = req.params.id;
+        const category = await Category.findById(categoryID);
+        if (!category) {
+            return res.status(404).json({ success: false, message: "Category not found." });
+        }
+        res.json({ success: true, message: "Category retrieved successfully.", data: category });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// Create a new category with image upload
+router.post('/', asyncHandler(async (req, res) => {
+    try {
+        uploadCategory.single('img')(req, res, async function (err) {
+            if (err instanceof multer.MulterError) {
+                if (err.code === 'LIMIT_FILE_SIZE') {
+                    err.message = 'File size is too large. Maximum filesize is 5MB.';
+                }
+                console.log(`Add category: ${err}`);
+                return res.json({ success: false, message: err });
+            } else if (err) {
+                console.log(`Add category: ${err}`);
+                return res.json({ success: false, message: err });
+            }
+            const { name } = req.body;
+            let imageUrl = 'no_url';
+            if (req.file) {
+                imageUrl = `${SERVER_BASE_URL}/image/category/${req.file.filename}`;
+            }
+            console.log('url ', req.file)
+
+            if (!name) {
+                return res.status(400).json({ success: false, message: "Name is required." });
+            }
+
+            try {
+                const newCategory = new Category({
+                    name: name,
+                    image: imageUrl
+                });
+                await newCategory.save();
+                res.json({ success: true, message: "Category created successfully.", data: null });
+            } catch (error) {
+                console.error("Error creating category:", error);
+                res.status(500).json({ success: false, message: error.message });
+            }
+
+        });
+
+    } catch (err) {
+        console.log(`Error creating category: ${err.message}`);
+        return res.status(500).json({ success: false, message: err.message });
+    }
+}));
+
+// Update a category
+router.put('/:id', asyncHandler(async (req, res) => {
+    try {
+        const categoryID = req.params.id;
+        uploadCategory.single('img')(req, res, async function (err) {
+            if (err instanceof multer.MulterError) {
+                if (err.code === 'LIMIT_FILE_SIZE') {
+                    err.message = 'File size is too large. Maximum filesize is 5MB.';
+                }
+                console.log(`Update category: ${err.message}`);
+                return res.json({ success: false, message: err.message });
+            } else if (err) {
+                console.log(`Update category: ${err.message}`);
+                return res.json({ success: false, message: err.message });
+            }
+
+            const { name } = req.body;
+            let image = req.body.image;
+
+            if (req.file) {
+                image = `${SERVER_BASE_URL}/image/category/${req.file.filename}`;
+            }
+
+            if (!name || !image) {
+                return res.status(400).json({ success: false, message: "Name and image are required." });
+            }
+
+            try {
+                const updatedCategory = await Category.findByIdAndUpdate(categoryID, { name: name, image: image }, { new: true });
+                if (!updatedCategory) {
+                    return res.status(404).json({ success: false, message: "Category not found." });
+                }
+                res.json({ success: true, message: "Category updated successfully.", data: null });
+            } catch (error) {
+                res.status(500).json({ success: false, message: error.message });
+            }
+
+        });
+
+    } catch (err) {
+        console.log(`Error updating category: ${err.message}`);
+        return res.status(500).json({ success: false, message: err.message });
+    }
+}));
+
+// Delete a category
+router.delete('/:id', asyncHandler(async (req, res) => {
+    try {
+        const categoryID = req.params.id;
+
+        // Check if any subcategories reference this category
+        const subcategories = await SubCategory.find({ categoryId: categoryID });
+        if (subcategories.length > 0) {
+            return res.status(400).json({ success: false, message: "Cannot delete category. Subcategories are referencing it." });
+        }
+
+        // Check if any products reference this category
+        const products = await Product.find({ proCategoryId: categoryID });
+        if (products.length > 0) {
+            return res.status(400).json({ success: false, message: "Cannot delete category. Products are referencing it." });
+        }
+
+        // If no subcategories or products are referencing the category, proceed with deletion
+        const category = await Category.findByIdAndDelete(categoryID);
+        if (!category) {
+            return res.status(404).json({ success: false, message: "Category not found." });
+        }
+        res.json({ success: true, message: "Category deleted successfully." });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+module.exports = router;
+const express = require('express');
+const asyncHandler = require('express-async-handler');
+const router = express.Router();
+const Coupon = require('../model/couponCode'); 
+const Product = require('../model/product');
+
+// Get all coupons
+router.get('/', asyncHandler(async (req, res) => {
+    try {
+        const coupons = await Coupon.find().populate('applicableCategory', 'id name')
+            .populate('applicableSubCategory', 'id name')
+            .populate('applicableProduct', 'id name');
+        res.json({ success: true, message: "Coupons retrieved successfully.", data: coupons });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// Get a coupon by ID
+router.get('/:id', asyncHandler(async (req, res) => {
+    try {
+        const couponID = req.params.id;
+        const coupon = await Coupon.findById(couponID)
+            .populate('applicableCategory', 'id name')
+            .populate('applicableSubCategory', 'id name')
+            .populate('applicableProduct', 'id name');
+        if (!coupon) {
+            return res.status(404).json({ success: false, message: "Coupon not found." });
+        }
+        res.json({ success: true, message: "Coupon retrieved successfully.", data: coupon });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// Create a new coupon
+router.post('/', asyncHandler(async (req, res) => {
+    const { couponCode, discountType, discountAmount, minimumPurchaseAmount, endDate, status, applicableCategory, applicableSubCategory, applicableProduct } = req.body;
+    if (!couponCode || !discountType || !discountAmount || !endDate || !status) {
+        return res.status(400).json({ success: false, message: "Code, discountType, discountAmount, endDate, and status are required." });
+    }
+
+
+
+    try {
+        const coupon = new Coupon({
+            couponCode,
+            discountType,
+            discountAmount,
+            minimumPurchaseAmount,
+            endDate,
+            status,
+            applicableCategory,
+            applicableSubCategory,
+            applicableProduct
+        });
+
+        const newCoupon = await coupon.save();
+        res.json({ success: true, message: "Coupon created successfully.", data: null });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+
+// Update a coupon
+router.put('/:id', asyncHandler(async (req, res) => {
+    try {
+        const couponID = req.params.id;
+        const { couponCode, discountType, discountAmount, minimumPurchaseAmount, endDate, status, applicableCategory, applicableSubCategory, applicableProduct } = req.body;
+        console.log(req.body)
+        if (!couponCode || !discountType || !discountAmount || !endDate || !status) {
+            return res.status(400).json({ success: false, message: "CouponCode, discountType, discountAmount, endDate, and status are required." });
+        }
+
+        const updatedCoupon = await Coupon.findByIdAndUpdate(
+            couponID,
+            { couponCode, discountType, discountAmount, minimumPurchaseAmount, endDate, status, applicableCategory, applicableSubCategory, applicableProduct },
+            { new: true }
+        );
+
+        if (!updatedCoupon) {
+            return res.status(404).json({ success: false, message: "Coupon not found." });
+        }
+
+        res.json({ success: true, message: "Coupon updated successfully.", data: null });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+
+// Delete a coupon
+router.delete('/:id', asyncHandler(async (req, res) => {
+    try {
+        const couponID = req.params.id;
+        const deletedCoupon = await Coupon.findByIdAndDelete(couponID);
+        if (!deletedCoupon) {
+            return res.status(404).json({ success: false, message: "Coupon not found." });
+        }
+        res.json({ success: true, message: "Coupon deleted successfully." });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+
+router.post('/check-coupon', asyncHandler(async (req, res) => {
+    console.log(req.body);
+    const { couponCode, productIds,purchaseAmount } = req.body;
+
+    try {
+        // Find the coupon with the provided coupon code
+        const coupon = await Coupon.findOne({ couponCode });
+
+
+        // If coupon is not found, return false
+        if (!coupon) {
+            return res.json({ success: false, message: "Coupon not found." });
+        }
+
+        // Check if the coupon is expired
+        const currentDate = new Date();
+        if (coupon.endDate < currentDate) {
+            return res.json({ success: false, message: "Coupon is expired." });
+        }
+
+        // Check if the coupon is active
+        if (coupon.status !== 'active') {
+            return res.json({ success: false, message: "Coupon is inactive." });
+        }
+
+       // Check if the purchase amount is greater than the minimum purchase amount specified in the coupon
+       if (coupon.minimumPurchaseAmount && purchaseAmount < coupon.minimumPurchaseAmount) {
+        return res.json({ success: false, message: "Minimum purchase amount not met." });
+    }
+
+        // Check if the coupon is applicable for all orders
+        if (!coupon.applicableCategory && !coupon.applicableSubCategory && !coupon.applicableProduct) {
+            return res.json({ success: true, message: "Coupon is applicable for all orders." ,data:coupon});
+        }
+
+        // Fetch the products from the database using the provided product IDs
+        const products = await Product.find({ _id: { $in: productIds } });
+
+        // Check if any product in the list is not applicable for the coupon
+        const isValid = products.every(product => {
+            if (coupon.applicableCategory && coupon.applicableCategory.toString() !== product.proCategoryId.toString()) {
+                return false;
+            }
+            if (coupon.applicableSubCategory && coupon.applicableSubCategory.toString() !== product.proSubCategoryId.toString()) {
+                return false;
+            }
+            if (coupon.applicableProduct && !product.proVariantId.includes(coupon.applicableProduct.toString())) {
+                return false;
+            }
+            return true;
+        });
+
+        if (isValid) {
+            return res.json({ success: true, message: "Coupon is applicable for the provided products." ,data:coupon});
+        } else {
+            return res.json({ success: false, message: "Coupon is not applicable for the provided products." });
+        }
+    } catch (error) {
+        console.error('Error checking coupon code:', error);
+        return res.status(500).json({ success: false, message: "Internal server error." });
+    }
+}));
+
+
+
+
+module.exports = router;
+const express = require('express');
+const router = express.Router();
+const asyncHandler = require('express-async-handler');
+const Notification = require('../model/notification');
+const axios = require('axios');
+const dotenv = require('dotenv');
+dotenv.config();
+
+const ONE_SIGNAL_APP_ID = process.env.ONE_SIGNAL_APP_ID;
+const ONE_SIGNAL_REST_API_KEY = process.env.ONE_SIGNAL_REST_API_KEY;
+
+// Send notification
+router.post('/send-notification', asyncHandler(async (req, res) => {
+    const { title, description, imageUrl } = req.body;
+
+    const notificationBody = {
+        app_id: ONE_SIGNAL_APP_ID,
+        headings: { en: title },
+        contents: { en: description },
+        included_segments: ['All'],
+        ...(imageUrl && { big_picture: imageUrl })
+    };
+
+    try {
+        const response = await axios.post(
+            'https://onesignal.com/api/v1/notifications',
+            notificationBody,
+            {
+                headers: {
+                    'Authorization': `Basic ${ONE_SIGNAL_REST_API_KEY}`,
+                    'Content-Type': 'application/json'
+                }
+            }
+        );
+
+        const notificationId = response.data.id;
+        console.log('Notification sent to all users:', notificationId);
+
+        const notification = new Notification({ notificationId, title, description, imageUrl });
+        await notification.save();
+
+        res.json({ success: true, message: 'Notification sent successfully', data: null });
+    } catch (error) {
+        console.error('Error sending notification:', error.response?.data || error.message);
+        res.status(500).json({ success: false, message: 'Failed to send notification', data: null });
+    }
+}));
+
+// Track notification
+router.get('/track-notification/:id', asyncHandler(async (req, res) => {
+    const notificationId = req.params.id;
+
+    try {
+        const response = await axios.get(
+            `https://onesignal.com/api/v1/notifications/${notificationId}?app_id=${ONE_SIGNAL_APP_ID}`,
+            {
+                headers: {
+                    'Authorization': `Basic ${ONE_SIGNAL_REST_API_KEY}`
+                }
+            }
+        );
+
+        const androidStats = response.data.platform_delivery_stats;
+        const result = {
+            platform: 'Android',
+            success_delivery: androidStats.android.successful,
+            failed_delivery: androidStats.android.failed,
+            errored_delivery: androidStats.android.errored,
+            opened_notification: androidStats.android.converted
+        };
+
+        console.log('Notification details:', androidStats);
+        res.json({ success: true, message: 'Success', data: result });
+    } catch (error) {
+        console.error('Error tracking notification:', error.response?.data || error.message);
+        res.status(500).json({ success: false, message: 'Failed to track notification', data: null });
+    }
+}));
+
+// Get all notifications
+router.get('/all-notification', asyncHandler(async (req, res) => {
+    try {
+        const notifications = await Notification.find({}).sort({ _id: -1 });
+        res.json({ success: true, message: 'Notifications retrieved successfully.', data: notifications });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message, data: null });
+    }
+}));
+
+// Delete notification
+router.delete('/delete-notification/:id', asyncHandler(async (req, res) => {
+    const notificationID = req.params.id;
+    try {
+        const notification = await Notification.findByIdAndDelete(notificationID);
+        if (!notification) {
+            return res.status(404).json({ success: false, message: 'Notification not found.', data: null });
+        }
+        res.json({ success: true, message: 'Notification deleted successfully.', data: null });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message, data: null });
+    }
+}));
+
+
+module.exports = router;
+const express = require('express');
+const asyncHandler = require('express-async-handler');
+const router = express.Router();
+const Order = require('../model/order');
+
+// Get all orders
+router.get('/', asyncHandler(async (req, res) => {
+    try {
+        const orders = await Order.find()
+        .populate('couponCode', 'id couponCode discountType discountAmount')
+        .populate('userID', 'id name').sort({ _id: -1 });
+        res.json({ success: true, message: "Orders retrieved successfully.", data: orders });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// Get orders by user ID
+router.get('/orderByUserId/:userId', asyncHandler(async (req, res) => {
+    try {
+        const userId = req.params.userId;
+        const orders = await Order.find({ userID: userId })
+            .populate('couponCode', 'id couponCode discountType discountAmount')
+            .populate('userID', 'id name')
+            .sort({ _id: -1 });
+        res.json({ success: true, message: "Orders retrieved successfully.", data: orders });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// Get an order by ID
+router.get('/:id', asyncHandler(async (req, res) => {
+    try {
+        const orderID = req.params.id;
+        const order = await Order.findById(orderID)
+        .populate('couponCode', 'id couponCode discountType discountAmount')
+        .populate('userID', 'id name');
+        if (!order) {
+            return res.status(404).json({ success: false, message: "Order not found." });
+        }
+        res.json({ success: true, message: "Order retrieved successfully.", data: order });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// Create a new order
+router.post('/', asyncHandler(async (req, res) => {
+    const { userID, orderStatus, items, totalPrice, shippingAddress, paymentMethod, paymentStatus, paymentProof, couponCode, orderTotal, trackingUrl } = req.body;
+    
+    if (!userID || !items || !totalPrice || !shippingAddress || !paymentMethod || !orderTotal) {
+        return res.status(400).json({ success: false, message: "User ID, items, totalPrice, shippingAddress, paymentMethod, and orderTotal are required." });
+    }
+
+    // Validate payment method
+    const validPaymentMethods = ['cod', 'cbe', 'telebirr'];
+    if (!validPaymentMethods.includes(paymentMethod)) {
+        return res.status(400).json({ success: false, message: "Invalid payment method." });
+    }
+
+    // Set default payment status if not provided
+    const finalPaymentStatus = paymentStatus || (paymentMethod === 'cod' ? 'pending' : 'pending');
+    const finalOrderStatus = orderStatus || (paymentMethod === 'cod' ? 'pending' : 'payment_pending');
+
+    try {
+        const order = new Order({ 
+            userID, 
+            orderStatus: finalOrderStatus, 
+            items, 
+            totalPrice, 
+            shippingAddress, 
+            paymentMethod, 
+            paymentStatus: finalPaymentStatus,
+            paymentProof,
+            couponCode, 
+            orderTotal, 
+            trackingUrl 
+        });
+        const newOrder = await order.save();
+        res.json({ success: true, message: "Order created successfully.", data: newOrder });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// Update an order status
+router.put('/:id', asyncHandler(async (req, res) => {
+    try {
+        const orderID = req.params.id;
+        const { orderStatus, trackingUrl } = req.body;
+        if (!orderStatus) {
+            return res.status(400).json({ success: false, message: "Order Status required." });
+        }
+
+        const updatedOrder = await Order.findByIdAndUpdate(
+            orderID,
+            { orderStatus, trackingUrl },
+            { new: true }
+        );
+
+        if (!updatedOrder) {
+            return res.status(404).json({ success: false, message: "Order not found." });
+        }
+
+        res.json({ success: true, message: "Order updated successfully.", data: updatedOrder });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// Verify payment (admin endpoint)
+router.put('/:id/verify-payment', asyncHandler(async (req, res) => {
+    try {
+        const orderID = req.params.id;
+        const { verified, adminNotes } = req.body;
+        
+        if (typeof verified !== 'boolean') {
+            return res.status(400).json({ success: false, message: "Verification status (verified) is required and must be boolean." });
+        }
+
+        const order = await Order.findById(orderID);
+        if (!order) {
+            return res.status(404).json({ success: false, message: "Order not found." });
+        }
+
+        // Update payment status and order status
+        order.paymentStatus = verified ? 'verified' : 'failed';
+        order.orderStatus = verified ? 'processing' : 'cancelled';
+        
+        // Update payment proof verification if payment proof exists
+        if (order.paymentProof) {
+            order.paymentProof.verified = verified;
+            order.paymentProof.verifiedAt = verified ? new Date() : null;
+        }
+
+        const updatedOrder = await order.save();
+
+        res.json({ 
+            success: true, 
+            message: `Payment ${verified ? 'verified' : 'rejected'} successfully.`,
+            data: updatedOrder
+        });
+    } catch (error) {
+        console.error('Error verifying payment:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// Update payment proof
+router.put('/:id/payment-proof', asyncHandler(async (req, res) => {
+    try {
+        const orderID = req.params.id;
+        const { imageUrl } = req.body;
+        
+        if (!imageUrl) {
+            return res.status(400).json({ success: false, message: "Image URL is required." });
+        }
+
+        const order = await Order.findById(orderID);
+        if (!order) {
+            return res.status(404).json({ success: false, message: "Order not found." });
+        }
+
+        // Update or create payment proof
+        order.paymentProof = {
+            imageUrl: imageUrl,
+            uploadedAt: new Date(),
+            verified: false,
+            verifiedAt: null
+        };
+
+        // For non-COD payments, set status to payment pending
+        if (order.paymentMethod !== 'cod') {
+            order.orderStatus = 'payment_pending';
+            order.paymentStatus = 'pending';
+        }
+
+        const updatedOrder = await order.save();
+
+        res.json({ 
+            success: true, 
+            message: "Payment proof updated successfully.",
+            data: updatedOrder
+        });
+    } catch (error) {
+        console.error('Error updating payment proof:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// Get orders by payment status
+router.get('/payment-status/:status', asyncHandler(async (req, res) => {
+    try {
+        const paymentStatus = req.params.status;
+        const validStatuses = ['pending', 'verified', 'failed'];
+        
+        if (!validStatuses.includes(paymentStatus)) {
+            return res.status(400).json({ success: false, message: "Invalid payment status." });
+        }
+
+        const orders = await Order.find({ paymentStatus: paymentStatus })
+            .populate('couponCode', 'id couponCode discountType discountAmount')
+            .populate('userID', 'id name')
+            .sort({ _id: -1 });
+
+        res.json({ success: true, message: "Orders retrieved successfully.", data: orders });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// Get orders requiring payment verification (admin endpoint)
+router.get('/admin/pending-verification', asyncHandler(async (req, res) => {
+    try {
+        const orders = await Order.find({ 
+            paymentMethod: { $in: ['cbe', 'telebirr'] },
+            paymentStatus: 'pending',
+            'paymentProof.imageUrl': { $exists: true, $ne: null }
+        })
+        .populate('couponCode', 'id couponCode discountType discountAmount')
+        .populate('userID', 'id name')
+        .sort({ _id: -1 });
+
+        res.json({ 
+            success: true, 
+            message: "Orders pending payment verification retrieved successfully.", 
+            data: orders 
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// Delete an order
+router.delete('/:id', asyncHandler(async (req, res) => {
+    try {
+        const orderID = req.params.id;
+        const deletedOrder = await Order.findByIdAndDelete(orderID);
+        if (!deletedOrder) {
+            return res.status(404).json({ success: false, message: "Order not found." });
+        }
+        res.json({ success: true, message: "Order deleted successfully." });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+module.exports = router;
+const express = require('express');
+const asyncHandler = require('express-async-handler');
+const router = express.Router();
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const uploadPath = path.join(__dirname, '../public/payment-proofs');
+    // Create directory if it doesn't exist
+    if (!fs.existsSync(uploadPath)) {
+      fs.mkdirSync(uploadPath, { recursive: true });
+    }
+    cb(null, uploadPath);
+  },
+  filename: function (req, file, cb) {
+    // Generate unique filename
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, 'payment-proof-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({ 
+  storage: storage,
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB limit
+  },
+  fileFilter: function (req, file, cb) {
+    // Check if file is an image
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed!'), false);
+    }
+  }
+});
+
+// Get SERVER_BASE_URL from environment variables with proper fallback
+const SERVER_BASE_URL = process.env.SERVER_BASE_URL || 'http://localhost:3000';
+console.log('🟡 [SERVER] SERVER_BASE_URL:', SERVER_BASE_URL);
+
+// Upload payment proof
+router.post('/upload-proof', upload.single('proofImage'), asyncHandler(async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: "No file uploaded." });
+    }
+
+    const imageUrl = `${SERVER_BASE_URL}/image/payment-proofs/${req.file.filename}`;
+    console.log('🟡 [UPLOAD] Generated image URL:', imageUrl);
+    
+    res.json({ 
+      success: true, 
+      message: "Payment proof uploaded successfully.", 
+      data: {
+        imageUrl: imageUrl
+      }
+    });
+  } catch (error) {
+    console.error('🔴 [UPLOAD] Error uploading payment proof:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+}));
+
+// Alternative endpoint for base64 image upload
+router.post('/upload-proof-base64', asyncHandler(async (req, res) => {
+  try {
+    console.log('🟡 [UPLOAD-BASE64] Received upload request');
+    const { image, fileName, orderAmount } = req.body;
+    
+    if (!image || !fileName) {
+      console.log('🔴 [UPLOAD-BASE64] Missing image or fileName');
+      return res.status(400).json({ success: false, message: "Image data and filename are required." });
+    }
+
+    console.log('🟡 [UPLOAD-BASE64] Processing image, fileName:', fileName);
+
+    // Remove data:image/jpeg;base64, prefix if present
+    const base64Data = image.replace(/^data:image\/\w+;base64,/, '');
+    const imageBuffer = Buffer.from(base64Data, 'base64');
+    
+    const uploadPath = path.join(__dirname, '../public/payment-proofs');
+    console.log('🟡 [UPLOAD-BASE64] Upload path:', uploadPath);
+    
+    // Create directory if it doesn't exist
+    if (!fs.existsSync(uploadPath)) {
+      console.log('🟡 [UPLOAD-BASE64] Creating directory:', uploadPath);
+      fs.mkdirSync(uploadPath, { recursive: true });
+    }
+    
+    const filePath = path.join(uploadPath, fileName);
+    console.log('🟡 [UPLOAD-BASE64] File path:', filePath);
+    
+    // Write the file
+    fs.writeFileSync(filePath, imageBuffer);
+    console.log('🟡 [UPLOAD-BASE64] File written successfully');
+    
+    // Use dynamic SERVER_BASE_URL instead of hardcoded localhost
+    const imageUrl = `${SERVER_BASE_URL}/image/payment-proofs/${fileName}`;
+    console.log('🟡 [UPLOAD-BASE64] Generated image URL:', imageUrl);
+    
+    res.json({ 
+      success: true, 
+      message: "Payment proof uploaded successfully.", 
+      data: {
+        imageUrl: imageUrl,
+        verified: false,
+        verifiedAt: null
+      }
+    });
+    
+    console.log('🟡 [UPLOAD-BASE64] Response sent successfully');
+    
+  } catch (error) {
+    console.error('🔴 [UPLOAD-BASE64] Error uploading payment proof:', error);
+    console.error('🔴 [UPLOAD-BASE64] Error stack:', error.stack);
+    res.status(500).json({ success: false, message: error.message });
+  }
+}));
+
+// Verify payment (admin endpoint)
+router.post('/verify-payment/:orderId', asyncHandler(async (req, res) => {
+  try {
+    const orderId = req.params.orderId;
+    const { verified, adminNotes } = req.body;
+    
+    // Update order payment status
+    const Order = require('../model/order');
+    const updatedOrder = await Order.findByIdAndUpdate(
+      orderId,
+      { 
+        paymentStatus: verified ? 'verified' : 'failed',
+        orderStatus: verified ? 'processing' : 'cancelled',
+        'paymentProof.verifiedAt': verified ? new Date() : null,
+        adminNotes: adminNotes
+      },
+      { new: true }
+    );
+
+    if (!updatedOrder) {
+      return res.status(404).json({ success: false, message: "Order not found." });
+    }
+
+    res.json({ 
+      success: true, 
+      message: `Payment ${verified ? 'verified' : 'rejected'} successfully.`,
+      data: updatedOrder
+    });
+  } catch (error) {
+    console.error('Error verifying payment:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+}));
+
+module.exports = router;
+const express = require('express');
+const router = express.Router();
+const Poster = require('../model/poster');
+const { uploadPosters } = require('../uploadFile');
+const multer = require('multer');
+const asyncHandler = require('express-async-handler');
+
+// Get SERVER_BASE_URL from environment variables
+const SERVER_BASE_URL = process.env.SERVER_BASE_URL || 'http://localhost:3000';
+
+// Get all posters
+router.get('/', asyncHandler(async (req, res) => {
+    try {
+        const posters = await Poster.find({});
+        res.json({ success: true, message: "Posters retrieved successfully.", data: posters });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// Get a poster by ID
+router.get('/:id', asyncHandler(async (req, res) => {
+    try {
+        const posterID = req.params.id;
+        const poster = await Poster.findById(posterID);
+        if (!poster) {
+            return res.status(404).json({ success: false, message: "Poster not found." });
+        }
+        res.json({ success: true, message: "Poster retrieved successfully.", data: poster });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// Create a new poster
+router.post('/', asyncHandler(async (req, res) => {
+    try {
+        uploadPosters.single('img')(req, res, async function (err) {
+            if (err instanceof multer.MulterError) {
+                if (err.code === 'LIMIT_FILE_SIZE') {
+                    err.message = 'File size is too large. Maximum filesize is 5MB.';
+                }
+                console.log(`Add poster: ${err}`);
+                return res.json({ success: false, message: err });
+            } else if (err) {
+                console.log(`Add poster: ${err}`);
+                return res.json({ success: false, message: err });
+            }
+            const { posterName } = req.body;
+            let imageUrl = 'no_url';
+            if (req.file) {
+                imageUrl = `${SERVER_BASE_URL}/image/poster/${req.file.filename}`;
+            }
+
+            if (!posterName) {
+                return res.status(400).json({ success: false, message: "Name is required." });
+            }
+
+            try {
+                const newPoster = new Poster({
+                    posterName: posterName,
+                    imageUrl: imageUrl
+                });
+                await newPoster.save();
+                res.json({ success: true, message: "Poster created successfully.", data: null });
+            } catch (error) {
+                console.error("Error creating Poster:", error);
+                res.status(500).json({ success: false, message: error.message });
+            }
+
+        });
+
+    } catch (err) {
+        console.log(`Error creating Poster: ${err.message}`);
+        return res.status(500).json({ success: false, message: err.message });
+    }
+}));
+
+// Update a poster
+router.put('/:id', asyncHandler(async (req, res) => {
+    try {
+        const categoryID = req.params.id;
+        uploadPosters.single('img')(req, res, async function (err) {
+            if (err instanceof multer.MulterError) {
+                if (err.code === 'LIMIT_FILE_SIZE') {
+                    err.message = 'File size is too large. Maximum filesize is 5MB.';
+                }
+                console.log(`Update poster: ${err.message}`);
+                return res.json({ success: false, message: err.message });
+            } else if (err) {
+                console.log(`Update poster: ${err.message}`);
+                return res.json({ success: false, message: err.message });
+            }
+
+            const { posterName } = req.body;
+            let image = req.body.image;
+
+            if (req.file) {
+                image = `${SERVER_BASE_URL}/image/poster/${req.file.filename}`;
+            }
+
+            if (!posterName || !image) {
+                return res.status(400).json({ success: false, message: "Name and image are required." });
+            }
+
+            try {
+                const updatedPoster = await Poster.findByIdAndUpdate(categoryID, { posterName: posterName, imageUrl: image }, { new: true });
+                if (!updatedPoster) {
+                    return res.status(404).json({ success: false, message: "Poster not found." });
+                }
+                res.json({ success: true, message: "Poster updated successfully.", data: null });
+            } catch (error) {
+                res.status(500).json({ success: false, message: error.message });
+            }
+
+        });
+
+    } catch (err) {
+        console.log(`Error updating poster: ${err.message}`);
+        return res.status(500).json({ success: false, message: err.message });
+    }
+}));
+
+// Delete a poster
+router.delete('/:id', asyncHandler(async (req, res) => {
+    const posterID = req.params.id;
+    try {
+        const deletedPoster = await Poster.findByIdAndDelete(posterID);
+        if (!deletedPoster) {
+            return res.status(404).json({ success: false, message: "Poster not found." });
+        }
+        res.json({ success: true, message: "Poster deleted successfully." });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+module.exports = router;
+const express = require('express');
+const router = express.Router();
+const Product = require('../model/product');
+const multer = require('multer');
+const { uploadProduct } = require('../uploadFile');
+const asyncHandler = require('express-async-handler');
+
+// Get SERVER_BASE_URL from environment variables
+const SERVER_BASE_URL = process.env.SERVER_BASE_URL || 'http://localhost:3000';
+
+// Get all products
+router.get('/', asyncHandler(async (req, res) => {
+    try {
+        const products = await Product.find()
+        .populate('proCategoryId', 'id name')
+        .populate('proSubCategoryId', 'id name')
+        .populate('proBrandId', 'id name')
+        .populate('proVariantTypeId', 'id type')
+        .populate('proVariantId', 'id name');
+        res.json({ success: true, message: "Products retrieved successfully.", data: products });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// Get a product by ID
+router.get('/:id', asyncHandler(async (req, res) => {
+    try {
+        const productID = req.params.id;
+        const product = await Product.findById(productID)
+            .populate('proCategoryId', 'id name')
+            .populate('proSubCategoryId', 'id name')
+            .populate('proBrandId', 'id name')
+            .populate('proVariantTypeId', 'id name')
+            .populate('proVariantId', 'id name');
+        if (!product) {
+            return res.status(404).json({ success: false, message: "Product not found." });
+        }
+        res.json({ success: true, message: "Product retrieved successfully.", data: product });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// create new product
+router.post('/', asyncHandler(async (req, res) => {
+    try {
+        // Execute the Multer middleware to handle multiple file fields
+        uploadProduct.fields([
+            { name: 'image1', maxCount: 1 },
+            { name: 'image2', maxCount: 1 },
+            { name: 'image3', maxCount: 1 },
+            { name: 'image4', maxCount: 1 },
+            { name: 'image5', maxCount: 1 }
+        ])(req, res, async function (err) {
+            if (err instanceof multer.MulterError) {
+                // Handle Multer errors, if any
+                if (err.code === 'LIMIT_FILE_SIZE') {
+                    err.message = 'File size is too large. Maximum filesize is 5MB per image.';
+                }
+                console.log(`Add product: ${err}`);
+                return res.json({ success: false, message: err.message });
+            } else if (err) {
+                // Handle other errors, if any
+                console.log(`Add product: ${err}`);
+                return res.json({ success: false, message: err });
+            }
+
+            // Extract product data from the request body
+            const { name, description, quantity, price, offerPrice, proCategoryId, proSubCategoryId, proBrandId, proVariantTypeId, proVariantId } = req.body;
+
+            // Check if any required fields are missing
+            if (!name || !quantity || !price || !proCategoryId || !proSubCategoryId) {
+                return res.status(400).json({ success: false, message: "Required fields are missing." });
+            }
+
+            // Initialize an array to store image URLs
+            const imageUrls = [];
+
+            // Iterate over the file fields
+            const fields = ['image1', 'image2', 'image3', 'image4', 'image5'];
+            fields.forEach((field, index) => {
+                if (req.files[field] && req.files[field].length > 0) {
+                    const file = req.files[field][0];
+                    const imageUrl = `${SERVER_BASE_URL}/image/products/${file.filename}`;
+                    imageUrls.push({ image: index + 1, url: imageUrl });
+                }
+            });
+
+            // Create a new product object with data
+            const newProduct = new Product({ name, description, quantity, price, offerPrice, proCategoryId, proSubCategoryId, proBrandId,proVariantTypeId, proVariantId, images: imageUrls });
+
+            // Save the new product to the database
+            await newProduct.save();
+
+            // Send a success response back to the client
+            res.json({ success: true, message: "Product created successfully.", data: null });
+        });
+    } catch (error) {
+        // Handle any errors that occur during the process
+        console.error("Error creating product:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// Update a product
+router.put('/:id', asyncHandler(async (req, res) => {
+    const productId = req.params.id;
+    try {
+        // Execute the Multer middleware to handle file fields
+        uploadProduct.fields([
+            { name: 'image1', maxCount: 1 },
+            { name: 'image2', maxCount: 1 },
+            { name: 'image3', maxCount: 1 },
+            { name: 'image4', maxCount: 1 },
+            { name: 'image5', maxCount: 1 }
+        ])(req, res, async function (err) {
+            if (err) {
+                console.log(`Update product: ${err}`);
+                return res.status(500).json({ success: false, message: err.message });
+            }
+
+            const { name, description, quantity, price, offerPrice, proCategoryId, proSubCategoryId, proBrandId, proVariantTypeId, proVariantId } = req.body;
+
+            // Find the product by ID
+            const productToUpdate = await Product.findById(productId);
+            if (!productToUpdate) {
+                return res.status(404).json({ success: false, message: "Product not found." });
+            }
+
+            // Update product properties if provided
+            productToUpdate.name = name || productToUpdate.name;
+            productToUpdate.description = description || productToUpdate.description;
+            productToUpdate.quantity = quantity || productToUpdate.quantity;
+            productToUpdate.price = price || productToUpdate.price;
+            productToUpdate.offerPrice = offerPrice || productToUpdate.offerPrice;
+            productToUpdate.proCategoryId = proCategoryId || productToUpdate.proCategoryId;
+            productToUpdate.proSubCategoryId = proSubCategoryId || productToUpdate.proSubCategoryId;
+            productToUpdate.proBrandId = proBrandId || productToUpdate.proBrandId;
+            productToUpdate.proVariantTypeId = proVariantTypeId || productToUpdate.proVariantTypeId;
+            productToUpdate.proVariantId = proVariantId || productToUpdate.proVariantId;
+
+            // Iterate over the file fields to update images
+            const fields = ['image1', 'image2', 'image3', 'image4', 'image5'];
+            fields.forEach((field, index) => {
+                if (req.files[field] && req.files[field].length > 0) {
+                    const file = req.files[field][0];
+                    const imageUrl = `${SERVER_BASE_URL}/image/products/${file.filename}`;
+                    // Update the specific image URL in the images array
+                    let imageEntry = productToUpdate.images.find(img => img.image === (index + 1));
+                    if (imageEntry) {
+                        imageEntry.url = imageUrl;
+                    } else {
+                        // If the image entry does not exist, add it
+                        productToUpdate.images.push({ image: index + 1, url: imageUrl });
+                    }
+                }
+            });
+
+            // Save the updated product
+            await productToUpdate.save();
+            res.json({ success: true, message: "Product updated successfully." });
+        });
+    } catch (error) {
+        console.error("Error updating product:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// Delete a product
+router.delete('/:id', asyncHandler(async (req, res) => {
+    const productID = req.params.id;
+    try {
+        const product = await Product.findByIdAndDelete(productID);
+        if (!product) {
+            return res.status(404).json({ success: false, message: "Product not found." });
+        }
+        res.json({ success: true, message: "Product deleted successfully." });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+module.exports = router;
+const express = require('express');
+const asyncHandler = require('express-async-handler');
+const router = express.Router();
+const Rating = require('../model/rating');
+const mongoose = require('mongoose'); // ADD THIS LINE
+
+// Get ratings for a product with pagination
+router.get('/product/:productId', asyncHandler(async (req, res) => {
+  try {
+    const { productId } = req.params;
+    const { page = 1, limit = 10 } = req.query;
+    
+    const ratings = await Rating.find({ productId })
+      .sort({ createdAt: -1 })
+      .limit(limit * 1)
+      .skip((page - 1) * limit);
+    
+    const count = await Rating.countDocuments({ productId });
+    
+    res.json({
+      success: true,
+      message: "Ratings retrieved successfully.",
+      data: {
+        ratings,
+        totalPages: Math.ceil(count / limit),
+        currentPage: parseInt(page),
+        ratingCount: count
+      }
+    });
+  } catch (error) {
+    console.error('Error getting ratings:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+}));
+
+// Get rating stats for a product
+router.get('/product/:productId/stats', asyncHandler(async (req, res) => {
+  try {
+    const { productId } = req.params;
+    
+    const stats = await Rating.aggregate([
+      { $match: { productId: new mongoose.Types.ObjectId(productId) } }, // This line needs mongoose
+      {
+        $group: {
+          _id: '$productId',
+          averageRating: { $avg: '$rating' },
+          ratingCount: { $sum: 1 },
+          distribution: {
+            $push: '$rating'
+          }
+        }
+      }
+    ]);
+    
+    if (stats.length === 0) {
+      return res.json({
+        success: true,
+        message: "No ratings found.",
+        data: {
+          averageRating: 0,
+          ratingCount: 0,
+          distribution: { '1': 0, '2': 0, '3': 0, '4': 0, '5': 0 }
+        }
+      });
+    }
+    
+    // Calculate distribution
+    const distribution = { '1': 0, '2': 0, '3': 0, '4': 0, '5': 0 };
+    stats[0].distribution.forEach(rating => {
+      distribution[rating.toString()]++;
+    });
+    
+    res.json({
+      success: true,
+      message: "Rating stats retrieved successfully.",
+      data: {
+        averageRating: parseFloat(stats[0].averageRating.toFixed(1)),
+        ratingCount: stats[0].ratingCount,
+        distribution
+      }
+    });
+  } catch (error) {
+    console.error('Error getting rating stats:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+}));
+
+// Get user's rating for a product
+router.get('/product/:productId/user/:userId', asyncHandler(async (req, res) => {
+  try {
+    const { productId, userId } = req.params;
+    
+    const rating = await Rating.findOne({ 
+      productId, 
+      userId 
+    });
+    
+    // Return 200 with null data instead of 404
+    res.json({
+      success: true,
+      message: rating ? "User rating retrieved successfully." : "No rating found.",
+      data: rating || null
+    });
+    
+  } catch (error) {
+    console.error('Error getting user rating:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+}));
+
+// Create or update rating
+router.post('/', asyncHandler(async (req, res) => {
+  try {
+    const { productId, userId, userName, rating, review } = req.body;
+    
+    if (!productId || !userId || !userName || !rating) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Product ID, User ID, User Name, and Rating are required." 
+      });
+    }
+    
+    // Check if user already rated this product
+    const existingRating = await Rating.findOne({ productId, userId });
+    
+    if (existingRating) {
+      // Update existing rating
+      existingRating.rating = rating;
+      existingRating.review = review || existingRating.review;
+      await existingRating.save();
+      
+      res.json({
+        success: true,
+        message: "Rating updated successfully.",
+        data: existingRating
+      });
+    } else {
+      // Create new rating
+      const newRating = new Rating({
+        productId,
+        userId,
+        userName,
+        rating,
+        review: review || ''
+      });
+      
+      await newRating.save();
+      
+      res.json({
+        success: true,
+        message: "Rating created successfully.",
+        data: newRating
+      });
+    }
+  } catch (error) {
+    console.error('Error creating rating:', error);
+    if (error.code === 11000) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "You have already rated this product." 
+      });
+    }
+    res.status(500).json({ success: false, message: error.message });
+  }
+}));
+
+// Update a rating
+router.put('/:id', asyncHandler(async (req, res) => {
+  try {
+    const ratingId = req.params.id;
+    const { rating, review } = req.body;
+    
+    const updatedRating = await Rating.findByIdAndUpdate(
+      ratingId,
+      { rating, review },
+      { new: true }
+    );
+    
+    if (!updatedRating) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "Rating not found." 
+      });
+    }
+    
+    res.json({
+      success: true,
+      message: "Rating updated successfully.",
+      data: updatedRating
+    });
+  } catch (error) {
+    console.error('Error updating rating:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+}));
+
+// Delete a rating
+router.delete('/:id', asyncHandler(async (req, res) => {
+  try {
+    const ratingId = req.params.id;
+    
+    const deletedRating = await Rating.findByIdAndDelete(ratingId);
+    
+    if (!deletedRating) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "Rating not found." 
+      });
+    }
+    
+    res.json({
+      success: true,
+      message: "Rating deleted successfully."
+    });
+  } catch (error) {
+    console.error('Error deleting rating:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+}));
+
+module.exports = router;
+const express = require('express');
+const router = express.Router();
+const SubCategory = require('../model/subCategory');
+const Brand = require('../model/brand');
+const Product = require('../model/product');
+const asyncHandler = require('express-async-handler');
+
+// Get all sub-categories
+router.get('/', asyncHandler(async (req, res) => {
+    try {
+        const subCategories = await SubCategory.find().populate('categoryId').sort({'categoryId': 1});
+        res.json({ success: true, message: "Sub-categories retrieved successfully.", data: subCategories });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// Get a sub-category by ID
+router.get('/:id', asyncHandler(async (req, res) => {
+    try {
+        const subCategoryID = req.params.id;
+        const subCategory = await SubCategory.findById(subCategoryID).populate('categoryId');
+        if (!subCategory) {
+            return res.status(404).json({ success: false, message: "Sub-category not found." });
+        }
+        res.json({ success: true, message: "Sub-category retrieved successfully.", data: subCategory });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// Create a new sub-category
+router.post('/', asyncHandler(async (req, res) => {
+    const { name, categoryId } = req.body;
+    if (!name || !categoryId) {
+        return res.status(400).json({ success: false, message: "Name and category ID are required." });
+    }
+
+    try {
+        const subCategory = new SubCategory({ name, categoryId });
+        const newSubCategory = await subCategory.save();
+        res.json({ success: true, message: "Sub-category created successfully.", data: null });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// Update a sub-category
+router.put('/:id', asyncHandler(async (req, res) => {
+    const subCategoryID = req.params.id;
+    const { name, categoryId } = req.body;
+    console.log(req.body)
+    console.log(subCategoryID)
+    if (!name || !categoryId) {
+        return res.status(400).json({ success: false, message: "Name and category ID are required." });
+    }
+
+    try {
+        const updatedSubCategory = await SubCategory.findByIdAndUpdate(subCategoryID, { name, categoryId }, { new: true });
+        if (!updatedSubCategory) {
+            return res.status(404).json({ success: false, message: "Sub-category not found." });
+        }
+        res.json({ success: true, message: "Sub-category updated successfully.", data: null });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// Delete a sub-category
+router.delete('/:id', asyncHandler(async (req, res) => {
+    const subCategoryID = req.params.id;
+    try {
+        // Check if any brand is associated with the sub-category
+        const brandCount = await Brand.countDocuments({ subcategoryId: subCategoryID });
+        if (brandCount > 0) {
+            return res.status(400).json({ success: false, message: "Cannot delete sub-category. It is associated with one or more brands." });
+        }
+
+        // Check if any products reference this sub-category
+        const products = await Product.find({ proSubCategoryId: subCategoryID });
+        if (products.length > 0) {
+            return res.status(400).json({ success: false, message: "Cannot delete sub-category. Products are referencing it." });
+        }
+
+        // If no brands or products are associated, proceed with deletion of the sub-category
+        const subCategory = await SubCategory.findByIdAndDelete(subCategoryID);
+        if (!subCategory) {
+            return res.status(404).json({ success: false, message: "Sub-category not found." });
+        }
+        res.json({ success: true, message: "Sub-category deleted successfully." });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+
+module.exports = router;
+const express = require('express');
+const asyncHandler = require('express-async-handler');
+const router = express.Router();
+const User = require('../model/user');
+
+// Get all users
+router.get('/', asyncHandler(async (req, res) => {
+    try {
+        const users = await User.find();
+        res.json({ success: true, message: "Users retrieved successfully.", data: users });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// login
+router.post('/login', async (req, res) => {
+    const { name, password } = req.body;
+
+    try {
+        // Check if the user exists
+        const user = await User.findOne({ name });
+
+
+        if (!user) {
+            return res.status(401).json({ success: false, message: "Invalid name or password." });
+        }
+        // Check if the password is correct
+        if (user.password !== password) {
+            return res.status(401).json({ success: false, message: "Invalid name or password." });
+        }
+
+        // Authentication successful
+        res.status(200).json({ success: true, message: "Login successful.",data: user });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+
+// Get a user by ID
+router.get('/:id', asyncHandler(async (req, res) => {
+    try {
+        const userID = req.params.id;
+        const user = await User.findById(userID);
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found." });
+        }
+        res.json({ success: true, message: "User retrieved successfully.", data: user });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// In your user routes, update the register endpoint
+router.post('/register', asyncHandler(async (req, res) => {
+  const { name, email, password } = req.body;
+  if (!name || !password) {
+    return res.status(400).json({ success: false, message: "Name and password are required." });
+  }
+
+  try {
+    const user = new User({ name, email, password });
+    const newUser = await user.save();
+    res.json({ success: true, message: "User created successfully. Please verify your email.", data: null });
+  } catch (error) {
+    if (error.code === 11000) {
+      return res.status(400).json({ success: false, message: "Email already exists." });
+    }
+    res.status(500).json({ success: false, message: error.message });
+  }
+}));
+
+// Update a user
+router.put('/:id', asyncHandler(async (req, res) => {
+    try {
+        const userID = req.params.id;
+        const { name, password } = req.body;
+        if (!name || !password) {
+            return res.status(400).json({ success: false, message: "Name,  and password are required." });
+        }
+
+        const updatedUser = await User.findByIdAndUpdate(
+            userID,
+            { name, password },
+            { new: true }
+        );
+
+        if (!updatedUser) {
+            return res.status(404).json({ success: false, message: "User not found." });
+        }
+
+        res.json({ success: true, message: "User updated successfully.", data: updatedUser });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// Delete a user
+router.delete('/:id', asyncHandler(async (req, res) => {
+    try {
+        const userID = req.params.id;
+        const deletedUser = await User.findByIdAndDelete(userID);
+        if (!deletedUser) {
+            return res.status(404).json({ success: false, message: "User not found." });
+        }
+        res.json({ success: true, message: "User deleted successfully." });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+module.exports = router;
+const express = require('express');
+const router = express.Router();
+const Variant = require('../model/variant');
+const Product = require('../model/product');
+const asyncHandler = require('express-async-handler');
+
+// Get all variants
+router.get('/', asyncHandler(async (req, res) => {
+    try {
+        const variants = await Variant.find().populate('variantTypeId').sort({'variantTypeId': 1});
+        res.json({ success: true, message: "Variants retrieved successfully.", data: variants });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// Get a variant by ID
+router.get('/:id', asyncHandler(async (req, res) => {
+    try {
+        const variantID = req.params.id;
+        const variant = await Variant.findById(variantID).populate('variantTypeId');
+        if (!variant) {
+            return res.status(404).json({ success: false, message: "Variant not found." });
+        }
+        res.json({ success: true, message: "Variant retrieved successfully.", data: variant });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// Create a new variant
+router.post('/', asyncHandler(async (req, res) => {
+    const { name, variantTypeId } = req.body;
+    if (!name || !variantTypeId) {
+        return res.status(400).json({ success: false, message: "Name and VariantType ID are required." });
+    }
+
+    try {
+        const variant = new Variant({ name, variantTypeId });
+        const newVariant = await variant.save();
+        res.json({ success: true, message: "Variant created successfully.", data: null });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// Update a variant
+router.put('/:id', asyncHandler(async (req, res) => {
+    const variantID = req.params.id;
+    const { name, variantTypeId } = req.body;
+    if (!name || !variantTypeId) {
+        return res.status(400).json({ success: false, message: "Name and VariantType ID are required." });
+    }
+
+    try {
+        const updatedVariant = await Variant.findByIdAndUpdate(variantID, { name, variantTypeId }, { new: true });
+        if (!updatedVariant) {
+            return res.status(404).json({ success: false, message: "Variant not found." });
+        }
+        res.json({ success: true, message: "Variant updated successfully.", data: null });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// Delete a variant
+router.delete('/:id', asyncHandler(async (req, res) => {
+    const variantID = req.params.id;
+    try {
+        // Check if any products reference this variant
+        const products = await Product.find({ proVariantId: variantID });
+        if (products.length > 0) {
+            return res.status(400).json({ success: false, message: "Cannot delete variant. Products are referencing it." });
+        }
+
+        // If no products are referencing the variant, proceed with deletion
+        const variant = await Variant.findByIdAndDelete(variantID);
+        if (!variant) {
+            return res.status(404).json({ success: false, message: "Variant not found." });
+        }
+        res.json({ success: true, message: "Variant deleted successfully." });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+
+module.exports = router;
+const express = require('express');
+const router = express.Router();
+const VariantType = require('../model/variantType');
+const Product = require('../model/product');
+const Variant = require('../model/variant');
+const asyncHandler = require('express-async-handler');
+
+// Get all variant types
+router.get('/', asyncHandler(async (req, res) => {
+    try {
+        const variantTypes = await VariantType.find();
+        res.json({ success: true, message: "VariantTypes retrieved successfully.", data: variantTypes });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// Get a variant type by ID
+router.get('/:id', asyncHandler(async (req, res) => {
+    try {
+        const variantTypeID = req.params.id;
+        const variantType = await VariantType.findById(variantTypeID);
+        if (!variantType) {
+            return res.status(404).json({ success: false, message: "VariantType not found." });
+        }
+        res.json({ success: true, message: "VariantType retrieved successfully.", data: variantType });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// Create a new variant type
+router.post('/', asyncHandler(async (req, res) => {
+    const { name ,type } = req.body;
+    if (!name) {
+        return res.status(400).json({ success: false, message: "Name is required." });
+    }
+
+    try {
+        const variantType = new VariantType({ name , type });
+        const newVariantType = await variantType.save();
+        res.json({ success: true, message: "VariantType created successfully.", data: null });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// Update a variant type
+router.put('/:id', asyncHandler(async (req, res) => {
+    const variantTypeID = req.params.id;
+    const { name ,type } = req.body;
+    if (!name) {
+        return res.status(400).json({ success: false, message: "Name is required." });
+    }
+
+    try {
+        const updatedVariantType = await VariantType.findByIdAndUpdate(variantTypeID, { name , type}, { new: true });
+        if (!updatedVariantType) {
+            return res.status(404).json({ success: false, message: "VariantType not found." });
+        }
+        res.json({ success: true, message: "VariantType updated successfully.", data: null });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// Delete a variant type
+router.delete('/:id', asyncHandler(async (req, res) => {
+    const variantTypeID = req.params.id;
+    try {
+        // Check if any variant is associated with this variant type
+        const variantCount = await Variant.countDocuments({ variantTypeId: variantTypeID });
+        if (variantCount > 0) {
+            return res.status(400).json({ success: false, message: "Cannot delete variant type. It is associated with one or more variants." });
+        }
+        
+        // Check if any products reference this variant type
+        const products = await Product.find({ proVariantTypeId: variantTypeID });
+        if (products.length > 0) {
+            return res.status(400).json({ success: false, message: "Cannot delete variant type. Products are referencing it." });
+        }
+
+        // If no variants or products are associated, proceed with deletion of the variant type
+        const variantType = await VariantType.findByIdAndDelete(variantTypeID);
+        if (!variantType) {
+            return res.status(404).json({ success: false, message: "Variant type not found." });
+        }
+        res.json({ success: true, message: "Variant type deleted successfully." });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+
+
+module.exports = router;
+const express = require('express');
+const asyncHandler = require('express-async-handler');
+const router = express.Router();
+const User = require('../model/user');
+const nodemailer = require('nodemailer');
+
+// Configure email transporter (using Gmail)
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASSWORD
+  }
+});
+
+// Send email verification code
+router.post('/send-email-verification', asyncHandler(async (req, res) => {
+  const { email } = req.body;
+  
+  if (!email) {
+    return res.status(400).json({ success: false, message: "Email is required." });
+  }
+
+  try {
+    // Generate random 6-digit code
+    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const codeExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    
+    // Check if email already exists and is verified
+    const existingUser = await User.findOne({ email, emailVerified: true });
+    if (existingUser) {
+      return res.status(400).json({ success: false, message: "Email already registered." });
+    }
+
+    // Send verification email
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: 'Email Verification Code - Your App',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #2D5A7E;">Email Verification</h2>
+          <p>Hello,</p>
+          <p>Your verification code is:</p>
+          <div style="background: #f4f4f4; padding: 15px; text-align: center; font-size: 24px; font-weight: bold; letter-spacing: 5px; margin: 20px 0;">
+            ${verificationCode}
+          </div>
+          <p>This code will expire in 10 minutes.</p>
+          <p>If you didn't request this verification, please ignore this email.</p>
+          <br>
+          <p>Best regards,<br>Your App Team</p>
+        </div>
+      `
+    };
+
+    await transporter.sendMail(mailOptions);
+    
+    // Save verification code to user (or create temp record)
+    await User.findOneAndUpdate(
+      { email },
+      { 
+        email: email,
+        verificationCode,
+        codeExpires,
+        emailVerified: false
+      },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
+
+    res.json({ 
+      success: true, 
+      message: "Verification code sent to your email." 
+    });
+  } catch (error) {
+    console.error('Error sending verification code:', error);
+    
+    // For development, still return success with code
+    if (process.env.NODE_ENV === 'development') {
+      // Find the verification code that was attempted to be saved
+      const user = await User.findOne({ email });
+      const devCode = user ? user.verificationCode : 'unknown';
+      
+      res.json({ 
+        success: true, 
+        message: "Verification code sent (development mode).",
+        data: { code: devCode }
+      });
+    } else {
+      res.status(500).json({ success: false, message: "Failed to send verification code." });
+    }
+  }
+}));
+
+// Verify email
+router.post('/verify-email', asyncHandler(async (req, res) => {
+  const { email, code } = req.body;
+  
+  if (!email || !code) {
+    return res.status(400).json({ success: false, message: "Email and verification code are required." });
+  }
+
+  try {
+    const user = await User.findOne({ email, verificationCode: code });
+    
+    if (!user) {
+      return res.status(400).json({ success: false, message: "Invalid verification code." });
+    }
+
+    if (user.codeExpires < new Date()) {
+      return res.status(400).json({ success: false, message: "Verification code has expired." });
+    }
+
+    // Update user as verified
+    user.emailVerified = true;
+    user.verificationCode = null;
+    user.codeExpires = null;
+    await user.save();
+
+    console.log('🟡 [SERVER] Email verified successfully for:', email);
+    
+    res.json({ 
+      success: true, 
+      message: "Email verified successfully.",
+      data: { 
+        userId: user._id,
+        email: user.email,
+        name: user.name,
+        emailVerified: user.emailVerified
+      }
+    });
+  } catch (error) {
+    console.error('🔴 [SERVER] Error verifying email:', error);
+    res.status(500).json({ success: false, message: "Failed to verify email." });
+  }
+}));
+
+// Forgot password - send reset code to email
+router.post('/forgot-password', asyncHandler(async (req, res) => {
+  const { email } = req.body;
+  
+  if (!email) {
+    return res.status(400).json({ success: false, message: "Email is required." });
+  }
+
+  try {
+    const user = await User.findOne({ email, emailVerified: true });
+    
+    if (!user) {
+      return res.status(404).json({ success: false, message: "No verified account found with this email." });
+    }
+
+    // Generate reset code
+    const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const codeExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    user.verificationCode = resetCode;
+    user.codeExpires = codeExpires;
+    await user.save();
+
+    // Send reset email
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: 'Password Reset Code - Your App',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #2D5A7E;">Password Reset</h2>
+          <p>Hello ${user.name},</p>
+          <p>We received a request to reset your password. Your reset code is:</p>
+          <div style="background: #f4f4f4; padding: 15px; text-align: center; font-size: 24px; font-weight: bold; letter-spacing: 5px; margin: 20px 0;">
+            ${resetCode}
+          </div>
+          <p>This code will expire in 10 minutes.</p>
+          <p>If you didn't request a password reset, please ignore this email.</p>
+          <br>
+          <p>Best regards,<br>Your App Team</p>
+        </div>
+      `
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    res.json({ 
+      success: true, 
+      message: "Password reset code sent to your email." 
+    });
+  } catch (error) {
+    console.error('Error in forgot password:', error);
+    
+    // For development
+    if (process.env.NODE_ENV === 'development') {
+      const user = await User.findOne({ email });
+      const devCode = user ? user.verificationCode : 'unknown';
+      
+      res.json({ 
+        success: true, 
+        message: "Reset code generated (development mode).",
+        data: { code: devCode }
+      });
+    } else {
+      res.status(500).json({ success: false, message: "Failed to process request." });
+    }
+  }
+}));
+
+// Reset password with code
+router.post('/reset-password', asyncHandler(async (req, res) => {
+  const { email, code, newPassword } = req.body;
+  
+  if (!email || !code || !newPassword) {
+    return res.status(400).json({ success: false, message: "Email, verification code, and new password are required." });
+  }
+
+  try {
+    const user = await User.findOne({ email, verificationCode: code, emailVerified: true });
+    
+    if (!user) {
+      return res.status(400).json({ success: false, message: "Invalid verification code or email not verified." });
+    }
+
+    if (user.codeExpires < new Date()) {
+      return res.status(400).json({ success: false, message: "Verification code has expired." });
+    }
+
+    // Update password and clear verification code
+    user.password = newPassword;
+    user.verificationCode = null;
+    user.codeExpires = null;
+    await user.save();
+
+    res.json({ 
+      success: true, 
+      message: "Password reset successfully." 
+    });
+  } catch (error) {
+    console.error('Error resetting password:', error);
+    res.status(500).json({ success: false, message: "Failed to reset password." });
+  }
+}));
+
+// Update user profile (for changing password/email in profile)
+router.put('/update-profile/:id', asyncHandler(async (req, res) => {
+  try {
+    const userID = req.params.id;
+    const { name, email, currentPassword, newPassword } = req.body;
+    
+    if (!name) {
+      return res.status(400).json({ success: false, message: "Name is required." });
+    }
+
+    const user = await User.findById(userID);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found." });
+    }
+
+    // Verify current password if changing password
+    if (newPassword) {
+      if (!currentPassword) {
+        return res.status(400).json({ success: false, message: "Current password is required to set new password." });
+      }
+      if (user.password !== currentPassword) {
+        return res.status(400).json({ success: false, message: "Current password is incorrect." });
+      }
+      user.password = newPassword;
+    }
+
+    // Update email if provided and different
+    if (email && email !== user.email) {
+      user.email = email;
+      user.emailVerified = false; // Require re-verification for new email
+    }
+
+    user.name = name;
+    await user.save();
+
+    res.json({ 
+      success: true, 
+      message: "Profile updated successfully." + (email && email !== user.email ? " Please verify your new email." : ""),
+      data: user 
+    });
+  } catch (error) {
+    if (error.code === 11000) {
+      return res.status(400).json({ success: false, message: "Email already exists." });
+    }
+    res.status(500).json({ success: false, message: error.message });
+  }
+}));
+
+module.exports = router;
+{
+  "name": "online-store",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.12.2",
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-async-handler": "^1.2.0",
+    "helmet": "^8.1.0",
+    "mongoose": "^8.3.2",
+    "multer": "^2.0.2",
+    "nodemailer": "^6.10.1",
+    "stripe": "^15.6.0",
+    "uuid": "^9.0.1"
+  }
+}
+PORT=3000
+MONGO_URL="mongodb://127.0.0.1:27017/rapid"
+EMAIL_USER=alebachewkalaab99@gmail.com
+EMAIL_PASSWORD=mmzk dyph kgue qdpf
+NODE_ENV=development
+SERVER_BASE_URL=http://10.161.175.199:3000
+
+STRIPE_PBLK_KET_TST='STRIPE_PUBLISH_KEY'
+STRIPE_SKRT_KET_TST='STRIPE_SECRET_KEY'
+
+RAZORPAY_KEY_TEST='RAZOR_PAY_KEY'
+
+ONE_SIGNAL_APP_ID='YOUER_SIGNAL_APP_ID'
+ONE_SIGNAL_REST_API_KEY='YOUR_ONE_SIGNAL_REST_API_KEY'

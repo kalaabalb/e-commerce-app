@@ -1,0 +1,4589 @@
+const mongoose = require('mongoose');
+
+// Define the Brand schema
+const brandSchema = new mongoose.Schema({
+    name: {
+        type: String,
+        required: [true, 'Name is required'], // Adding custom error message
+        trim: true
+    },
+    subcategoryId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'SubCategory', // This should match the model name you use when you create the SubCategory model
+        required: [true, 'Subcategory ID is required']
+    }
+},{ timestamps: true });
+
+// Create the Brand model
+const Brand = mongoose.model('Brand', brandSchema);
+
+module.exports = Brand;
+const mongoose = require('mongoose');
+
+const categorySchema = new mongoose.Schema({
+    name: { type: String, required: true },
+    image: { type: String, required: true }
+}, { timestamps: true });
+
+module.exports = mongoose.model('Category', categorySchema);
+const mongoose = require('mongoose');
+
+const couponSchema = new mongoose.Schema({
+  couponCode: {
+    type: String,
+    required: true,
+    unique: true
+  },
+  discountType: {
+    type: String,
+    enum: ['fixed', 'percentage'],
+    required: true
+  },
+  discountAmount: {
+    type: Number,
+    required: true
+  },
+  minimumPurchaseAmount: {
+    type: Number,
+    required: true
+  },
+  endDate: {
+    type: Date,
+    required: true
+  },
+  status: {
+    type: String,
+    enum: ['active', 'inactive'],
+    default: 'active'
+  },
+  applicableCategory: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Category'
+  },
+  applicableSubCategory: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'SubCategory'
+  },
+  applicableProduct: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Product'
+  }
+}, { timestamps: true });
+
+const Coupon = mongoose.model('Coupon', couponSchema);
+
+module.exports = Coupon;
+const mongoose = require('mongoose');
+
+// Define the Notification schema
+const notificationSchema = new mongoose.Schema({
+    notificationId: {
+        type: String,
+        required: [true, 'Notification ID is required'],
+        unique: true
+    },
+    title: {
+        type: String,
+        required: [true, 'Title is required'],
+        trim: true
+    },
+    description: {
+        type: String,
+        required: [true, 'Description is required'],
+        trim: true
+    },
+    imageUrl: {
+        type: String,
+        trim: true
+    },
+}, { timestamps: true });
+
+// Create the Notification model
+const Notification = mongoose.model('Notification', notificationSchema);
+
+module.exports = Notification;
+const mongoose = require('mongoose');
+
+const posterSchema = new mongoose.Schema({
+  posterName: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  imageUrl: {
+    type: String,
+    required: true
+  }
+}, {
+  timestamps: true 
+});
+
+const Poster = mongoose.model('Poster', posterSchema);
+
+module.exports = Poster;
+const mongoose = require('mongoose');
+
+const productSchema = new mongoose.Schema({
+    name: {
+        type: String,
+        required: [true, 'Name is required'],
+        trim: true
+    },
+    description: {
+        type: String,
+        trim: true
+    },
+    quantity: {
+        type: Number,
+        required: true
+    },
+    price: {
+        type: Number,
+        required: true
+    },
+    offerPrice: {
+        type: Number
+    },
+    proCategoryId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Category',
+        required: true
+    },
+    proSubCategoryId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'SubCategory',
+        required: true
+    },
+    proBrandId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Brand'
+    },
+    proVariantTypeId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'VariantType'
+    },
+    proVariantId: [String],
+    images: [{
+        image: {
+            type: Number,
+            required: true
+        },
+        url: {
+            type: String,
+            required: true
+        }
+    }]
+}, { timestamps: true });
+
+const Product = mongoose.model('Product', productSchema);
+
+module.exports = Product;
+const mongoose = require('mongoose');
+
+// Define the SubCategory schema
+const subCategorySchema = new mongoose.Schema({
+    name: {
+        type: String,
+        required: [true, 'Name is required'], // Adding custom error message
+        trim: true
+    },
+    categoryId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Category', // This should match the model name you use when you create the Category model
+        required: [true, 'Category ID is required']
+    }
+},{ timestamps: true });
+
+// Create the SubCategory model
+const SubCategory = mongoose.model('SubCategory', subCategorySchema);
+
+module.exports = SubCategory;
+
+const mongoose = require('mongoose');
+
+const variantSchema = new mongoose.Schema({
+    name: {
+        type: String,
+        required: true
+    },
+    variantTypeId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'VariantType',
+        required: true
+    }
+},{ timestamps: true });
+
+module.exports = mongoose.model('Variant', variantSchema);
+const mongoose = require('mongoose');
+
+// Define the Variant schema
+const variantTypeSchema = new mongoose.Schema({
+    name: {
+        type: String,
+        required: [true, 'Name is required'], 
+        trim: true
+    },
+    type: {
+        type: String,
+        required: [true, 'Type is required'],
+        trim: true
+    }
+},{ timestamps: true });
+
+// Create the Variant model
+const VariantType = mongoose.model('VariantType', variantTypeSchema);
+
+module.exports = VariantType;
+const mongoose = require('mongoose');
+
+const userSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: true
+  },
+  email: {
+    type: String,
+    unique: true,
+    sparse: true
+  },
+  phone: {
+    type: String,
+    unique: true,
+    sparse: true
+  },
+  password: {
+    type: String,
+    required: true
+  },
+  emailVerified: {
+    type: Boolean,
+    default: false
+  },
+  phoneVerified: {
+    type: Boolean,
+    default: false
+  },
+  verificationCode: {
+    type: String
+  },
+  codeExpires: {
+    type: Date
+  },
+  recoveryEmail: {
+    type: String
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  },
+  updatedAt: {
+    type: Date,
+    default: Date.now
+  }
+});
+
+userSchema.pre('save', function(next) {
+  this.updatedAt = Date.now();
+  next();
+});
+
+const User = mongoose.model('User', userSchema);
+module.exports = User;
+const mongoose = require('mongoose');
+
+const orderSchema = new mongoose.Schema({
+  userID: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  orderDate: {
+    type: Date,
+    default: Date.now
+  },
+orderStatus: {
+  type: String,
+  enum: ['pending', 'processing', 'shipped', 'delivered', 'cancelled', 'payment_pending', 'payment_verified'],
+  default: 'pending'
+},
+  items: [
+    {
+      productID: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Product',
+        required: true
+      },
+      productName: {
+        type: String,
+        required: true
+      },
+      quantity: {
+        type: Number,
+        required: true
+      },
+      price: {
+        type: Number,
+        required: true
+      },
+      variant: {
+        type: String,
+      },
+    }
+  ],
+  totalPrice: {
+    type: Number,
+    required: true
+  },
+  shippingAddress: {
+    phone: String,
+    street: String,
+    city: String,
+    state: String,
+    postalCode: String,
+    country: String
+  },
+  paymentMethod: {
+    type: String,
+    enum: ['cod', 'cbe', 'telebirr'],
+    required: true
+  },
+  paymentStatus: {
+    type: String,
+    enum: ['pending', 'verified', 'failed'],
+    default: 'pending'
+  },
+  paymentProof: {
+    imageUrl: String,
+    uploadedAt: Date,
+    verified: Boolean,
+    verifiedAt: Date
+  },
+  couponCode: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Coupon'
+  },
+  orderTotal: {
+    subtotal: Number,
+    discount: Number,
+    total: Number
+  },
+  trackingUrl: {
+    type: String
+  },
+}, {
+  timestamps: true
+});
+
+const Order = mongoose.model('Order', orderSchema);
+
+module.exports = Order;
+const mongoose = require('mongoose');
+
+const ratingSchema = new mongoose.Schema({
+  productId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Product',
+    required: true
+  },
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  userName: {
+    type: String,
+    required: true
+  },
+  rating: {
+    type: Number,
+    required: true,
+    min: 1,
+    max: 5
+  },
+  review: {
+    type: String,
+    default: ''
+  },
+  verifiedPurchase: {
+    type: Boolean,
+    default: false
+  }
+}, {
+  timestamps: true
+});
+
+// Create compound index to ensure one rating per user per product
+ratingSchema.index({ productId: 1, userId: 1 }, { unique: true });
+
+module.exports = mongoose.model('Rating', ratingSchema);
+const express = require('express');
+const router = express.Router();
+const Brand = require('../model/brand');
+const Product = require('../model/product');
+const asyncHandler = require('express-async-handler');
+
+// Get all brands
+router.get('/', asyncHandler(async (req, res) => {
+    try {
+        const brands = await Brand.find().populate('subcategoryId').sort({'subcategoryId': 1});
+        res.json({ success: true, message: "Brands retrieved successfully.", data: brands });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// Get a brand by ID
+router.get('/:id', asyncHandler(async (req, res) => {
+    try {
+        const brandID = req.params.id;
+        const brand = await Brand.findById(brandID).populate('subcategoryId');
+        if (!brand) {
+            return res.status(404).json({ success: false, message: "Brand not found." });
+        }
+        res.json({ success: true, message: "Brand retrieved successfully.", data: brand });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// Create a new brand
+router.post('/', asyncHandler(async (req, res) => {
+    const { name, subcategoryId } = req.body;
+    if (!name || !subcategoryId) {
+        return res.status(400).json({ success: false, message: "Name and subcategory ID are required." });
+    }
+
+    try {
+        const brand = new Brand({ name, subcategoryId });
+        const newBrand = await brand.save();
+        res.json({ success: true, message: "Brand created successfully.", data: null });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// Update a brand
+router.put('/:id', asyncHandler(async (req, res) => {
+    const brandID = req.params.id;
+    const { name, subcategoryId } = req.body;
+    if (!name || !subcategoryId) {
+        return res.status(400).json({ success: false, message: "Name and subcategory ID are required." });
+    }
+
+    try {
+        const updatedBrand = await Brand.findByIdAndUpdate(brandID, { name, subcategoryId }, { new: true });
+        if (!updatedBrand) {
+            return res.status(404).json({ success: false, message: "Brand not found." });
+        }
+        res.json({ success: true, message: "Brand updated successfully.", data: null });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// Delete a brand
+router.delete('/:id', asyncHandler(async (req, res) => {
+    const brandID = req.params.id;
+    try {
+        // Check if any products reference this brand
+        const products = await Product.find({ proBrandId: brandID });
+        if (products.length > 0) {
+            return res.status(400).json({ success: false, message: "Cannot delete brand. Products are referencing it." });
+        }
+
+        // If no products are referencing the brand, proceed with deletion
+        const brand = await Brand.findByIdAndDelete(brandID);
+        if (!brand) {
+            return res.status(404).json({ success: false, message: "Brand not found." });
+        }
+        res.json({ success: true, message: "Brand deleted successfully." });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+
+module.exports = router;
+const express = require('express');
+const asyncHandler = require('express-async-handler');
+const router = express.Router();
+const Coupon = require('../model/couponCode'); 
+const Product = require('../model/product');
+
+// Get all coupons
+router.get('/', asyncHandler(async (req, res) => {
+    try {
+        const coupons = await Coupon.find().populate('applicableCategory', 'id name')
+            .populate('applicableSubCategory', 'id name')
+            .populate('applicableProduct', 'id name');
+        res.json({ success: true, message: "Coupons retrieved successfully.", data: coupons });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// Get a coupon by ID
+router.get('/:id', asyncHandler(async (req, res) => {
+    try {
+        const couponID = req.params.id;
+        const coupon = await Coupon.findById(couponID)
+            .populate('applicableCategory', 'id name')
+            .populate('applicableSubCategory', 'id name')
+            .populate('applicableProduct', 'id name');
+        if (!coupon) {
+            return res.status(404).json({ success: false, message: "Coupon not found." });
+        }
+        res.json({ success: true, message: "Coupon retrieved successfully.", data: coupon });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// Create a new coupon
+router.post('/', asyncHandler(async (req, res) => {
+    const { couponCode, discountType, discountAmount, minimumPurchaseAmount, endDate, status, applicableCategory, applicableSubCategory, applicableProduct } = req.body;
+    if (!couponCode || !discountType || !discountAmount || !endDate || !status) {
+        return res.status(400).json({ success: false, message: "Code, discountType, discountAmount, endDate, and status are required." });
+    }
+
+
+
+    try {
+        const coupon = new Coupon({
+            couponCode,
+            discountType,
+            discountAmount,
+            minimumPurchaseAmount,
+            endDate,
+            status,
+            applicableCategory,
+            applicableSubCategory,
+            applicableProduct
+        });
+
+        const newCoupon = await coupon.save();
+        res.json({ success: true, message: "Coupon created successfully.", data: null });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+
+// Update a coupon
+router.put('/:id', asyncHandler(async (req, res) => {
+    try {
+        const couponID = req.params.id;
+        const { couponCode, discountType, discountAmount, minimumPurchaseAmount, endDate, status, applicableCategory, applicableSubCategory, applicableProduct } = req.body;
+        console.log(req.body)
+        if (!couponCode || !discountType || !discountAmount || !endDate || !status) {
+            return res.status(400).json({ success: false, message: "CouponCode, discountType, discountAmount, endDate, and status are required." });
+        }
+
+        const updatedCoupon = await Coupon.findByIdAndUpdate(
+            couponID,
+            { couponCode, discountType, discountAmount, minimumPurchaseAmount, endDate, status, applicableCategory, applicableSubCategory, applicableProduct },
+            { new: true }
+        );
+
+        if (!updatedCoupon) {
+            return res.status(404).json({ success: false, message: "Coupon not found." });
+        }
+
+        res.json({ success: true, message: "Coupon updated successfully.", data: null });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+
+// Delete a coupon
+router.delete('/:id', asyncHandler(async (req, res) => {
+    try {
+        const couponID = req.params.id;
+        const deletedCoupon = await Coupon.findByIdAndDelete(couponID);
+        if (!deletedCoupon) {
+            return res.status(404).json({ success: false, message: "Coupon not found." });
+        }
+        res.json({ success: true, message: "Coupon deleted successfully." });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+
+router.post('/check-coupon', asyncHandler(async (req, res) => {
+    console.log(req.body);
+    const { couponCode, productIds,purchaseAmount } = req.body;
+
+    try {
+        // Find the coupon with the provided coupon code
+        const coupon = await Coupon.findOne({ couponCode });
+
+
+        // If coupon is not found, return false
+        if (!coupon) {
+            return res.json({ success: false, message: "Coupon not found." });
+        }
+
+        // Check if the coupon is expired
+        const currentDate = new Date();
+        if (coupon.endDate < currentDate) {
+            return res.json({ success: false, message: "Coupon is expired." });
+        }
+
+        // Check if the coupon is active
+        if (coupon.status !== 'active') {
+            return res.json({ success: false, message: "Coupon is inactive." });
+        }
+
+       // Check if the purchase amount is greater than the minimum purchase amount specified in the coupon
+       if (coupon.minimumPurchaseAmount && purchaseAmount < coupon.minimumPurchaseAmount) {
+        return res.json({ success: false, message: "Minimum purchase amount not met." });
+    }
+
+        // Check if the coupon is applicable for all orders
+        if (!coupon.applicableCategory && !coupon.applicableSubCategory && !coupon.applicableProduct) {
+            return res.json({ success: true, message: "Coupon is applicable for all orders." ,data:coupon});
+        }
+
+        // Fetch the products from the database using the provided product IDs
+        const products = await Product.find({ _id: { $in: productIds } });
+
+        // Check if any product in the list is not applicable for the coupon
+        const isValid = products.every(product => {
+            if (coupon.applicableCategory && coupon.applicableCategory.toString() !== product.proCategoryId.toString()) {
+                return false;
+            }
+            if (coupon.applicableSubCategory && coupon.applicableSubCategory.toString() !== product.proSubCategoryId.toString()) {
+                return false;
+            }
+            if (coupon.applicableProduct && !product.proVariantId.includes(coupon.applicableProduct.toString())) {
+                return false;
+            }
+            return true;
+        });
+
+        if (isValid) {
+            return res.json({ success: true, message: "Coupon is applicable for the provided products." ,data:coupon});
+        } else {
+            return res.json({ success: false, message: "Coupon is not applicable for the provided products." });
+        }
+    } catch (error) {
+        console.error('Error checking coupon code:', error);
+        return res.status(500).json({ success: false, message: "Internal server error." });
+    }
+}));
+
+
+
+
+module.exports = router;
+const express = require('express');
+const router = express.Router();
+const asyncHandler = require('express-async-handler');
+const Notification = require('../model/notification');
+const axios = require('axios');
+const dotenv = require('dotenv');
+dotenv.config();
+
+const ONE_SIGNAL_APP_ID = process.env.ONE_SIGNAL_APP_ID;
+const ONE_SIGNAL_REST_API_KEY = process.env.ONE_SIGNAL_REST_API_KEY;
+
+// Send notification
+router.post('/send-notification', asyncHandler(async (req, res) => {
+    const { title, description, imageUrl } = req.body;
+
+    const notificationBody = {
+        app_id: ONE_SIGNAL_APP_ID,
+        headings: { en: title },
+        contents: { en: description },
+        included_segments: ['All'],
+        ...(imageUrl && { big_picture: imageUrl })
+    };
+
+    try {
+        const response = await axios.post(
+            'https://onesignal.com/api/v1/notifications',
+            notificationBody,
+            {
+                headers: {
+                    'Authorization': `Basic ${ONE_SIGNAL_REST_API_KEY}`,
+                    'Content-Type': 'application/json'
+                }
+            }
+        );
+
+        const notificationId = response.data.id;
+        console.log('Notification sent to all users:', notificationId);
+
+        const notification = new Notification({ notificationId, title, description, imageUrl });
+        await notification.save();
+
+        res.json({ success: true, message: 'Notification sent successfully', data: null });
+    } catch (error) {
+        console.error('Error sending notification:', error.response?.data || error.message);
+        res.status(500).json({ success: false, message: 'Failed to send notification', data: null });
+    }
+}));
+
+// Track notification
+router.get('/track-notification/:id', asyncHandler(async (req, res) => {
+    const notificationId = req.params.id;
+
+    try {
+        const response = await axios.get(
+            `https://onesignal.com/api/v1/notifications/${notificationId}?app_id=${ONE_SIGNAL_APP_ID}`,
+            {
+                headers: {
+                    'Authorization': `Basic ${ONE_SIGNAL_REST_API_KEY}`
+                }
+            }
+        );
+
+        const androidStats = response.data.platform_delivery_stats;
+        const result = {
+            platform: 'Android',
+            success_delivery: androidStats.android.successful,
+            failed_delivery: androidStats.android.failed,
+            errored_delivery: androidStats.android.errored,
+            opened_notification: androidStats.android.converted
+        };
+
+        console.log('Notification details:', androidStats);
+        res.json({ success: true, message: 'Success', data: result });
+    } catch (error) {
+        console.error('Error tracking notification:', error.response?.data || error.message);
+        res.status(500).json({ success: false, message: 'Failed to track notification', data: null });
+    }
+}));
+
+// Get all notifications
+router.get('/all-notification', asyncHandler(async (req, res) => {
+    try {
+        const notifications = await Notification.find({}).sort({ _id: -1 });
+        res.json({ success: true, message: 'Notifications retrieved successfully.', data: notifications });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message, data: null });
+    }
+}));
+
+// Delete notification
+router.delete('/delete-notification/:id', asyncHandler(async (req, res) => {
+    const notificationID = req.params.id;
+    try {
+        const notification = await Notification.findByIdAndDelete(notificationID);
+        if (!notification) {
+            return res.status(404).json({ success: false, message: 'Notification not found.', data: null });
+        }
+        res.json({ success: true, message: 'Notification deleted successfully.', data: null });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message, data: null });
+    }
+}));
+
+
+module.exports = router;
+const express = require('express');
+const router = express.Router();
+const SubCategory = require('../model/subCategory');
+const Brand = require('../model/brand');
+const Product = require('../model/product');
+const asyncHandler = require('express-async-handler');
+
+// Get all sub-categories
+router.get('/', asyncHandler(async (req, res) => {
+    try {
+        const subCategories = await SubCategory.find().populate('categoryId').sort({'categoryId': 1});
+        res.json({ success: true, message: "Sub-categories retrieved successfully.", data: subCategories });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// Get a sub-category by ID
+router.get('/:id', asyncHandler(async (req, res) => {
+    try {
+        const subCategoryID = req.params.id;
+        const subCategory = await SubCategory.findById(subCategoryID).populate('categoryId');
+        if (!subCategory) {
+            return res.status(404).json({ success: false, message: "Sub-category not found." });
+        }
+        res.json({ success: true, message: "Sub-category retrieved successfully.", data: subCategory });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// Create a new sub-category
+router.post('/', asyncHandler(async (req, res) => {
+    const { name, categoryId } = req.body;
+    if (!name || !categoryId) {
+        return res.status(400).json({ success: false, message: "Name and category ID are required." });
+    }
+
+    try {
+        const subCategory = new SubCategory({ name, categoryId });
+        const newSubCategory = await subCategory.save();
+        res.json({ success: true, message: "Sub-category created successfully.", data: null });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// Update a sub-category
+router.put('/:id', asyncHandler(async (req, res) => {
+    const subCategoryID = req.params.id;
+    const { name, categoryId } = req.body;
+    console.log(req.body)
+    console.log(subCategoryID)
+    if (!name || !categoryId) {
+        return res.status(400).json({ success: false, message: "Name and category ID are required." });
+    }
+
+    try {
+        const updatedSubCategory = await SubCategory.findByIdAndUpdate(subCategoryID, { name, categoryId }, { new: true });
+        if (!updatedSubCategory) {
+            return res.status(404).json({ success: false, message: "Sub-category not found." });
+        }
+        res.json({ success: true, message: "Sub-category updated successfully.", data: null });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// Delete a sub-category
+router.delete('/:id', asyncHandler(async (req, res) => {
+    const subCategoryID = req.params.id;
+    try {
+        // Check if any brand is associated with the sub-category
+        const brandCount = await Brand.countDocuments({ subcategoryId: subCategoryID });
+        if (brandCount > 0) {
+            return res.status(400).json({ success: false, message: "Cannot delete sub-category. It is associated with one or more brands." });
+        }
+
+        // Check if any products reference this sub-category
+        const products = await Product.find({ proSubCategoryId: subCategoryID });
+        if (products.length > 0) {
+            return res.status(400).json({ success: false, message: "Cannot delete sub-category. Products are referencing it." });
+        }
+
+        // If no brands or products are associated, proceed with deletion of the sub-category
+        const subCategory = await SubCategory.findByIdAndDelete(subCategoryID);
+        if (!subCategory) {
+            return res.status(404).json({ success: false, message: "Sub-category not found." });
+        }
+        res.json({ success: true, message: "Sub-category deleted successfully." });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+
+module.exports = router;
+const express = require('express');
+const router = express.Router();
+const Variant = require('../model/variant');
+const Product = require('../model/product');
+const asyncHandler = require('express-async-handler');
+
+// Get all variants
+router.get('/', asyncHandler(async (req, res) => {
+    try {
+        const variants = await Variant.find().populate('variantTypeId').sort({'variantTypeId': 1});
+        res.json({ success: true, message: "Variants retrieved successfully.", data: variants });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// Get a variant by ID
+router.get('/:id', asyncHandler(async (req, res) => {
+    try {
+        const variantID = req.params.id;
+        const variant = await Variant.findById(variantID).populate('variantTypeId');
+        if (!variant) {
+            return res.status(404).json({ success: false, message: "Variant not found." });
+        }
+        res.json({ success: true, message: "Variant retrieved successfully.", data: variant });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// Create a new variant
+router.post('/', asyncHandler(async (req, res) => {
+    const { name, variantTypeId } = req.body;
+    if (!name || !variantTypeId) {
+        return res.status(400).json({ success: false, message: "Name and VariantType ID are required." });
+    }
+
+    try {
+        const variant = new Variant({ name, variantTypeId });
+        const newVariant = await variant.save();
+        res.json({ success: true, message: "Variant created successfully.", data: null });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// Update a variant
+router.put('/:id', asyncHandler(async (req, res) => {
+    const variantID = req.params.id;
+    const { name, variantTypeId } = req.body;
+    if (!name || !variantTypeId) {
+        return res.status(400).json({ success: false, message: "Name and VariantType ID are required." });
+    }
+
+    try {
+        const updatedVariant = await Variant.findByIdAndUpdate(variantID, { name, variantTypeId }, { new: true });
+        if (!updatedVariant) {
+            return res.status(404).json({ success: false, message: "Variant not found." });
+        }
+        res.json({ success: true, message: "Variant updated successfully.", data: null });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// Delete a variant
+router.delete('/:id', asyncHandler(async (req, res) => {
+    const variantID = req.params.id;
+    try {
+        // Check if any products reference this variant
+        const products = await Product.find({ proVariantId: variantID });
+        if (products.length > 0) {
+            return res.status(400).json({ success: false, message: "Cannot delete variant. Products are referencing it." });
+        }
+
+        // If no products are referencing the variant, proceed with deletion
+        const variant = await Variant.findByIdAndDelete(variantID);
+        if (!variant) {
+            return res.status(404).json({ success: false, message: "Variant not found." });
+        }
+        res.json({ success: true, message: "Variant deleted successfully." });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+
+module.exports = router;
+const express = require('express');
+const router = express.Router();
+const VariantType = require('../model/variantType');
+const Product = require('../model/product');
+const Variant = require('../model/variant');
+const asyncHandler = require('express-async-handler');
+
+// Get all variant types
+router.get('/', asyncHandler(async (req, res) => {
+    try {
+        const variantTypes = await VariantType.find();
+        res.json({ success: true, message: "VariantTypes retrieved successfully.", data: variantTypes });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// Get a variant type by ID
+router.get('/:id', asyncHandler(async (req, res) => {
+    try {
+        const variantTypeID = req.params.id;
+        const variantType = await VariantType.findById(variantTypeID);
+        if (!variantType) {
+            return res.status(404).json({ success: false, message: "VariantType not found." });
+        }
+        res.json({ success: true, message: "VariantType retrieved successfully.", data: variantType });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// Create a new variant type
+router.post('/', asyncHandler(async (req, res) => {
+    const { name ,type } = req.body;
+    if (!name) {
+        return res.status(400).json({ success: false, message: "Name is required." });
+    }
+
+    try {
+        const variantType = new VariantType({ name , type });
+        const newVariantType = await variantType.save();
+        res.json({ success: true, message: "VariantType created successfully.", data: null });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// Update a variant type
+router.put('/:id', asyncHandler(async (req, res) => {
+    const variantTypeID = req.params.id;
+    const { name ,type } = req.body;
+    if (!name) {
+        return res.status(400).json({ success: false, message: "Name is required." });
+    }
+
+    try {
+        const updatedVariantType = await VariantType.findByIdAndUpdate(variantTypeID, { name , type}, { new: true });
+        if (!updatedVariantType) {
+            return res.status(404).json({ success: false, message: "VariantType not found." });
+        }
+        res.json({ success: true, message: "VariantType updated successfully.", data: null });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// Delete a variant type
+router.delete('/:id', asyncHandler(async (req, res) => {
+    const variantTypeID = req.params.id;
+    try {
+        // Check if any variant is associated with this variant type
+        const variantCount = await Variant.countDocuments({ variantTypeId: variantTypeID });
+        if (variantCount > 0) {
+            return res.status(400).json({ success: false, message: "Cannot delete variant type. It is associated with one or more variants." });
+        }
+        
+        // Check if any products reference this variant type
+        const products = await Product.find({ proVariantTypeId: variantTypeID });
+        if (products.length > 0) {
+            return res.status(400).json({ success: false, message: "Cannot delete variant type. Products are referencing it." });
+        }
+
+        // If no variants or products are associated, proceed with deletion of the variant type
+        const variantType = await VariantType.findByIdAndDelete(variantTypeID);
+        if (!variantType) {
+            return res.status(404).json({ success: false, message: "Variant type not found." });
+        }
+        res.json({ success: true, message: "Variant type deleted successfully." });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+
+
+module.exports = router;
+const express = require('express');
+const asyncHandler = require('express-async-handler');
+const router = express.Router();
+const User = require('../model/user');
+const nodemailer = require('nodemailer');
+
+// Configure email transporter (using Gmail)
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASSWORD
+  }
+});
+
+// Send email verification code
+router.post('/send-email-verification', asyncHandler(async (req, res) => {
+  const { email } = req.body;
+  
+  if (!email) {
+    return res.status(400).json({ success: false, message: "Email is required." });
+  }
+
+  try {
+    // Generate random 6-digit code
+    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const codeExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    
+    // Check if email already exists and is verified
+    const existingUser = await User.findOne({ email, emailVerified: true });
+    if (existingUser) {
+      return res.status(400).json({ success: false, message: "Email already registered." });
+    }
+
+    // Send verification email
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: 'Email Verification Code - Your App',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #2D5A7E;">Email Verification</h2>
+          <p>Hello,</p>
+          <p>Your verification code is:</p>
+          <div style="background: #f4f4f4; padding: 15px; text-align: center; font-size: 24px; font-weight: bold; letter-spacing: 5px; margin: 20px 0;">
+            ${verificationCode}
+          </div>
+          <p>This code will expire in 10 minutes.</p>
+          <p>If you didn't request this verification, please ignore this email.</p>
+          <br>
+          <p>Best regards,<br>Your App Team</p>
+        </div>
+      `
+    };
+
+    await transporter.sendMail(mailOptions);
+    
+    // Save verification code to user (or create temp record)
+    await User.findOneAndUpdate(
+      { email },
+      { 
+        email: email,
+        verificationCode,
+        codeExpires,
+        emailVerified: false
+      },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
+
+    res.json({ 
+      success: true, 
+      message: "Verification code sent to your email." 
+    });
+  } catch (error) {
+    console.error('Error sending verification code:', error);
+    
+    // For development, still return success with code
+    if (process.env.NODE_ENV === 'development') {
+      // Find the verification code that was attempted to be saved
+      const user = await User.findOne({ email });
+      const devCode = user ? user.verificationCode : 'unknown';
+      
+      res.json({ 
+        success: true, 
+        message: "Verification code sent (development mode).",
+        data: { code: devCode }
+      });
+    } else {
+      res.status(500).json({ success: false, message: "Failed to send verification code." });
+    }
+  }
+}));
+
+// Verify email
+router.post('/verify-email', asyncHandler(async (req, res) => {
+  const { email, code } = req.body;
+  
+  if (!email || !code) {
+    return res.status(400).json({ success: false, message: "Email and verification code are required." });
+  }
+
+  try {
+    const user = await User.findOne({ email, verificationCode: code });
+    
+    if (!user) {
+      return res.status(400).json({ success: false, message: "Invalid verification code." });
+    }
+
+    if (user.codeExpires < new Date()) {
+      return res.status(400).json({ success: false, message: "Verification code has expired." });
+    }
+
+    // Update user as verified
+    user.emailVerified = true;
+    user.verificationCode = null;
+    user.codeExpires = null;
+    await user.save();
+
+    console.log('🟡 [SERVER] Email verified successfully for:', email);
+    
+    res.json({ 
+      success: true, 
+      message: "Email verified successfully.",
+      data: { 
+        userId: user._id,
+        email: user.email,
+        name: user.name,
+        emailVerified: user.emailVerified
+      }
+    });
+  } catch (error) {
+    console.error('🔴 [SERVER] Error verifying email:', error);
+    res.status(500).json({ success: false, message: "Failed to verify email." });
+  }
+}));
+
+// Forgot password - send reset code to email
+router.post('/forgot-password', asyncHandler(async (req, res) => {
+  const { email } = req.body;
+  
+  if (!email) {
+    return res.status(400).json({ success: false, message: "Email is required." });
+  }
+
+  try {
+    const user = await User.findOne({ email, emailVerified: true });
+    
+    if (!user) {
+      return res.status(404).json({ success: false, message: "No verified account found with this email." });
+    }
+
+    // Generate reset code
+    const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const codeExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    user.verificationCode = resetCode;
+    user.codeExpires = codeExpires;
+    await user.save();
+
+    // Send reset email
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: 'Password Reset Code - Your App',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #2D5A7E;">Password Reset</h2>
+          <p>Hello ${user.name},</p>
+          <p>We received a request to reset your password. Your reset code is:</p>
+          <div style="background: #f4f4f4; padding: 15px; text-align: center; font-size: 24px; font-weight: bold; letter-spacing: 5px; margin: 20px 0;">
+            ${resetCode}
+          </div>
+          <p>This code will expire in 10 minutes.</p>
+          <p>If you didn't request a password reset, please ignore this email.</p>
+          <br>
+          <p>Best regards,<br>Your App Team</p>
+        </div>
+      `
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    res.json({ 
+      success: true, 
+      message: "Password reset code sent to your email." 
+    });
+  } catch (error) {
+    console.error('Error in forgot password:', error);
+    
+    // For development
+    if (process.env.NODE_ENV === 'development') {
+      const user = await User.findOne({ email });
+      const devCode = user ? user.verificationCode : 'unknown';
+      
+      res.json({ 
+        success: true, 
+        message: "Reset code generated (development mode).",
+        data: { code: devCode }
+      });
+    } else {
+      res.status(500).json({ success: false, message: "Failed to process request." });
+    }
+  }
+}));
+
+// Reset password with code
+router.post('/reset-password', asyncHandler(async (req, res) => {
+  const { email, code, newPassword } = req.body;
+  
+  if (!email || !code || !newPassword) {
+    return res.status(400).json({ success: false, message: "Email, verification code, and new password are required." });
+  }
+
+  try {
+    const user = await User.findOne({ email, verificationCode: code, emailVerified: true });
+    
+    if (!user) {
+      return res.status(400).json({ success: false, message: "Invalid verification code or email not verified." });
+    }
+
+    if (user.codeExpires < new Date()) {
+      return res.status(400).json({ success: false, message: "Verification code has expired." });
+    }
+
+    // Update password and clear verification code
+    user.password = newPassword;
+    user.verificationCode = null;
+    user.codeExpires = null;
+    await user.save();
+
+    res.json({ 
+      success: true, 
+      message: "Password reset successfully." 
+    });
+  } catch (error) {
+    console.error('Error resetting password:', error);
+    res.status(500).json({ success: false, message: "Failed to reset password." });
+  }
+}));
+
+// Update user profile (for changing password/email in profile)
+router.put('/update-profile/:id', asyncHandler(async (req, res) => {
+  try {
+    const userID = req.params.id;
+    const { name, email, currentPassword, newPassword } = req.body;
+    
+    if (!name) {
+      return res.status(400).json({ success: false, message: "Name is required." });
+    }
+
+    const user = await User.findById(userID);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found." });
+    }
+
+    // Verify current password if changing password
+    if (newPassword) {
+      if (!currentPassword) {
+        return res.status(400).json({ success: false, message: "Current password is required to set new password." });
+      }
+      if (user.password !== currentPassword) {
+        return res.status(400).json({ success: false, message: "Current password is incorrect." });
+      }
+      user.password = newPassword;
+    }
+
+    // Update email if provided and different
+    if (email && email !== user.email) {
+      user.email = email;
+      user.emailVerified = false; // Require re-verification for new email
+    }
+
+    user.name = name;
+    await user.save();
+
+    res.json({ 
+      success: true, 
+      message: "Profile updated successfully." + (email && email !== user.email ? " Please verify your new email." : ""),
+      data: user 
+    });
+  } catch (error) {
+    if (error.code === 11000) {
+      return res.status(400).json({ success: false, message: "Email already exists." });
+    }
+    res.status(500).json({ success: false, message: error.message });
+  }
+}));
+
+module.exports = router;
+const express = require('express');
+const asyncHandler = require('express-async-handler');
+const router = express.Router();
+const User = require('../model/user');
+
+// Get all users
+router.get('/', asyncHandler(async (req, res) => {
+    try {
+        const users = await User.find();
+        res.json({ success: true, message: "Users retrieved successfully.", data: users });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// login
+router.post('/login', async (req, res) => {
+    const { name, password } = req.body;
+
+    try {
+        // Check if the user exists
+        const user = await User.findOne({ name });
+
+
+        if (!user) {
+            return res.status(401).json({ success: false, message: "Invalid name or password." });
+        }
+        // Check if the password is correct
+        if (user.password !== password) {
+            return res.status(401).json({ success: false, message: "Invalid name or password." });
+        }
+
+        // Authentication successful
+        res.status(200).json({ success: true, message: "Login successful.",data: user });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+
+// Get a user by ID
+router.get('/:id', asyncHandler(async (req, res) => {
+    try {
+        const userID = req.params.id;
+        const user = await User.findById(userID);
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found." });
+        }
+        res.json({ success: true, message: "User retrieved successfully.", data: user });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// In your user routes, update the register endpoint
+router.post('/register', asyncHandler(async (req, res) => {
+  const { name, email, password } = req.body;
+  if (!name || !password) {
+    return res.status(400).json({ success: false, message: "Name and password are required." });
+  }
+
+  try {
+    const user = new User({ name, email, password });
+    const newUser = await user.save();
+    res.json({ success: true, message: "User created successfully. Please verify your email.", data: null });
+  } catch (error) {
+    if (error.code === 11000) {
+      return res.status(400).json({ success: false, message: "Email already exists." });
+    }
+    res.status(500).json({ success: false, message: error.message });
+  }
+}));
+
+// Update a user
+router.put('/:id', asyncHandler(async (req, res) => {
+    try {
+        const userID = req.params.id;
+        const { name, password } = req.body;
+        if (!name || !password) {
+            return res.status(400).json({ success: false, message: "Name,  and password are required." });
+        }
+
+        const updatedUser = await User.findByIdAndUpdate(
+            userID,
+            { name, password },
+            { new: true }
+        );
+
+        if (!updatedUser) {
+            return res.status(404).json({ success: false, message: "User not found." });
+        }
+
+        res.json({ success: true, message: "User updated successfully.", data: updatedUser });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// Delete a user
+router.delete('/:id', asyncHandler(async (req, res) => {
+    try {
+        const userID = req.params.id;
+        const deletedUser = await User.findByIdAndDelete(userID);
+        if (!deletedUser) {
+            return res.status(404).json({ success: false, message: "User not found." });
+        }
+        res.json({ success: true, message: "User deleted successfully." });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+module.exports = router;
+const express = require('express');
+const asyncHandler = require('express-async-handler');
+const router = express.Router();
+const Order = require('../model/order');
+
+// Get all orders
+router.get('/', asyncHandler(async (req, res) => {
+    try {
+        const orders = await Order.find()
+        .populate('couponCode', 'id couponCode discountType discountAmount')
+        .populate('userID', 'id name').sort({ _id: -1 });
+        res.json({ success: true, message: "Orders retrieved successfully.", data: orders });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// Get orders by user ID
+router.get('/orderByUserId/:userId', asyncHandler(async (req, res) => {
+    try {
+        const userId = req.params.userId;
+        const orders = await Order.find({ userID: userId })
+            .populate('couponCode', 'id couponCode discountType discountAmount')
+            .populate('userID', 'id name')
+            .sort({ _id: -1 });
+        res.json({ success: true, message: "Orders retrieved successfully.", data: orders });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// Get an order by ID
+router.get('/:id', asyncHandler(async (req, res) => {
+    try {
+        const orderID = req.params.id;
+        const order = await Order.findById(orderID)
+        .populate('couponCode', 'id couponCode discountType discountAmount')
+        .populate('userID', 'id name');
+        if (!order) {
+            return res.status(404).json({ success: false, message: "Order not found." });
+        }
+        res.json({ success: true, message: "Order retrieved successfully.", data: order });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// Create a new order
+router.post('/', asyncHandler(async (req, res) => {
+    const { userID, orderStatus, items, totalPrice, shippingAddress, paymentMethod, paymentStatus, paymentProof, couponCode, orderTotal, trackingUrl } = req.body;
+    
+    if (!userID || !items || !totalPrice || !shippingAddress || !paymentMethod || !orderTotal) {
+        return res.status(400).json({ success: false, message: "User ID, items, totalPrice, shippingAddress, paymentMethod, and orderTotal are required." });
+    }
+
+    // Validate payment method
+    const validPaymentMethods = ['cod', 'cbe', 'telebirr'];
+    if (!validPaymentMethods.includes(paymentMethod)) {
+        return res.status(400).json({ success: false, message: "Invalid payment method." });
+    }
+
+    // Set default payment status if not provided
+    const finalPaymentStatus = paymentStatus || (paymentMethod === 'cod' ? 'pending' : 'pending');
+    const finalOrderStatus = orderStatus || (paymentMethod === 'cod' ? 'pending' : 'payment_pending');
+
+    try {
+        const order = new Order({ 
+            userID, 
+            orderStatus: finalOrderStatus, 
+            items, 
+            totalPrice, 
+            shippingAddress, 
+            paymentMethod, 
+            paymentStatus: finalPaymentStatus,
+            paymentProof,
+            couponCode, 
+            orderTotal, 
+            trackingUrl 
+        });
+        const newOrder = await order.save();
+        res.json({ success: true, message: "Order created successfully.", data: newOrder });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// Update an order status
+router.put('/:id', asyncHandler(async (req, res) => {
+    try {
+        const orderID = req.params.id;
+        const { orderStatus, trackingUrl } = req.body;
+        if (!orderStatus) {
+            return res.status(400).json({ success: false, message: "Order Status required." });
+        }
+
+        const updatedOrder = await Order.findByIdAndUpdate(
+            orderID,
+            { orderStatus, trackingUrl },
+            { new: true }
+        );
+
+        if (!updatedOrder) {
+            return res.status(404).json({ success: false, message: "Order not found." });
+        }
+
+        res.json({ success: true, message: "Order updated successfully.", data: updatedOrder });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// Verify payment (admin endpoint)
+router.put('/:id/verify-payment', asyncHandler(async (req, res) => {
+    try {
+        const orderID = req.params.id;
+        const { verified, adminNotes } = req.body;
+        
+        if (typeof verified !== 'boolean') {
+            return res.status(400).json({ success: false, message: "Verification status (verified) is required and must be boolean." });
+        }
+
+        const order = await Order.findById(orderID);
+        if (!order) {
+            return res.status(404).json({ success: false, message: "Order not found." });
+        }
+
+        // Update payment status and order status
+        order.paymentStatus = verified ? 'verified' : 'failed';
+        order.orderStatus = verified ? 'processing' : 'cancelled';
+        
+        // Update payment proof verification if payment proof exists
+        if (order.paymentProof) {
+            order.paymentProof.verified = verified;
+            order.paymentProof.verifiedAt = verified ? new Date() : null;
+        }
+
+        const updatedOrder = await order.save();
+
+        res.json({ 
+            success: true, 
+            message: `Payment ${verified ? 'verified' : 'rejected'} successfully.`,
+            data: updatedOrder
+        });
+    } catch (error) {
+        console.error('Error verifying payment:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// Update payment proof
+router.put('/:id/payment-proof', asyncHandler(async (req, res) => {
+    try {
+        const orderID = req.params.id;
+        const { imageUrl } = req.body;
+        
+        if (!imageUrl) {
+            return res.status(400).json({ success: false, message: "Image URL is required." });
+        }
+
+        const order = await Order.findById(orderID);
+        if (!order) {
+            return res.status(404).json({ success: false, message: "Order not found." });
+        }
+
+        // Update or create payment proof
+        order.paymentProof = {
+            imageUrl: imageUrl,
+            uploadedAt: new Date(),
+            verified: false,
+            verifiedAt: null
+        };
+
+        // For non-COD payments, set status to payment pending
+        if (order.paymentMethod !== 'cod') {
+            order.orderStatus = 'payment_pending';
+            order.paymentStatus = 'pending';
+        }
+
+        const updatedOrder = await order.save();
+
+        res.json({ 
+            success: true, 
+            message: "Payment proof updated successfully.",
+            data: updatedOrder
+        });
+    } catch (error) {
+        console.error('Error updating payment proof:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// Get orders by payment status
+router.get('/payment-status/:status', asyncHandler(async (req, res) => {
+    try {
+        const paymentStatus = req.params.status;
+        const validStatuses = ['pending', 'verified', 'failed'];
+        
+        if (!validStatuses.includes(paymentStatus)) {
+            return res.status(400).json({ success: false, message: "Invalid payment status." });
+        }
+
+        const orders = await Order.find({ paymentStatus: paymentStatus })
+            .populate('couponCode', 'id couponCode discountType discountAmount')
+            .populate('userID', 'id name')
+            .sort({ _id: -1 });
+
+        res.json({ success: true, message: "Orders retrieved successfully.", data: orders });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// Get orders requiring payment verification (admin endpoint)
+router.get('/admin/pending-verification', asyncHandler(async (req, res) => {
+    try {
+        const orders = await Order.find({ 
+            paymentMethod: { $in: ['cbe', 'telebirr'] },
+            paymentStatus: 'pending',
+            'paymentProof.imageUrl': { $exists: true, $ne: null }
+        })
+        .populate('couponCode', 'id couponCode discountType discountAmount')
+        .populate('userID', 'id name')
+        .sort({ _id: -1 });
+
+        res.json({ 
+            success: true, 
+            message: "Orders pending payment verification retrieved successfully.", 
+            data: orders 
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// Delete an order
+router.delete('/:id', asyncHandler(async (req, res) => {
+    try {
+        const orderID = req.params.id;
+        const deletedOrder = await Order.findByIdAndDelete(orderID);
+        if (!deletedOrder) {
+            return res.status(404).json({ success: false, message: "Order not found." });
+        }
+        res.json({ success: true, message: "Order deleted successfully." });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+module.exports = router;
+const express = require('express');
+const asyncHandler = require('express-async-handler');
+const router = express.Router();
+const Rating = require('../model/rating');
+const mongoose = require('mongoose'); // ADD THIS LINE
+
+// Get ratings for a product with pagination
+router.get('/product/:productId', asyncHandler(async (req, res) => {
+  try {
+    const { productId } = req.params;
+    const { page = 1, limit = 10 } = req.query;
+    
+    const ratings = await Rating.find({ productId })
+      .sort({ createdAt: -1 })
+      .limit(limit * 1)
+      .skip((page - 1) * limit);
+    
+    const count = await Rating.countDocuments({ productId });
+    
+    res.json({
+      success: true,
+      message: "Ratings retrieved successfully.",
+      data: {
+        ratings,
+        totalPages: Math.ceil(count / limit),
+        currentPage: parseInt(page),
+        ratingCount: count
+      }
+    });
+  } catch (error) {
+    console.error('Error getting ratings:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+}));
+
+// Get rating stats for a product
+router.get('/product/:productId/stats', asyncHandler(async (req, res) => {
+  try {
+    const { productId } = req.params;
+    
+    const stats = await Rating.aggregate([
+      { $match: { productId: new mongoose.Types.ObjectId(productId) } }, // This line needs mongoose
+      {
+        $group: {
+          _id: '$productId',
+          averageRating: { $avg: '$rating' },
+          ratingCount: { $sum: 1 },
+          distribution: {
+            $push: '$rating'
+          }
+        }
+      }
+    ]);
+    
+    if (stats.length === 0) {
+      return res.json({
+        success: true,
+        message: "No ratings found.",
+        data: {
+          averageRating: 0,
+          ratingCount: 0,
+          distribution: { '1': 0, '2': 0, '3': 0, '4': 0, '5': 0 }
+        }
+      });
+    }
+    
+    // Calculate distribution
+    const distribution = { '1': 0, '2': 0, '3': 0, '4': 0, '5': 0 };
+    stats[0].distribution.forEach(rating => {
+      distribution[rating.toString()]++;
+    });
+    
+    res.json({
+      success: true,
+      message: "Rating stats retrieved successfully.",
+      data: {
+        averageRating: parseFloat(stats[0].averageRating.toFixed(1)),
+        ratingCount: stats[0].ratingCount,
+        distribution
+      }
+    });
+  } catch (error) {
+    console.error('Error getting rating stats:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+}));
+
+// Get user's rating for a product
+router.get('/product/:productId/user/:userId', asyncHandler(async (req, res) => {
+  try {
+    const { productId, userId } = req.params;
+    
+    const rating = await Rating.findOne({ 
+      productId, 
+      userId 
+    });
+    
+    // Return 200 with null data instead of 404
+    res.json({
+      success: true,
+      message: rating ? "User rating retrieved successfully." : "No rating found.",
+      data: rating || null
+    });
+    
+  } catch (error) {
+    console.error('Error getting user rating:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+}));
+
+// Create or update rating
+router.post('/', asyncHandler(async (req, res) => {
+  try {
+    const { productId, userId, userName, rating, review } = req.body;
+    
+    if (!productId || !userId || !userName || !rating) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Product ID, User ID, User Name, and Rating are required." 
+      });
+    }
+    
+    // Check if user already rated this product
+    const existingRating = await Rating.findOne({ productId, userId });
+    
+    if (existingRating) {
+      // Update existing rating
+      existingRating.rating = rating;
+      existingRating.review = review || existingRating.review;
+      await existingRating.save();
+      
+      res.json({
+        success: true,
+        message: "Rating updated successfully.",
+        data: existingRating
+      });
+    } else {
+      // Create new rating
+      const newRating = new Rating({
+        productId,
+        userId,
+        userName,
+        rating,
+        review: review || ''
+      });
+      
+      await newRating.save();
+      
+      res.json({
+        success: true,
+        message: "Rating created successfully.",
+        data: newRating
+      });
+    }
+  } catch (error) {
+    console.error('Error creating rating:', error);
+    if (error.code === 11000) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "You have already rated this product." 
+      });
+    }
+    res.status(500).json({ success: false, message: error.message });
+  }
+}));
+
+// Update a rating
+router.put('/:id', asyncHandler(async (req, res) => {
+  try {
+    const ratingId = req.params.id;
+    const { rating, review } = req.body;
+    
+    const updatedRating = await Rating.findByIdAndUpdate(
+      ratingId,
+      { rating, review },
+      { new: true }
+    );
+    
+    if (!updatedRating) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "Rating not found." 
+      });
+    }
+    
+    res.json({
+      success: true,
+      message: "Rating updated successfully.",
+      data: updatedRating
+    });
+  } catch (error) {
+    console.error('Error updating rating:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+}));
+
+// Delete a rating
+router.delete('/:id', asyncHandler(async (req, res) => {
+  try {
+    const ratingId = req.params.id;
+    
+    const deletedRating = await Rating.findByIdAndDelete(ratingId);
+    
+    if (!deletedRating) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "Rating not found." 
+      });
+    }
+    
+    res.json({
+      success: true,
+      message: "Rating deleted successfully."
+    });
+  } catch (error) {
+    console.error('Error deleting rating:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+}));
+
+module.exports = router;
+const express = require('express');
+const router = express.Router();
+const Category = require('../model/category');
+const SubCategory = require('../model/subCategory');
+const Product = require('../model/product');
+const { uploadCategory } = require('../uploadFile');
+const multer = require('multer');
+const asyncHandler = require('express-async-handler');
+
+// Get all categories
+router.get('/', asyncHandler(async (req, res) => {
+    try {
+        const categories = await Category.find();
+        res.json({ success: true, message: "Categories retrieved successfully.", data: categories });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// Get a category by ID
+router.get('/:id', asyncHandler(async (req, res) => {
+    try {
+        const categoryID = req.params.id;
+        const category = await Category.findById(categoryID);
+        if (!category) {
+            return res.status(404).json({ success: false, message: "Category not found." });
+        }
+        res.json({ success: true, message: "Category retrieved successfully.", data: category });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// Create a new category with image upload to Cloudinary
+router.post('/', asyncHandler(async (req, res) => {
+    try {
+        uploadCategory.single('img')(req, res, async function (err) {
+            if (err instanceof multer.MulterError) {
+                if (err.code === 'LIMIT_FILE_SIZE') {
+                    err.message = 'File size is too large. Maximum filesize is 5MB.';
+                }
+                console.log(`Add category: ${err}`);
+                return res.json({ success: false, message: err.message });
+            } else if (err) {
+                console.log(`Add category: ${err}`);
+                return res.json({ success: false, message: err.message });
+            }
+            const { name } = req.body;
+            let imageUrl = '';
+
+            if (req.file) {
+                // Cloudinary provides the URL directly in req.file.path
+                imageUrl = req.file.path;
+            }
+
+            if (!name) {
+                return res.status(400).json({ success: false, message: "Name is required." });
+            }
+
+            if (!imageUrl) {
+                return res.status(400).json({ success: false, message: "Image is required." });
+            }
+
+            try {
+                const newCategory = new Category({
+                    name: name,
+                    image: imageUrl
+                });
+                await newCategory.save();
+                res.json({ success: true, message: "Category created successfully.", data: null });
+            } catch (error) {
+                console.error("Error creating category:", error);
+                res.status(500).json({ success: false, message: error.message });
+            }
+
+        });
+
+    } catch (err) {
+        console.log(`Error creating category: ${err.message}`);
+        return res.status(500).json({ success: false, message: err.message });
+    }
+}));
+
+// Update a category with Cloudinary
+router.put('/:id', asyncHandler(async (req, res) => {
+    try {
+        const categoryID = req.params.id;
+        uploadCategory.single('img')(req, res, async function (err) {
+            if (err instanceof multer.MulterError) {
+                if (err.code === 'LIMIT_FILE_SIZE') {
+                    err.message = 'File size is too large. Maximum filesize is 5MB.';
+                }
+                console.log(`Update category: ${err.message}`);
+                return res.json({ success: false, message: err.message });
+            } else if (err) {
+                console.log(`Update category: ${err.message}`);
+                return res.json({ success: false, message: err.message });
+            }
+
+            const { name } = req.body;
+            let image = req.body.image;
+
+            if (req.file) {
+                image = req.file.path; // Cloudinary URL
+            }
+
+            if (!name || !image) {
+                return res.status(400).json({ success: false, message: "Name and image are required." });
+            }
+
+            try {
+                const updatedCategory = await Category.findByIdAndUpdate(categoryID, { name: name, image: image }, { new: true });
+                if (!updatedCategory) {
+                    return res.status(404).json({ success: false, message: "Category not found." });
+                }
+                res.json({ success: true, message: "Category updated successfully.", data: null });
+            } catch (error) {
+                res.status(500).json({ success: false, message: error.message });
+            }
+
+        });
+
+    } catch (err) {
+        console.log(`Error updating category: ${err.message}`);
+        return res.status(500).json({ success: false, message: err.message });
+    }
+}));
+
+// Delete a category
+router.delete('/:id', asyncHandler(async (req, res) => {
+    try {
+        const categoryID = req.params.id;
+
+        // Check if any subcategories reference this category
+        const subcategories = await SubCategory.find({ categoryId: categoryID });
+        if (subcategories.length > 0) {
+            return res.status(400).json({ success: false, message: "Cannot delete category. Subcategories are referencing it." });
+        }
+
+        // Check if any products reference this category
+        const products = await Product.find({ proCategoryId: categoryID });
+        if (products.length > 0) {
+            return res.status(400).json({ success: false, message: "Cannot delete category. Products are referencing it." });
+        }
+
+        // If no subcategories or products are referencing the category, proceed with deletion
+        const category = await Category.findByIdAndDelete(categoryID);
+        if (!category) {
+            return res.status(404).json({ success: false, message: "Category not found." });
+        }
+        res.json({ success: true, message: "Category deleted successfully." });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+module.exports = router;
+const express = require('express');
+const router = express.Router();
+const Product = require('../model/product');
+const multer = require('multer');
+const { uploadProduct } = require('../uploadFile');
+const asyncHandler = require('express-async-handler');
+
+// Get all products
+router.get('/', asyncHandler(async (req, res) => {
+    try {
+        const products = await Product.find()
+        .populate('proCategoryId', 'id name')
+        .populate('proSubCategoryId', 'id name')
+        .populate('proBrandId', 'id name')
+        .populate('proVariantTypeId', 'id type')
+        .populate('proVariantId', 'id name');
+        res.json({ success: true, message: "Products retrieved successfully.", data: products });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// Get a product by ID
+router.get('/:id', asyncHandler(async (req, res) => {
+    try {
+        const productID = req.params.id;
+        const product = await Product.findById(productID)
+            .populate('proCategoryId', 'id name')
+            .populate('proSubCategoryId', 'id name')
+            .populate('proBrandId', 'id name')
+            .populate('proVariantTypeId', 'id name')
+            .populate('proVariantId', 'id name');
+        if (!product) {
+            return res.status(404).json({ success: false, message: "Product not found." });
+        }
+        res.json({ success: true, message: "Product retrieved successfully.", data: product });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// create new product with Cloudinary
+router.post('/', asyncHandler(async (req, res) => {
+    try {
+        // Execute the Multer middleware to handle multiple file fields
+        uploadProduct.fields([
+            { name: 'image1', maxCount: 1 },
+            { name: 'image2', maxCount: 1 },
+            { name: 'image3', maxCount: 1 },
+            { name: 'image4', maxCount: 1 },
+            { name: 'image5', maxCount: 1 }
+        ])(req, res, async function (err) {
+            if (err instanceof multer.MulterError) {
+                // Handle Multer errors, if any
+                if (err.code === 'LIMIT_FILE_SIZE') {
+                    err.message = 'File size is too large. Maximum filesize is 5MB per image.';
+                }
+                console.log(`Add product: ${err}`);
+                return res.json({ success: false, message: err.message });
+            } else if (err) {
+                // Handle other errors, if any
+                console.log(`Add product: ${err}`);
+                return res.json({ success: false, message: err.message });
+            }
+
+            // Extract product data from the request body
+            const { name, description, quantity, price, offerPrice, proCategoryId, proSubCategoryId, proBrandId, proVariantTypeId, proVariantId } = req.body;
+
+            // Check if any required fields are missing
+            if (!name || !quantity || !price || !proCategoryId || !proSubCategoryId) {
+                return res.status(400).json({ success: false, message: "Required fields are missing." });
+            }
+
+            // Initialize an array to store image URLs
+            const imageUrls = [];
+
+            // Iterate over the file fields
+            const fields = ['image1', 'image2', 'image3', 'image4', 'image5'];
+            fields.forEach((field, index) => {
+                if (req.files[field] && req.files[field].length > 0) {
+                    const file = req.files[field][0];
+                    // Cloudinary provides the URL directly in file.path
+                    const imageUrl = file.path;
+                    imageUrls.push({ image: index + 1, url: imageUrl });
+                }
+            });
+
+            // Create a new product object with data
+            const newProduct = new Product({ name, description, quantity, price, offerPrice, proCategoryId, proSubCategoryId, proBrandId,proVariantTypeId, proVariantId, images: imageUrls });
+
+            // Save the new product to the database
+            await newProduct.save();
+
+            // Send a success response back to the client
+            res.json({ success: true, message: "Product created successfully.", data: null });
+        });
+    } catch (error) {
+        // Handle any errors that occur during the process
+        console.error("Error creating product:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// Update a product with Cloudinary
+router.put('/:id', asyncHandler(async (req, res) => {
+    const productId = req.params.id;
+    try {
+        // Execute the Multer middleware to handle file fields
+        uploadProduct.fields([
+            { name: 'image1', maxCount: 1 },
+            { name: 'image2', maxCount: 1 },
+            { name: 'image3', maxCount: 1 },
+            { name: 'image4', maxCount: 1 },
+            { name: 'image5', maxCount: 1 }
+        ])(req, res, async function (err) {
+            if (err) {
+                console.log(`Update product: ${err}`);
+                return res.status(500).json({ success: false, message: err.message });
+            }
+
+            const { name, description, quantity, price, offerPrice, proCategoryId, proSubCategoryId, proBrandId, proVariantTypeId, proVariantId } = req.body;
+
+            // Find the product by ID
+            const productToUpdate = await Product.findById(productId);
+            if (!productToUpdate) {
+                return res.status(404).json({ success: false, message: "Product not found." });
+            }
+
+            // Update product properties if provided
+            productToUpdate.name = name || productToUpdate.name;
+            productToUpdate.description = description || productToUpdate.description;
+            productToUpdate.quantity = quantity || productToUpdate.quantity;
+            productToUpdate.price = price || productToUpdate.price;
+            productToUpdate.offerPrice = offerPrice || productToUpdate.offerPrice;
+            productToUpdate.proCategoryId = proCategoryId || productToUpdate.proCategoryId;
+            productToUpdate.proSubCategoryId = proSubCategoryId || productToUpdate.proSubCategoryId;
+            productToUpdate.proBrandId = proBrandId || productToUpdate.proBrandId;
+            productToUpdate.proVariantTypeId = proVariantTypeId || productToUpdate.proVariantTypeId;
+            productToUpdate.proVariantId = proVariantId || productToUpdate.proVariantId;
+
+            // Iterate over the file fields to update images
+            const fields = ['image1', 'image2', 'image3', 'image4', 'image5'];
+            fields.forEach((field, index) => {
+                if (req.files[field] && req.files[field].length > 0) {
+                    const file = req.files[field][0];
+                    // Cloudinary provides the URL directly in file.path
+                    const imageUrl = file.path;
+                    // Update the specific image URL in the images array
+                    let imageEntry = productToUpdate.images.find(img => img.image === (index + 1));
+                    if (imageEntry) {
+                        imageEntry.url = imageUrl;
+                    } else {
+                        // If the image entry does not exist, add it
+                        productToUpdate.images.push({ image: index + 1, url: imageUrl });
+                    }
+                }
+            });
+
+            // Save the updated product
+            await productToUpdate.save();
+            res.json({ success: true, message: "Product updated successfully." });
+        });
+    } catch (error) {
+        console.error("Error updating product:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// Delete a product
+router.delete('/:id', asyncHandler(async (req, res) => {
+    const productID = req.params.id;
+    try {
+        const product = await Product.findByIdAndDelete(productID);
+        if (!product) {
+            return res.status(404).json({ success: false, message: "Product not found." });
+        }
+        res.json({ success: true, message: "Product deleted successfully." });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+module.exports = router;
+const express = require('express');
+const router = express.Router();
+const Poster = require('../model/poster');
+const { uploadPosters } = require('../uploadFile');
+const multer = require('multer');
+const asyncHandler = require('express-async-handler');
+
+// Get all posters
+router.get('/', asyncHandler(async (req, res) => {
+    try {
+        const posters = await Poster.find({});
+        res.json({ success: true, message: "Posters retrieved successfully.", data: posters });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// Get a poster by ID
+router.get('/:id', asyncHandler(async (req, res) => {
+    try {
+        const posterID = req.params.id;
+        const poster = await Poster.findById(posterID);
+        if (!poster) {
+            return res.status(404).json({ success: false, message: "Poster not found." });
+        }
+        res.json({ success: true, message: "Poster retrieved successfully.", data: poster });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+// Create a new poster with Cloudinary
+router.post('/', asyncHandler(async (req, res) => {
+    try {
+        uploadPosters.single('img')(req, res, async function (err) {
+            if (err instanceof multer.MulterError) {
+                if (err.code === 'LIMIT_FILE_SIZE') {
+                    err.message = 'File size is too large. Maximum filesize is 5MB.';
+                }
+                console.log(`Add poster: ${err}`);
+                return res.json({ success: false, message: err.message });
+            } else if (err) {
+                console.log(`Add poster: ${err}`);
+                return res.json({ success: false, message: err.message });
+            }
+            const { posterName } = req.body;
+            let imageUrl = '';
+
+            if (req.file) {
+                // Cloudinary provides the URL directly in req.file.path
+                imageUrl = req.file.path;
+            }
+
+            if (!posterName) {
+                return res.status(400).json({ success: false, message: "Name is required." });
+            }
+
+            if (!imageUrl) {
+                return res.status(400).json({ success: false, message: "Image is required." });
+            }
+
+            try {
+                const newPoster = new Poster({
+                    posterName: posterName,
+                    imageUrl: imageUrl
+                });
+                await newPoster.save();
+                res.json({ success: true, message: "Poster created successfully.", data: null });
+            } catch (error) {
+                console.error("Error creating Poster:", error);
+                res.status(500).json({ success: false, message: error.message });
+            }
+
+        });
+
+    } catch (err) {
+        console.log(`Error creating Poster: ${err.message}`);
+        return res.status(500).json({ success: false, message: err.message });
+    }
+}));
+
+// Update a poster with Cloudinary
+router.put('/:id', asyncHandler(async (req, res) => {
+    try {
+        const posterID = req.params.id;
+        uploadPosters.single('img')(req, res, async function (err) {
+            if (err instanceof multer.MulterError) {
+                if (err.code === 'LIMIT_FILE_SIZE') {
+                    err.message = 'File size is too large. Maximum filesize is 5MB.';
+                }
+                console.log(`Update poster: ${err.message}`);
+                return res.json({ success: false, message: err.message });
+            } else if (err) {
+                console.log(`Update poster: ${err.message}`);
+                return res.json({ success: false, message: err.message });
+            }
+
+            const { posterName } = req.body;
+            let image = req.body.image;
+
+            if (req.file) {
+                image = req.file.path; // Cloudinary URL
+            }
+
+            if (!posterName || !image) {
+                return res.status(400).json({ success: false, message: "Name and image are required." });
+            }
+
+            try {
+                const updatedPoster = await Poster.findByIdAndUpdate(posterID, { posterName: posterName, imageUrl: image }, { new: true });
+                if (!updatedPoster) {
+                    return res.status(404).json({ success: false, message: "Poster not found." });
+                }
+                res.json({ success: true, message: "Poster updated successfully.", data: null });
+            } catch (error) {
+                res.status(500).json({ success: false, message: error.message });
+            }
+
+        });
+
+    } catch (err) {
+        console.log(`Error updating poster: ${err.message}`);
+        return res.status(500).json({ success: false, message: err.message });
+    }
+}));
+
+// Delete a poster
+router.delete('/:id', asyncHandler(async (req, res) => {
+    const posterID = req.params.id;
+    try {
+        const deletedPoster = await Poster.findByIdAndDelete(posterID);
+        if (!deletedPoster) {
+            return res.status(404).json({ success: false, message: "Poster not found." });
+        }
+        res.json({ success: true, message: "Poster deleted successfully." });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}));
+
+module.exports = router;
+const express = require('express');
+const asyncHandler = require('express-async-handler');
+const router = express.Router();
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+const { uploadPaymentProof, cloudinary } = require('../uploadFile');
+
+// Upload payment proof to Cloudinary
+router.post('/upload-proof', uploadPaymentProof.single('proofImage'), asyncHandler(async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: "No file uploaded." });
+    }
+
+    const imageUrl = req.file.path; // Cloudinary URL
+    
+    res.json({ 
+      success: true, 
+      message: "Payment proof uploaded successfully.", 
+      data: {
+        imageUrl: imageUrl
+      }
+    });
+  } catch (error) {
+    console.error('🔴 [UPLOAD] Error uploading payment proof:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+}));
+
+// Alternative endpoint for base64 image upload to Cloudinary
+router.post('/upload-proof-base64', asyncHandler(async (req, res) => {
+  try {
+    console.log('🟡 [UPLOAD-BASE64] Received upload request');
+    const { image, fileName, orderAmount } = req.body;
+    
+    if (!image || !fileName) {
+      console.log('🔴 [UPLOAD-BASE64] Missing image or fileName');
+      return res.status(400).json({ success: false, message: "Image data and filename are required." });
+    }
+
+    console.log('🟡 [UPLOAD-BASE64] Processing image, fileName:', fileName);
+
+    // Remove data:image/jpeg;base64, prefix if present
+    const base64Data = image.replace(/^data:image\/\w+;base64,/, '');
+    
+    try {
+      // Upload base64 image directly to Cloudinary
+      const uploadResponse = await cloudinary.uploader.upload(
+        `data:image/png;base64,${base64Data}`, 
+        {
+          folder: 'payment-proofs',
+          public_id: `payment_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
+          resource_type: 'image'
+        }
+      );
+
+      console.log('🟡 [UPLOAD-BASE64] Cloudinary upload successful');
+      
+      res.json({ 
+        success: true, 
+        message: "Payment proof uploaded successfully.", 
+        data: {
+          imageUrl: uploadResponse.secure_url,
+          verified: false,
+          verifiedAt: null
+        }
+      });
+      
+      console.log('🟡 [UPLOAD-BASE64] Response sent successfully');
+      
+    } catch (uploadError) {
+      console.error('🔴 [UPLOAD-BASE64] Cloudinary upload error:', uploadError);
+      throw uploadError;
+    }
+    
+  } catch (error) {
+    console.error('🔴 [UPLOAD-BASE64] Error uploading payment proof:', error);
+    console.error('🔴 [UPLOAD-BASE64] Error stack:', error.stack);
+    res.status(500).json({ success: false, message: error.message });
+  }
+}));
+
+// Verify payment (admin endpoint)
+router.post('/verify-payment/:orderId', asyncHandler(async (req, res) => {
+  try {
+    const orderId = req.params.orderId;
+    const { verified, adminNotes } = req.body;
+    
+    // Update order payment status
+    const Order = require('../model/order');
+    const updatedOrder = await Order.findByIdAndUpdate(
+      orderId,
+      { 
+        paymentStatus: verified ? 'verified' : 'failed',
+        orderStatus: verified ? 'processing' : 'cancelled',
+        'paymentProof.verifiedAt': verified ? new Date() : null,
+        adminNotes: adminNotes
+      },
+      { new: true }
+    );
+
+    if (!updatedOrder) {
+      return res.status(404).json({ success: false, message: "Order not found." });
+    }
+
+    res.json({ 
+      success: true, 
+      message: `Payment ${verified ? 'verified' : 'rejected'} successfully.`,
+      data: updatedOrder
+    });
+  } catch (error) {
+    console.error('Error verifying payment:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+}));
+
+module.exports = router;
+{
+  "name": "online-store",
+  "version": "1.0.0",
+  "lockfileVersion": 3,
+  "requires": true,
+  "packages": {
+    "": {
+      "name": "online-store",
+      "version": "1.0.0",
+      "license": "ISC",
+      "dependencies": {
+        "axios": "^1.12.2",
+        "body-parser": "^1.20.2",
+        "cloudinary": "^1.41.3",
+        "cors": "^2.8.5",
+        "dotenv": "^16.6.1",
+        "express": "^4.19.2",
+        "express-async-handler": "^1.2.0",
+        "express-rate-limit": "^8.2.1",
+        "helmet": "^8.1.0",
+        "mongoose": "^8.3.2",
+        "multer": "^2.0.2",
+        "multer-storage-cloudinary": "^4.0.0",
+        "nodemailer": "^6.10.1",
+        "stripe": "^15.6.0",
+        "uuid": "^9.0.1"
+      }
+    },
+    "node_modules/@mongodb-js/saslprep": {
+      "version": "1.3.2",
+      "resolved": "https://registry.npmjs.org/@mongodb-js/saslprep/-/saslprep-1.3.2.tgz",
+      "integrity": "sha512-QgA5AySqB27cGTXBFmnpifAi7HxoGUeezwo6p9dI03MuDB6Pp33zgclqVb6oVK3j6I9Vesg0+oojW2XxB59SGg==",
+      "license": "MIT",
+      "dependencies": {
+        "sparse-bitfield": "^3.0.3"
+      }
+    },
+    "node_modules/@types/node": {
+      "version": "24.9.2",
+      "resolved": "https://registry.npmjs.org/@types/node/-/node-24.9.2.tgz",
+      "integrity": "sha512-uWN8YqxXxqFMX2RqGOrumsKeti4LlmIMIyV0lgut4jx7KQBcBiW6vkDtIBvHnHIquwNfJhk8v2OtmO8zXWHfPA==",
+      "license": "MIT",
+      "dependencies": {
+        "undici-types": "~7.16.0"
+      }
+    },
+    "node_modules/@types/webidl-conversions": {
+      "version": "7.0.3",
+      "resolved": "https://registry.npmjs.org/@types/webidl-conversions/-/webidl-conversions-7.0.3.tgz",
+      "integrity": "sha512-CiJJvcRtIgzadHCYXw7dqEnMNRjhGZlYK05Mj9OyktqV8uVT8fD2BFOB7S1uwBE3Kj2Z+4UyPmFw/Ixgw/LAlA==",
+      "license": "MIT"
+    },
+    "node_modules/@types/whatwg-url": {
+      "version": "11.0.5",
+      "resolved": "https://registry.npmjs.org/@types/whatwg-url/-/whatwg-url-11.0.5.tgz",
+      "integrity": "sha512-coYR071JRaHa+xoEvvYqvnIHaVqaYrLPbsufM9BF63HkwI5Lgmy2QR8Q5K/lYDYo5AK82wOvSOS0UsLTpTG7uQ==",
+      "license": "MIT",
+      "dependencies": {
+        "@types/webidl-conversions": "*"
+      }
+    },
+    "node_modules/accepts": {
+      "version": "1.3.8",
+      "resolved": "https://registry.npmjs.org/accepts/-/accepts-1.3.8.tgz",
+      "integrity": "sha512-PYAthTa2m2VKxuvSD3DPC/Gy+U+sOA1LAuT8mkmRuvw+NACSaeXEQ+NHcVF7rONl6qcaxV3Uuemwawk+7+SJLw==",
+      "license": "MIT",
+      "dependencies": {
+        "mime-types": "~2.1.34",
+        "negotiator": "0.6.3"
+      },
+      "engines": {
+        "node": ">= 0.6"
+      }
+    },
+    "node_modules/append-field": {
+      "version": "1.0.0",
+      "resolved": "https://registry.npmjs.org/append-field/-/append-field-1.0.0.tgz",
+      "integrity": "sha512-klpgFSWLW1ZEs8svjfb7g4qWY0YS5imI82dTg+QahUvJ8YqAY0P10Uk8tTyh9ZGuYEZEMaeJYCF5BFuX552hsw==",
+      "license": "MIT"
+    },
+    "node_modules/array-flatten": {
+      "version": "1.1.1",
+      "resolved": "https://registry.npmjs.org/array-flatten/-/array-flatten-1.1.1.tgz",
+      "integrity": "sha512-PCVAQswWemu6UdxsDFFX/+gVeYqKAod3D3UVm91jHwynguOwAvYPhx8nNlM++NqRcK6CxxpUafjmhIdKiHibqg==",
+      "license": "MIT"
+    },
+    "node_modules/asynckit": {
+      "version": "0.4.0",
+      "resolved": "https://registry.npmjs.org/asynckit/-/asynckit-0.4.0.tgz",
+      "integrity": "sha512-Oei9OH4tRh0YqU3GxhX79dM/mwVgvbZJaSNaRk+bshkj0S5cfHcgYakreBjrHwatXKbz+IoIdYLxrKim2MjW0Q==",
+      "license": "MIT"
+    },
+    "node_modules/axios": {
+      "version": "1.13.1",
+      "resolved": "https://registry.npmjs.org/axios/-/axios-1.13.1.tgz",
+      "integrity": "sha512-hU4EGxxt+j7TQijx1oYdAjw4xuIp1wRQSsbMFwSthCWeBQur1eF+qJ5iQ5sN3Tw8YRzQNKb8jszgBdMDVqwJcw==",
+      "license": "MIT",
+      "dependencies": {
+        "follow-redirects": "^1.15.6",
+        "form-data": "^4.0.4",
+        "proxy-from-env": "^1.1.0"
+      }
+    },
+    "node_modules/body-parser": {
+      "version": "1.20.3",
+      "resolved": "https://registry.npmjs.org/body-parser/-/body-parser-1.20.3.tgz",
+      "integrity": "sha512-7rAxByjUMqQ3/bHJy7D6OGXvx/MMc4IqBn/X0fcM1QUcAItpZrBEYhWGem+tzXH90c+G01ypMcYJBO9Y30203g==",
+      "license": "MIT",
+      "dependencies": {
+        "bytes": "3.1.2",
+        "content-type": "~1.0.5",
+        "debug": "2.6.9",
+        "depd": "2.0.0",
+        "destroy": "1.2.0",
+        "http-errors": "2.0.0",
+        "iconv-lite": "0.4.24",
+        "on-finished": "2.4.1",
+        "qs": "6.13.0",
+        "raw-body": "2.5.2",
+        "type-is": "~1.6.18",
+        "unpipe": "1.0.0"
+      },
+      "engines": {
+        "node": ">= 0.8",
+        "npm": "1.2.8000 || >= 1.4.16"
+      }
+    },
+    "node_modules/bson": {
+      "version": "6.10.4",
+      "resolved": "https://registry.npmjs.org/bson/-/bson-6.10.4.tgz",
+      "integrity": "sha512-WIsKqkSC0ABoBJuT1LEX+2HEvNmNKKgnTAyd0fL8qzK4SH2i9NXg+t08YtdZp/V9IZ33cxe3iV4yM0qg8lMQng==",
+      "license": "Apache-2.0",
+      "engines": {
+        "node": ">=16.20.1"
+      }
+    },
+    "node_modules/buffer-from": {
+      "version": "1.1.2",
+      "resolved": "https://registry.npmjs.org/buffer-from/-/buffer-from-1.1.2.tgz",
+      "integrity": "sha512-E+XQCRwSbaaiChtv6k6Dwgc+bx+Bs6vuKJHHl5kox/BaKbhiXzqQOwK4cO22yElGp2OCmjwVhT3HmxgyPGnJfQ==",
+      "license": "MIT"
+    },
+    "node_modules/busboy": {
+      "version": "1.6.0",
+      "resolved": "https://registry.npmjs.org/busboy/-/busboy-1.6.0.tgz",
+      "integrity": "sha512-8SFQbg/0hQ9xy3UNTB0YEnsNBbWfhf7RtnzpL7TkBiTBRfrQ9Fxcnz7VJsleJpyp6rVLvXiuORqjlHi5q+PYuA==",
+      "dependencies": {
+        "streamsearch": "^1.1.0"
+      },
+      "engines": {
+        "node": ">=10.16.0"
+      }
+    },
+    "node_modules/bytes": {
+      "version": "3.1.2",
+      "resolved": "https://registry.npmjs.org/bytes/-/bytes-3.1.2.tgz",
+      "integrity": "sha512-/Nf7TyzTx6S3yRJObOAV7956r8cr2+Oj8AC5dt8wSP3BQAoeX58NoHyCU8P8zGkNXStjTSi6fzO6F0pBdcYbEg==",
+      "license": "MIT",
+      "engines": {
+        "node": ">= 0.8"
+      }
+    },
+    "node_modules/call-bind-apply-helpers": {
+      "version": "1.0.2",
+      "resolved": "https://registry.npmjs.org/call-bind-apply-helpers/-/call-bind-apply-helpers-1.0.2.tgz",
+      "integrity": "sha512-Sp1ablJ0ivDkSzjcaJdxEunN5/XvksFJ2sMBFfq6x0ryhQV/2b/KwFe21cMpmHtPOSij8K99/wSfoEuTObmuMQ==",
+      "license": "MIT",
+      "dependencies": {
+        "es-errors": "^1.3.0",
+        "function-bind": "^1.1.2"
+      },
+      "engines": {
+        "node": ">= 0.4"
+      }
+    },
+    "node_modules/call-bound": {
+      "version": "1.0.4",
+      "resolved": "https://registry.npmjs.org/call-bound/-/call-bound-1.0.4.tgz",
+      "integrity": "sha512-+ys997U96po4Kx/ABpBCqhA9EuxJaQWDQg7295H4hBphv3IZg0boBKuwYpt4YXp6MZ5AmZQnU/tyMTlRpaSejg==",
+      "license": "MIT",
+      "dependencies": {
+        "call-bind-apply-helpers": "^1.0.2",
+        "get-intrinsic": "^1.3.0"
+      },
+      "engines": {
+        "node": ">= 0.4"
+      },
+      "funding": {
+        "url": "https://github.com/sponsors/ljharb"
+      }
+    },
+    "node_modules/cloudinary": {
+      "version": "1.41.3",
+      "resolved": "https://registry.npmjs.org/cloudinary/-/cloudinary-1.41.3.tgz",
+      "integrity": "sha512-4o84y+E7dbif3lMns+p3UW6w6hLHEifbX/7zBJvaih1E9QNMZITENQ14GPYJC4JmhygYXsuuBb9bRA3xWEoOfg==",
+      "license": "MIT",
+      "dependencies": {
+        "cloudinary-core": "^2.13.0",
+        "core-js": "^3.30.1",
+        "lodash": "^4.17.21",
+        "q": "^1.5.1"
+      },
+      "engines": {
+        "node": ">=0.6"
+      }
+    },
+    "node_modules/cloudinary-core": {
+      "version": "2.14.0",
+      "resolved": "https://registry.npmjs.org/cloudinary-core/-/cloudinary-core-2.14.0.tgz",
+      "integrity": "sha512-L+kjoYgU+5wyiPkSnmeCbmtT6DwSyYUN/WoI/fEb6Xsx2gtB3iuf/50W0SvcQkeKzllfH5Knh8I4ST924DkkRw==",
+      "license": "MIT",
+      "peerDependencies": {
+        "lodash": ">=4.0"
+      }
+    },
+    "node_modules/combined-stream": {
+      "version": "1.0.8",
+      "resolved": "https://registry.npmjs.org/combined-stream/-/combined-stream-1.0.8.tgz",
+      "integrity": "sha512-FQN4MRfuJeHf7cBbBMJFXhKSDq+2kAArBlmRBvcvFE5BB1HZKXtSFASDhdlz9zOYwxh8lDdnvmMOe/+5cdoEdg==",
+      "license": "MIT",
+      "dependencies": {
+        "delayed-stream": "~1.0.0"
+      },
+      "engines": {
+        "node": ">= 0.8"
+      }
+    },
+    "node_modules/concat-stream": {
+      "version": "2.0.0",
+      "resolved": "https://registry.npmjs.org/concat-stream/-/concat-stream-2.0.0.tgz",
+      "integrity": "sha512-MWufYdFw53ccGjCA+Ol7XJYpAlW6/prSMzuPOTRnJGcGzuhLn4Scrz7qf6o8bROZ514ltazcIFJZevcfbo0x7A==",
+      "engines": [
+        "node >= 6.0"
+      ],
+      "license": "MIT",
+      "dependencies": {
+        "buffer-from": "^1.0.0",
+        "inherits": "^2.0.3",
+        "readable-stream": "^3.0.2",
+        "typedarray": "^0.0.6"
+      }
+    },
+    "node_modules/content-disposition": {
+      "version": "0.5.4",
+      "resolved": "https://registry.npmjs.org/content-disposition/-/content-disposition-0.5.4.tgz",
+      "integrity": "sha512-FveZTNuGw04cxlAiWbzi6zTAL/lhehaWbTtgluJh4/E95DqMwTmha3KZN1aAWA8cFIhHzMZUvLevkw5Rqk+tSQ==",
+      "license": "MIT",
+      "dependencies": {
+        "safe-buffer": "5.2.1"
+      },
+      "engines": {
+        "node": ">= 0.6"
+      }
+    },
+    "node_modules/content-type": {
+      "version": "1.0.5",
+      "resolved": "https://registry.npmjs.org/content-type/-/content-type-1.0.5.tgz",
+      "integrity": "sha512-nTjqfcBFEipKdXCv4YDQWCfmcLZKm81ldF0pAopTvyrFGVbcR6P/VAAd5G7N+0tTr8QqiU0tFadD6FK4NtJwOA==",
+      "license": "MIT",
+      "engines": {
+        "node": ">= 0.6"
+      }
+    },
+    "node_modules/cookie": {
+      "version": "0.7.1",
+      "resolved": "https://registry.npmjs.org/cookie/-/cookie-0.7.1.tgz",
+      "integrity": "sha512-6DnInpx7SJ2AK3+CTUE/ZM0vWTUboZCegxhC2xiIydHR9jNuTAASBrfEpHhiGOZw/nX51bHt6YQl8jsGo4y/0w==",
+      "license": "MIT",
+      "engines": {
+        "node": ">= 0.6"
+      }
+    },
+    "node_modules/cookie-signature": {
+      "version": "1.0.6",
+      "resolved": "https://registry.npmjs.org/cookie-signature/-/cookie-signature-1.0.6.tgz",
+      "integrity": "sha512-QADzlaHc8icV8I7vbaJXJwod9HWYp8uCqf1xa4OfNu1T7JVxQIrUgOWtHdNDtPiywmFbiS12VjotIXLrKM3orQ==",
+      "license": "MIT"
+    },
+    "node_modules/core-js": {
+      "version": "3.46.0",
+      "resolved": "https://registry.npmjs.org/core-js/-/core-js-3.46.0.tgz",
+      "integrity": "sha512-vDMm9B0xnqqZ8uSBpZ8sNtRtOdmfShrvT6h2TuQGLs0Is+cR0DYbj/KWP6ALVNbWPpqA/qPLoOuppJN07humpA==",
+      "hasInstallScript": true,
+      "license": "MIT",
+      "funding": {
+        "type": "opencollective",
+        "url": "https://opencollective.com/core-js"
+      }
+    },
+    "node_modules/cors": {
+      "version": "2.8.5",
+      "resolved": "https://registry.npmjs.org/cors/-/cors-2.8.5.tgz",
+      "integrity": "sha512-KIHbLJqu73RGr/hnbrO9uBeixNGuvSQjul/jdFvS/KFSIH1hWVd1ng7zOHx+YrEfInLG7q4n6GHQ9cDtxv/P6g==",
+      "license": "MIT",
+      "dependencies": {
+        "object-assign": "^4",
+        "vary": "^1"
+      },
+      "engines": {
+        "node": ">= 0.10"
+      }
+    },
+    "node_modules/debug": {
+      "version": "2.6.9",
+      "resolved": "https://registry.npmjs.org/debug/-/debug-2.6.9.tgz",
+      "integrity": "sha512-bC7ElrdJaJnPbAP+1EotYvqZsb3ecl5wi6Bfi6BJTUcNowp6cvspg0jXznRTKDjm/E7AdgFBVeAPVMNcKGsHMA==",
+      "license": "MIT",
+      "dependencies": {
+        "ms": "2.0.0"
+      }
+    },
+    "node_modules/delayed-stream": {
+      "version": "1.0.0",
+      "resolved": "https://registry.npmjs.org/delayed-stream/-/delayed-stream-1.0.0.tgz",
+      "integrity": "sha512-ZySD7Nf91aLB0RxL4KGrKHBXl7Eds1DAmEdcoVawXnLD7SDhpNgtuII2aAkg7a7QS41jxPSZ17p4VdGnMHk3MQ==",
+      "license": "MIT",
+      "engines": {
+        "node": ">=0.4.0"
+      }
+    },
+    "node_modules/depd": {
+      "version": "2.0.0",
+      "resolved": "https://registry.npmjs.org/depd/-/depd-2.0.0.tgz",
+      "integrity": "sha512-g7nH6P6dyDioJogAAGprGpCtVImJhpPk/roCzdb3fIh61/s/nPsfR6onyMwkCAR/OlC3yBC0lESvUoQEAssIrw==",
+      "license": "MIT",
+      "engines": {
+        "node": ">= 0.8"
+      }
+    },
+    "node_modules/destroy": {
+      "version": "1.2.0",
+      "resolved": "https://registry.npmjs.org/destroy/-/destroy-1.2.0.tgz",
+      "integrity": "sha512-2sJGJTaXIIaR1w4iJSNoN0hnMY7Gpc/n8D4qSCJw8QqFWXf7cuAgnEHxBpweaVcPevC2l3KpjYCx3NypQQgaJg==",
+      "license": "MIT",
+      "engines": {
+        "node": ">= 0.8",
+        "npm": "1.2.8000 || >= 1.4.16"
+      }
+    },
+    "node_modules/dotenv": {
+      "version": "16.6.1",
+      "resolved": "https://registry.npmjs.org/dotenv/-/dotenv-16.6.1.tgz",
+      "integrity": "sha512-uBq4egWHTcTt33a72vpSG0z3HnPuIl6NqYcTrKEg2azoEyl2hpW0zqlxysq2pK9HlDIHyHyakeYaYnSAwd8bow==",
+      "license": "BSD-2-Clause",
+      "engines": {
+        "node": ">=12"
+      },
+      "funding": {
+        "url": "https://dotenvx.com"
+      }
+    },
+    "node_modules/dunder-proto": {
+      "version": "1.0.1",
+      "resolved": "https://registry.npmjs.org/dunder-proto/-/dunder-proto-1.0.1.tgz",
+      "integrity": "sha512-KIN/nDJBQRcXw0MLVhZE9iQHmG68qAVIBg9CqmUYjmQIhgij9U5MFvrqkUL5FbtyyzZuOeOt0zdeRe4UY7ct+A==",
+      "license": "MIT",
+      "dependencies": {
+        "call-bind-apply-helpers": "^1.0.1",
+        "es-errors": "^1.3.0",
+        "gopd": "^1.2.0"
+      },
+      "engines": {
+        "node": ">= 0.4"
+      }
+    },
+    "node_modules/ee-first": {
+      "version": "1.1.1",
+      "resolved": "https://registry.npmjs.org/ee-first/-/ee-first-1.1.1.tgz",
+      "integrity": "sha512-WMwm9LhRUo+WUaRN+vRuETqG89IgZphVSNkdFgeb6sS/E4OrDIN7t48CAewSHXc6C8lefD8KKfr5vY61brQlow==",
+      "license": "MIT"
+    },
+    "node_modules/encodeurl": {
+      "version": "2.0.0",
+      "resolved": "https://registry.npmjs.org/encodeurl/-/encodeurl-2.0.0.tgz",
+      "integrity": "sha512-Q0n9HRi4m6JuGIV1eFlmvJB7ZEVxu93IrMyiMsGC0lrMJMWzRgx6WGquyfQgZVb31vhGgXnfmPNNXmxnOkRBrg==",
+      "license": "MIT",
+      "engines": {
+        "node": ">= 0.8"
+      }
+    },
+    "node_modules/es-define-property": {
+      "version": "1.0.1",
+      "resolved": "https://registry.npmjs.org/es-define-property/-/es-define-property-1.0.1.tgz",
+      "integrity": "sha512-e3nRfgfUZ4rNGL232gUgX06QNyyez04KdjFrF+LTRoOXmrOgFKDg4BCdsjW8EnT69eqdYGmRpJwiPVYNrCaW3g==",
+      "license": "MIT",
+      "engines": {
+        "node": ">= 0.4"
+      }
+    },
+    "node_modules/es-errors": {
+      "version": "1.3.0",
+      "resolved": "https://registry.npmjs.org/es-errors/-/es-errors-1.3.0.tgz",
+      "integrity": "sha512-Zf5H2Kxt2xjTvbJvP2ZWLEICxA6j+hAmMzIlypy4xcBg1vKVnx89Wy0GbS+kf5cwCVFFzdCFh2XSCFNULS6csw==",
+      "license": "MIT",
+      "engines": {
+        "node": ">= 0.4"
+      }
+    },
+    "node_modules/es-object-atoms": {
+      "version": "1.1.1",
+      "resolved": "https://registry.npmjs.org/es-object-atoms/-/es-object-atoms-1.1.1.tgz",
+      "integrity": "sha512-FGgH2h8zKNim9ljj7dankFPcICIK9Cp5bm+c2gQSYePhpaG5+esrLODihIorn+Pe6FGJzWhXQotPv73jTaldXA==",
+      "license": "MIT",
+      "dependencies": {
+        "es-errors": "^1.3.0"
+      },
+      "engines": {
+        "node": ">= 0.4"
+      }
+    },
+    "node_modules/es-set-tostringtag": {
+      "version": "2.1.0",
+      "resolved": "https://registry.npmjs.org/es-set-tostringtag/-/es-set-tostringtag-2.1.0.tgz",
+      "integrity": "sha512-j6vWzfrGVfyXxge+O0x5sh6cvxAog0a/4Rdd2K36zCMV5eJ+/+tOAngRO8cODMNWbVRdVlmGZQL2YS3yR8bIUA==",
+      "license": "MIT",
+      "dependencies": {
+        "es-errors": "^1.3.0",
+        "get-intrinsic": "^1.2.6",
+        "has-tostringtag": "^1.0.2",
+        "hasown": "^2.0.2"
+      },
+      "engines": {
+        "node": ">= 0.4"
+      }
+    },
+    "node_modules/escape-html": {
+      "version": "1.0.3",
+      "resolved": "https://registry.npmjs.org/escape-html/-/escape-html-1.0.3.tgz",
+      "integrity": "sha512-NiSupZ4OeuGwr68lGIeym/ksIZMJodUGOSCZ/FSnTxcrekbvqrgdUxlJOMpijaKZVjAJrWrGs/6Jy8OMuyj9ow==",
+      "license": "MIT"
+    },
+    "node_modules/etag": {
+      "version": "1.8.1",
+      "resolved": "https://registry.npmjs.org/etag/-/etag-1.8.1.tgz",
+      "integrity": "sha512-aIL5Fx7mawVa300al2BnEE4iNvo1qETxLrPI/o05L7z6go7fCw1J6EQmbK4FmJ2AS7kgVF/KEZWufBfdClMcPg==",
+      "license": "MIT",
+      "engines": {
+        "node": ">= 0.6"
+      }
+    },
+    "node_modules/express": {
+      "version": "4.21.2",
+      "resolved": "https://registry.npmjs.org/express/-/express-4.21.2.tgz",
+      "integrity": "sha512-28HqgMZAmih1Czt9ny7qr6ek2qddF4FclbMzwhCREB6OFfH+rXAnuNCwo1/wFvrtbgsQDb4kSbX9de9lFbrXnA==",
+      "license": "MIT",
+      "dependencies": {
+        "accepts": "~1.3.8",
+        "array-flatten": "1.1.1",
+        "body-parser": "1.20.3",
+        "content-disposition": "0.5.4",
+        "content-type": "~1.0.4",
+        "cookie": "0.7.1",
+        "cookie-signature": "1.0.6",
+        "debug": "2.6.9",
+        "depd": "2.0.0",
+        "encodeurl": "~2.0.0",
+        "escape-html": "~1.0.3",
+        "etag": "~1.8.1",
+        "finalhandler": "1.3.1",
+        "fresh": "0.5.2",
+        "http-errors": "2.0.0",
+        "merge-descriptors": "1.0.3",
+        "methods": "~1.1.2",
+        "on-finished": "2.4.1",
+        "parseurl": "~1.3.3",
+        "path-to-regexp": "0.1.12",
+        "proxy-addr": "~2.0.7",
+        "qs": "6.13.0",
+        "range-parser": "~1.2.1",
+        "safe-buffer": "5.2.1",
+        "send": "0.19.0",
+        "serve-static": "1.16.2",
+        "setprototypeof": "1.2.0",
+        "statuses": "2.0.1",
+        "type-is": "~1.6.18",
+        "utils-merge": "1.0.1",
+        "vary": "~1.1.2"
+      },
+      "engines": {
+        "node": ">= 0.10.0"
+      },
+      "funding": {
+        "type": "opencollective",
+        "url": "https://opencollective.com/express"
+      }
+    },
+    "node_modules/express-async-handler": {
+      "version": "1.2.0",
+      "resolved": "https://registry.npmjs.org/express-async-handler/-/express-async-handler-1.2.0.tgz",
+      "integrity": "sha512-rCSVtPXRmQSW8rmik/AIb2P0op6l7r1fMW538yyvTMltCO4xQEWMmobfrIxN2V1/mVrgxB8Az3reYF6yUZw37w==",
+      "license": "MIT"
+    },
+    "node_modules/express-rate-limit": {
+      "version": "8.2.1",
+      "resolved": "https://registry.npmjs.org/express-rate-limit/-/express-rate-limit-8.2.1.tgz",
+      "integrity": "sha512-PCZEIEIxqwhzw4KF0n7QF4QqruVTcF73O5kFKUnGOyjbCCgizBBiFaYpd/fnBLUMPw/BWw9OsiN7GgrNYr7j6g==",
+      "license": "MIT",
+      "dependencies": {
+        "ip-address": "10.0.1"
+      },
+      "engines": {
+        "node": ">= 16"
+      },
+      "funding": {
+        "url": "https://github.com/sponsors/express-rate-limit"
+      },
+      "peerDependencies": {
+        "express": ">= 4.11"
+      }
+    },
+    "node_modules/finalhandler": {
+      "version": "1.3.1",
+      "resolved": "https://registry.npmjs.org/finalhandler/-/finalhandler-1.3.1.tgz",
+      "integrity": "sha512-6BN9trH7bp3qvnrRyzsBz+g3lZxTNZTbVO2EV1CS0WIcDbawYVdYvGflME/9QP0h0pYlCDBCTjYa9nZzMDpyxQ==",
+      "license": "MIT",
+      "dependencies": {
+        "debug": "2.6.9",
+        "encodeurl": "~2.0.0",
+        "escape-html": "~1.0.3",
+        "on-finished": "2.4.1",
+        "parseurl": "~1.3.3",
+        "statuses": "2.0.1",
+        "unpipe": "~1.0.0"
+      },
+      "engines": {
+        "node": ">= 0.8"
+      }
+    },
+    "node_modules/follow-redirects": {
+      "version": "1.15.11",
+      "resolved": "https://registry.npmjs.org/follow-redirects/-/follow-redirects-1.15.11.tgz",
+      "integrity": "sha512-deG2P0JfjrTxl50XGCDyfI97ZGVCxIpfKYmfyrQ54n5FO/0gfIES8C/Psl6kWVDolizcaaxZJnTS0QSMxvnsBQ==",
+      "funding": [
+        {
+          "type": "individual",
+          "url": "https://github.com/sponsors/RubenVerborgh"
+        }
+      ],
+      "license": "MIT",
+      "engines": {
+        "node": ">=4.0"
+      },
+      "peerDependenciesMeta": {
+        "debug": {
+          "optional": true
+        }
+      }
+    },
+    "node_modules/form-data": {
+      "version": "4.0.4",
+      "resolved": "https://registry.npmjs.org/form-data/-/form-data-4.0.4.tgz",
+      "integrity": "sha512-KrGhL9Q4zjj0kiUt5OO4Mr/A/jlI2jDYs5eHBpYHPcBEVSiipAvn2Ko2HnPe20rmcuuvMHNdZFp+4IlGTMF0Ow==",
+      "license": "MIT",
+      "dependencies": {
+        "asynckit": "^0.4.0",
+        "combined-stream": "^1.0.8",
+        "es-set-tostringtag": "^2.1.0",
+        "hasown": "^2.0.2",
+        "mime-types": "^2.1.12"
+      },
+      "engines": {
+        "node": ">= 6"
+      }
+    },
+    "node_modules/forwarded": {
+      "version": "0.2.0",
+      "resolved": "https://registry.npmjs.org/forwarded/-/forwarded-0.2.0.tgz",
+      "integrity": "sha512-buRG0fpBtRHSTCOASe6hD258tEubFoRLb4ZNA6NxMVHNw2gOcwHo9wyablzMzOA5z9xA9L1KNjk/Nt6MT9aYow==",
+      "license": "MIT",
+      "engines": {
+        "node": ">= 0.6"
+      }
+    },
+    "node_modules/fresh": {
+      "version": "0.5.2",
+      "resolved": "https://registry.npmjs.org/fresh/-/fresh-0.5.2.tgz",
+      "integrity": "sha512-zJ2mQYM18rEFOudeV4GShTGIQ7RbzA7ozbU9I/XBpm7kqgMywgmylMwXHxZJmkVoYkna9d2pVXVXPdYTP9ej8Q==",
+      "license": "MIT",
+      "engines": {
+        "node": ">= 0.6"
+      }
+    },
+    "node_modules/function-bind": {
+      "version": "1.1.2",
+      "resolved": "https://registry.npmjs.org/function-bind/-/function-bind-1.1.2.tgz",
+      "integrity": "sha512-7XHNxH7qX9xG5mIwxkhumTox/MIRNcOgDrxWsMt2pAr23WHp6MrRlN7FBSFpCpr+oVO0F744iUgR82nJMfG2SA==",
+      "license": "MIT",
+      "funding": {
+        "url": "https://github.com/sponsors/ljharb"
+      }
+    },
+    "node_modules/get-intrinsic": {
+      "version": "1.3.0",
+      "resolved": "https://registry.npmjs.org/get-intrinsic/-/get-intrinsic-1.3.0.tgz",
+      "integrity": "sha512-9fSjSaos/fRIVIp+xSJlE6lfwhES7LNtKaCBIamHsjr2na1BiABJPo0mOjjz8GJDURarmCPGqaiVg5mfjb98CQ==",
+      "license": "MIT",
+      "dependencies": {
+        "call-bind-apply-helpers": "^1.0.2",
+        "es-define-property": "^1.0.1",
+        "es-errors": "^1.3.0",
+        "es-object-atoms": "^1.1.1",
+        "function-bind": "^1.1.2",
+        "get-proto": "^1.0.1",
+        "gopd": "^1.2.0",
+        "has-symbols": "^1.1.0",
+        "hasown": "^2.0.2",
+        "math-intrinsics": "^1.1.0"
+      },
+      "engines": {
+        "node": ">= 0.4"
+      },
+      "funding": {
+        "url": "https://github.com/sponsors/ljharb"
+      }
+    },
+    "node_modules/get-proto": {
+      "version": "1.0.1",
+      "resolved": "https://registry.npmjs.org/get-proto/-/get-proto-1.0.1.tgz",
+      "integrity": "sha512-sTSfBjoXBp89JvIKIefqw7U2CCebsc74kiY6awiGogKtoSGbgjYE/G/+l9sF3MWFPNc9IcoOC4ODfKHfxFmp0g==",
+      "license": "MIT",
+      "dependencies": {
+        "dunder-proto": "^1.0.1",
+        "es-object-atoms": "^1.0.0"
+      },
+      "engines": {
+        "node": ">= 0.4"
+      }
+    },
+    "node_modules/gopd": {
+      "version": "1.2.0",
+      "resolved": "https://registry.npmjs.org/gopd/-/gopd-1.2.0.tgz",
+      "integrity": "sha512-ZUKRh6/kUFoAiTAtTYPZJ3hw9wNxx+BIBOijnlG9PnrJsCcSjs1wyyD6vJpaYtgnzDrKYRSqf3OO6Rfa93xsRg==",
+      "license": "MIT",
+      "engines": {
+        "node": ">= 0.4"
+      },
+      "funding": {
+        "url": "https://github.com/sponsors/ljharb"
+      }
+    },
+    "node_modules/has-symbols": {
+      "version": "1.1.0",
+      "resolved": "https://registry.npmjs.org/has-symbols/-/has-symbols-1.1.0.tgz",
+      "integrity": "sha512-1cDNdwJ2Jaohmb3sg4OmKaMBwuC48sYni5HUw2DvsC8LjGTLK9h+eb1X6RyuOHe4hT0ULCW68iomhjUoKUqlPQ==",
+      "license": "MIT",
+      "engines": {
+        "node": ">= 0.4"
+      },
+      "funding": {
+        "url": "https://github.com/sponsors/ljharb"
+      }
+    },
+    "node_modules/has-tostringtag": {
+      "version": "1.0.2",
+      "resolved": "https://registry.npmjs.org/has-tostringtag/-/has-tostringtag-1.0.2.tgz",
+      "integrity": "sha512-NqADB8VjPFLM2V0VvHUewwwsw0ZWBaIdgo+ieHtK3hasLz4qeCRjYcqfB6AQrBggRKppKF8L52/VqdVsO47Dlw==",
+      "license": "MIT",
+      "dependencies": {
+        "has-symbols": "^1.0.3"
+      },
+      "engines": {
+        "node": ">= 0.4"
+      },
+      "funding": {
+        "url": "https://github.com/sponsors/ljharb"
+      }
+    },
+    "node_modules/hasown": {
+      "version": "2.0.2",
+      "resolved": "https://registry.npmjs.org/hasown/-/hasown-2.0.2.tgz",
+      "integrity": "sha512-0hJU9SCPvmMzIBdZFqNPXWa6dqh7WdH0cII9y+CyS8rG3nL48Bclra9HmKhVVUHyPWNH5Y7xDwAB7bfgSjkUMQ==",
+      "license": "MIT",
+      "dependencies": {
+        "function-bind": "^1.1.2"
+      },
+      "engines": {
+        "node": ">= 0.4"
+      }
+    },
+    "node_modules/helmet": {
+      "version": "8.1.0",
+      "resolved": "https://registry.npmjs.org/helmet/-/helmet-8.1.0.tgz",
+      "integrity": "sha512-jOiHyAZsmnr8LqoPGmCjYAaiuWwjAPLgY8ZX2XrmHawt99/u1y6RgrZMTeoPfpUbV96HOalYgz1qzkRbw54Pmg==",
+      "license": "MIT",
+      "engines": {
+        "node": ">=18.0.0"
+      }
+    },
+    "node_modules/http-errors": {
+      "version": "2.0.0",
+      "resolved": "https://registry.npmjs.org/http-errors/-/http-errors-2.0.0.tgz",
+      "integrity": "sha512-FtwrG/euBzaEjYeRqOgly7G0qviiXoJWnvEH2Z1plBdXgbyjv34pHTSb9zoeHMyDy33+DWy5Wt9Wo+TURtOYSQ==",
+      "license": "MIT",
+      "dependencies": {
+        "depd": "2.0.0",
+        "inherits": "2.0.4",
+        "setprototypeof": "1.2.0",
+        "statuses": "2.0.1",
+        "toidentifier": "1.0.1"
+      },
+      "engines": {
+        "node": ">= 0.8"
+      }
+    },
+    "node_modules/iconv-lite": {
+      "version": "0.4.24",
+      "resolved": "https://registry.npmjs.org/iconv-lite/-/iconv-lite-0.4.24.tgz",
+      "integrity": "sha512-v3MXnZAcvnywkTUEZomIActle7RXXeedOR31wwl7VlyoXO4Qi9arvSenNQWne1TcRwhCL1HwLI21bEqdpj8/rA==",
+      "license": "MIT",
+      "dependencies": {
+        "safer-buffer": ">= 2.1.2 < 3"
+      },
+      "engines": {
+        "node": ">=0.10.0"
+      }
+    },
+    "node_modules/inherits": {
+      "version": "2.0.4",
+      "resolved": "https://registry.npmjs.org/inherits/-/inherits-2.0.4.tgz",
+      "integrity": "sha512-k/vGaX4/Yla3WzyMCvTQOXYeIHvqOKtnqBduzTHpzpQZzAskKMhZ2K+EnBiSM9zGSoIFeMpXKxa4dYeZIQqewQ==",
+      "license": "ISC"
+    },
+    "node_modules/ip-address": {
+      "version": "10.0.1",
+      "resolved": "https://registry.npmjs.org/ip-address/-/ip-address-10.0.1.tgz",
+      "integrity": "sha512-NWv9YLW4PoW2B7xtzaS3NCot75m6nK7Icdv0o3lfMceJVRfSoQwqD4wEH5rLwoKJwUiZ/rfpiVBhnaF0FK4HoA==",
+      "license": "MIT",
+      "engines": {
+        "node": ">= 12"
+      }
+    },
+    "node_modules/ipaddr.js": {
+      "version": "1.9.1",
+      "resolved": "https://registry.npmjs.org/ipaddr.js/-/ipaddr.js-1.9.1.tgz",
+      "integrity": "sha512-0KI/607xoxSToH7GjN1FfSbLoU0+btTicjsQSWQlh/hZykN8KpmMf7uYwPW3R+akZ6R/w18ZlXSHBYXiYUPO3g==",
+      "license": "MIT",
+      "engines": {
+        "node": ">= 0.10"
+      }
+    },
+    "node_modules/kareem": {
+      "version": "2.6.3",
+      "resolved": "https://registry.npmjs.org/kareem/-/kareem-2.6.3.tgz",
+      "integrity": "sha512-C3iHfuGUXK2u8/ipq9LfjFfXFxAZMQJJq7vLS45r3D9Y2xQ/m4S8zaR4zMLFWh9AsNPXmcFfUDhTEO8UIC/V6Q==",
+      "license": "Apache-2.0",
+      "engines": {
+        "node": ">=12.0.0"
+      }
+    },
+    "node_modules/lodash": {
+      "version": "4.17.21",
+      "resolved": "https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz",
+      "integrity": "sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==",
+      "license": "MIT"
+    },
+    "node_modules/math-intrinsics": {
+      "version": "1.1.0",
+      "resolved": "https://registry.npmjs.org/math-intrinsics/-/math-intrinsics-1.1.0.tgz",
+      "integrity": "sha512-/IXtbwEk5HTPyEwyKX6hGkYXxM9nbj64B+ilVJnC/R6B0pH5G4V3b0pVbL7DBj4tkhBAppbQUlf6F6Xl9LHu1g==",
+      "license": "MIT",
+      "engines": {
+        "node": ">= 0.4"
+      }
+    },
+    "node_modules/media-typer": {
+      "version": "0.3.0",
+      "resolved": "https://registry.npmjs.org/media-typer/-/media-typer-0.3.0.tgz",
+      "integrity": "sha512-dq+qelQ9akHpcOl/gUVRTxVIOkAJ1wR3QAvb4RsVjS8oVoFjDGTc679wJYmUmknUF5HwMLOgb5O+a3KxfWapPQ==",
+      "license": "MIT",
+      "engines": {
+        "node": ">= 0.6"
+      }
+    },
+    "node_modules/memory-pager": {
+      "version": "1.5.0",
+      "resolved": "https://registry.npmjs.org/memory-pager/-/memory-pager-1.5.0.tgz",
+      "integrity": "sha512-ZS4Bp4r/Zoeq6+NLJpP+0Zzm0pR8whtGPf1XExKLJBAczGMnSi3It14OiNCStjQjM6NU1okjQGSxgEZN8eBYKg==",
+      "license": "MIT"
+    },
+    "node_modules/merge-descriptors": {
+      "version": "1.0.3",
+      "resolved": "https://registry.npmjs.org/merge-descriptors/-/merge-descriptors-1.0.3.tgz",
+      "integrity": "sha512-gaNvAS7TZ897/rVaZ0nMtAyxNyi/pdbjbAwUpFQpN70GqnVfOiXpeUUMKRBmzXaSQ8DdTX4/0ms62r2K+hE6mQ==",
+      "license": "MIT",
+      "funding": {
+        "url": "https://github.com/sponsors/sindresorhus"
+      }
+    },
+    "node_modules/methods": {
+      "version": "1.1.2",
+      "resolved": "https://registry.npmjs.org/methods/-/methods-1.1.2.tgz",
+      "integrity": "sha512-iclAHeNqNm68zFtnZ0e+1L2yUIdvzNoauKU4WBA3VvH/vPFieF7qfRlwUZU+DA9P9bPXIS90ulxoUoCH23sV2w==",
+      "license": "MIT",
+      "engines": {
+        "node": ">= 0.6"
+      }
+    },
+    "node_modules/mime": {
+      "version": "1.6.0",
+      "resolved": "https://registry.npmjs.org/mime/-/mime-1.6.0.tgz",
+      "integrity": "sha512-x0Vn8spI+wuJ1O6S7gnbaQg8Pxh4NNHb7KSINmEWKiPE4RKOplvijn+NkmYmmRgP68mc70j2EbeTFRsrswaQeg==",
+      "license": "MIT",
+      "bin": {
+        "mime": "cli.js"
+      },
+      "engines": {
+        "node": ">=4"
+      }
+    },
+    "node_modules/mime-db": {
+      "version": "1.52.0",
+      "resolved": "https://registry.npmjs.org/mime-db/-/mime-db-1.52.0.tgz",
+      "integrity": "sha512-sPU4uV7dYlvtWJxwwxHD0PuihVNiE7TyAbQ5SWxDCB9mUYvOgroQOwYQQOKPJ8CIbE+1ETVlOoK1UC2nU3gYvg==",
+      "license": "MIT",
+      "engines": {
+        "node": ">= 0.6"
+      }
+    },
+    "node_modules/mime-types": {
+      "version": "2.1.35",
+      "resolved": "https://registry.npmjs.org/mime-types/-/mime-types-2.1.35.tgz",
+      "integrity": "sha512-ZDY+bPm5zTTF+YpCrAU9nK0UgICYPT0QtT1NZWFv4s++TNkcgVaT0g6+4R2uI4MjQjzysHB1zxuWL50hzaeXiw==",
+      "license": "MIT",
+      "dependencies": {
+        "mime-db": "1.52.0"
+      },
+      "engines": {
+        "node": ">= 0.6"
+      }
+    },
+    "node_modules/minimist": {
+      "version": "1.2.8",
+      "resolved": "https://registry.npmjs.org/minimist/-/minimist-1.2.8.tgz",
+      "integrity": "sha512-2yyAR8qBkN3YuheJanUpWC5U3bb5osDywNB8RzDVlDwDHbocAJveqqj1u8+SVD7jkWT4yvsHCpWqqWqAxb0zCA==",
+      "license": "MIT",
+      "funding": {
+        "url": "https://github.com/sponsors/ljharb"
+      }
+    },
+    "node_modules/mkdirp": {
+      "version": "0.5.6",
+      "resolved": "https://registry.npmjs.org/mkdirp/-/mkdirp-0.5.6.tgz",
+      "integrity": "sha512-FP+p8RB8OWpF3YZBCrP5gtADmtXApB5AMLn+vdyA+PyxCjrCs00mjyUozssO33cwDeT3wNGdLxJ5M//YqtHAJw==",
+      "license": "MIT",
+      "dependencies": {
+        "minimist": "^1.2.6"
+      },
+      "bin": {
+        "mkdirp": "bin/cmd.js"
+      }
+    },
+    "node_modules/mongodb": {
+      "version": "6.20.0",
+      "resolved": "https://registry.npmjs.org/mongodb/-/mongodb-6.20.0.tgz",
+      "integrity": "sha512-Tl6MEIU3K4Rq3TSHd+sZQqRBoGlFsOgNrH5ltAcFBV62Re3Fd+FcaVf8uSEQFOJ51SDowDVttBTONMfoYWrWlQ==",
+      "license": "Apache-2.0",
+      "dependencies": {
+        "@mongodb-js/saslprep": "^1.3.0",
+        "bson": "^6.10.4",
+        "mongodb-connection-string-url": "^3.0.2"
+      },
+      "engines": {
+        "node": ">=16.20.1"
+      },
+      "peerDependencies": {
+        "@aws-sdk/credential-providers": "^3.188.0",
+        "@mongodb-js/zstd": "^1.1.0 || ^2.0.0",
+        "gcp-metadata": "^5.2.0",
+        "kerberos": "^2.0.1",
+        "mongodb-client-encryption": ">=6.0.0 <7",
+        "snappy": "^7.3.2",
+        "socks": "^2.7.1"
+      },
+      "peerDependenciesMeta": {
+        "@aws-sdk/credential-providers": {
+          "optional": true
+        },
+        "@mongodb-js/zstd": {
+          "optional": true
+        },
+        "gcp-metadata": {
+          "optional": true
+        },
+        "kerberos": {
+          "optional": true
+        },
+        "mongodb-client-encryption": {
+          "optional": true
+        },
+        "snappy": {
+          "optional": true
+        },
+        "socks": {
+          "optional": true
+        }
+      }
+    },
+    "node_modules/mongodb-connection-string-url": {
+      "version": "3.0.2",
+      "resolved": "https://registry.npmjs.org/mongodb-connection-string-url/-/mongodb-connection-string-url-3.0.2.tgz",
+      "integrity": "sha512-rMO7CGo/9BFwyZABcKAWL8UJwH/Kc2x0g72uhDWzG48URRax5TCIcJ7Rc3RZqffZzO/Gwff/jyKwCU9TN8gehA==",
+      "license": "Apache-2.0",
+      "dependencies": {
+        "@types/whatwg-url": "^11.0.2",
+        "whatwg-url": "^14.1.0 || ^13.0.0"
+      }
+    },
+    "node_modules/mongoose": {
+      "version": "8.19.2",
+      "resolved": "https://registry.npmjs.org/mongoose/-/mongoose-8.19.2.tgz",
+      "integrity": "sha512-ww2T4dBV+suCbOfG5YPwj9pLCfUVyj8FEA1D3Ux1HHqutpLxGyOYEPU06iPRBW4cKr3PJfOSYsIpHWPTkz5zig==",
+      "license": "MIT",
+      "dependencies": {
+        "bson": "^6.10.4",
+        "kareem": "2.6.3",
+        "mongodb": "~6.20.0",
+        "mpath": "0.9.0",
+        "mquery": "5.0.0",
+        "ms": "2.1.3",
+        "sift": "17.1.3"
+      },
+      "engines": {
+        "node": ">=16.20.1"
+      },
+      "funding": {
+        "type": "opencollective",
+        "url": "https://opencollective.com/mongoose"
+      }
+    },
+    "node_modules/mongoose/node_modules/ms": {
+      "version": "2.1.3",
+      "resolved": "https://registry.npmjs.org/ms/-/ms-2.1.3.tgz",
+      "integrity": "sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==",
+      "license": "MIT"
+    },
+    "node_modules/mpath": {
+      "version": "0.9.0",
+      "resolved": "https://registry.npmjs.org/mpath/-/mpath-0.9.0.tgz",
+      "integrity": "sha512-ikJRQTk8hw5DEoFVxHG1Gn9T/xcjtdnOKIU1JTmGjZZlg9LST2mBLmcX3/ICIbgJydT2GOc15RnNy5mHmzfSew==",
+      "license": "MIT",
+      "engines": {
+        "node": ">=4.0.0"
+      }
+    },
+    "node_modules/mquery": {
+      "version": "5.0.0",
+      "resolved": "https://registry.npmjs.org/mquery/-/mquery-5.0.0.tgz",
+      "integrity": "sha512-iQMncpmEK8R8ncT8HJGsGc9Dsp8xcgYMVSbs5jgnm1lFHTZqMJTUWTDx1LBO8+mK3tPNZWFLBghQEIOULSTHZg==",
+      "license": "MIT",
+      "dependencies": {
+        "debug": "4.x"
+      },
+      "engines": {
+        "node": ">=14.0.0"
+      }
+    },
+    "node_modules/mquery/node_modules/debug": {
+      "version": "4.4.3",
+      "resolved": "https://registry.npmjs.org/debug/-/debug-4.4.3.tgz",
+      "integrity": "sha512-RGwwWnwQvkVfavKVt22FGLw+xYSdzARwm0ru6DhTVA3umU5hZc28V3kO4stgYryrTlLpuvgI9GiijltAjNbcqA==",
+      "license": "MIT",
+      "dependencies": {
+        "ms": "^2.1.3"
+      },
+      "engines": {
+        "node": ">=6.0"
+      },
+      "peerDependenciesMeta": {
+        "supports-color": {
+          "optional": true
+        }
+      }
+    },
+    "node_modules/mquery/node_modules/ms": {
+      "version": "2.1.3",
+      "resolved": "https://registry.npmjs.org/ms/-/ms-2.1.3.tgz",
+      "integrity": "sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==",
+      "license": "MIT"
+    },
+    "node_modules/ms": {
+      "version": "2.0.0",
+      "resolved": "https://registry.npmjs.org/ms/-/ms-2.0.0.tgz",
+      "integrity": "sha512-Tpp60P6IUJDTuOq/5Z8cdskzJujfwqfOTkrwIwj7IRISpnkJnT6SyJ4PCPnGMoFjC9ddhal5KVIYtAt97ix05A==",
+      "license": "MIT"
+    },
+    "node_modules/multer": {
+      "version": "2.0.2",
+      "resolved": "https://registry.npmjs.org/multer/-/multer-2.0.2.tgz",
+      "integrity": "sha512-u7f2xaZ/UG8oLXHvtF/oWTRvT44p9ecwBBqTwgJVq0+4BW1g8OW01TyMEGWBHbyMOYVHXslaut7qEQ1meATXgw==",
+      "license": "MIT",
+      "dependencies": {
+        "append-field": "^1.0.0",
+        "busboy": "^1.6.0",
+        "concat-stream": "^2.0.0",
+        "mkdirp": "^0.5.6",
+        "object-assign": "^4.1.1",
+        "type-is": "^1.6.18",
+        "xtend": "^4.0.2"
+      },
+      "engines": {
+        "node": ">= 10.16.0"
+      }
+    },
+    "node_modules/multer-storage-cloudinary": {
+      "version": "4.0.0",
+      "resolved": "https://registry.npmjs.org/multer-storage-cloudinary/-/multer-storage-cloudinary-4.0.0.tgz",
+      "integrity": "sha512-25lm9R6o5dWrHLqLvygNX+kBOxprzpmZdnVKH4+r68WcfCt8XV6xfQaMuAg+kUE5Xmr8mJNA4gE0AcBj9FJyWA==",
+      "license": "MIT",
+      "peerDependencies": {
+        "cloudinary": "^1.21.0"
+      }
+    },
+    "node_modules/negotiator": {
+      "version": "0.6.3",
+      "resolved": "https://registry.npmjs.org/negotiator/-/negotiator-0.6.3.tgz",
+      "integrity": "sha512-+EUsqGPLsM+j/zdChZjsnX51g4XrHFOIXwfnCVPGlQk/k5giakcKsuxCObBRu6DSm9opw/O6slWbJdghQM4bBg==",
+      "license": "MIT",
+      "engines": {
+        "node": ">= 0.6"
+      }
+    },
+    "node_modules/nodemailer": {
+      "version": "6.10.1",
+      "resolved": "https://registry.npmjs.org/nodemailer/-/nodemailer-6.10.1.tgz",
+      "integrity": "sha512-Z+iLaBGVaSjbIzQ4pX6XV41HrooLsQ10ZWPUehGmuantvzWoDVBnmsdUcOIDM1t+yPor5pDhVlDESgOMEGxhHA==",
+      "license": "MIT-0",
+      "engines": {
+        "node": ">=6.0.0"
+      }
+    },
+    "node_modules/object-assign": {
+      "version": "4.1.1",
+      "resolved": "https://registry.npmjs.org/object-assign/-/object-assign-4.1.1.tgz",
+      "integrity": "sha512-rJgTQnkUnH1sFw8yT6VSU3zD3sWmu6sZhIseY8VX+GRu3P6F7Fu+JNDoXfklElbLJSnc3FUQHVe4cU5hj+BcUg==",
+      "license": "MIT",
+      "engines": {
+        "node": ">=0.10.0"
+      }
+    },
+    "node_modules/object-inspect": {
+      "version": "1.13.4",
+      "resolved": "https://registry.npmjs.org/object-inspect/-/object-inspect-1.13.4.tgz",
+      "integrity": "sha512-W67iLl4J2EXEGTbfeHCffrjDfitvLANg0UlX3wFUUSTx92KXRFegMHUVgSqE+wvhAbi4WqjGg9czysTV2Epbew==",
+      "license": "MIT",
+      "engines": {
+        "node": ">= 0.4"
+      },
+      "funding": {
+        "url": "https://github.com/sponsors/ljharb"
+      }
+    },
+    "node_modules/on-finished": {
+      "version": "2.4.1",
+      "resolved": "https://registry.npmjs.org/on-finished/-/on-finished-2.4.1.tgz",
+      "integrity": "sha512-oVlzkg3ENAhCk2zdv7IJwd/QUD4z2RxRwpkcGY8psCVcCYZNq4wYnVWALHM+brtuJjePWiYF/ClmuDr8Ch5+kg==",
+      "license": "MIT",
+      "dependencies": {
+        "ee-first": "1.1.1"
+      },
+      "engines": {
+        "node": ">= 0.8"
+      }
+    },
+    "node_modules/parseurl": {
+      "version": "1.3.3",
+      "resolved": "https://registry.npmjs.org/parseurl/-/parseurl-1.3.3.tgz",
+      "integrity": "sha512-CiyeOxFT/JZyN5m0z9PfXw4SCBJ6Sygz1Dpl0wqjlhDEGGBP1GnsUVEL0p63hoG1fcj3fHynXi9NYO4nWOL+qQ==",
+      "license": "MIT",
+      "engines": {
+        "node": ">= 0.8"
+      }
+    },
+    "node_modules/path-to-regexp": {
+      "version": "0.1.12",
+      "resolved": "https://registry.npmjs.org/path-to-regexp/-/path-to-regexp-0.1.12.tgz",
+      "integrity": "sha512-RA1GjUVMnvYFxuqovrEqZoxxW5NUZqbwKtYz/Tt7nXerk0LbLblQmrsgdeOxV5SFHf0UDggjS/bSeOZwt1pmEQ==",
+      "license": "MIT"
+    },
+    "node_modules/proxy-addr": {
+      "version": "2.0.7",
+      "resolved": "https://registry.npmjs.org/proxy-addr/-/proxy-addr-2.0.7.tgz",
+      "integrity": "sha512-llQsMLSUDUPT44jdrU/O37qlnifitDP+ZwrmmZcoSKyLKvtZxpyV0n2/bD/N4tBAAZ/gJEdZU7KMraoK1+XYAg==",
+      "license": "MIT",
+      "dependencies": {
+        "forwarded": "0.2.0",
+        "ipaddr.js": "1.9.1"
+      },
+      "engines": {
+        "node": ">= 0.10"
+      }
+    },
+    "node_modules/proxy-from-env": {
+      "version": "1.1.0",
+      "resolved": "https://registry.npmjs.org/proxy-from-env/-/proxy-from-env-1.1.0.tgz",
+      "integrity": "sha512-D+zkORCbA9f1tdWRK0RaCR3GPv50cMxcrz4X8k5LTSUD1Dkw47mKJEZQNunItRTkWwgtaUSo1RVFRIG9ZXiFYg==",
+      "license": "MIT"
+    },
+    "node_modules/punycode": {
+      "version": "2.3.1",
+      "resolved": "https://registry.npmjs.org/punycode/-/punycode-2.3.1.tgz",
+      "integrity": "sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==",
+      "license": "MIT",
+      "engines": {
+        "node": ">=6"
+      }
+    },
+    "node_modules/q": {
+      "version": "1.5.1",
+      "resolved": "https://registry.npmjs.org/q/-/q-1.5.1.tgz",
+      "integrity": "sha512-kV/CThkXo6xyFEZUugw/+pIOywXcDbFYgSct5cT3gqlbkBE1SJdwy6UQoZvodiWF/ckQLZyDE/Bu1M6gVu5lVw==",
+      "deprecated": "You or someone you depend on is using Q, the JavaScript Promise library that gave JavaScript developers strong feelings about promises. They can almost certainly migrate to the native JavaScript promise now. Thank you literally everyone for joining me in this bet against the odds. Be excellent to each other.\n\n(For a CapTP with native promises, see @endo/eventual-send and @endo/captp)",
+      "license": "MIT",
+      "engines": {
+        "node": ">=0.6.0",
+        "teleport": ">=0.2.0"
+      }
+    },
+    "node_modules/qs": {
+      "version": "6.13.0",
+      "resolved": "https://registry.npmjs.org/qs/-/qs-6.13.0.tgz",
+      "integrity": "sha512-+38qI9SOr8tfZ4QmJNplMUxqjbe7LKvvZgWdExBOmd+egZTtjLB67Gu0HRX3u/XOq7UU2Nx6nsjvS16Z9uwfpg==",
+      "license": "BSD-3-Clause",
+      "dependencies": {
+        "side-channel": "^1.0.6"
+      },
+      "engines": {
+        "node": ">=0.6"
+      },
+      "funding": {
+        "url": "https://github.com/sponsors/ljharb"
+      }
+    },
+    "node_modules/range-parser": {
+      "version": "1.2.1",
+      "resolved": "https://registry.npmjs.org/range-parser/-/range-parser-1.2.1.tgz",
+      "integrity": "sha512-Hrgsx+orqoygnmhFbKaHE6c296J+HTAQXoxEF6gNupROmmGJRoyzfG3ccAveqCBrwr/2yxQ5BVd/GTl5agOwSg==",
+      "license": "MIT",
+      "engines": {
+        "node": ">= 0.6"
+      }
+    },
+    "node_modules/raw-body": {
+      "version": "2.5.2",
+      "resolved": "https://registry.npmjs.org/raw-body/-/raw-body-2.5.2.tgz",
+      "integrity": "sha512-8zGqypfENjCIqGhgXToC8aB2r7YrBX+AQAfIPs/Mlk+BtPTztOvTS01NRW/3Eh60J+a48lt8qsCzirQ6loCVfA==",
+      "license": "MIT",
+      "dependencies": {
+        "bytes": "3.1.2",
+        "http-errors": "2.0.0",
+        "iconv-lite": "0.4.24",
+        "unpipe": "1.0.0"
+      },
+      "engines": {
+        "node": ">= 0.8"
+      }
+    },
+    "node_modules/readable-stream": {
+      "version": "3.6.2",
+      "resolved": "https://registry.npmjs.org/readable-stream/-/readable-stream-3.6.2.tgz",
+      "integrity": "sha512-9u/sniCrY3D5WdsERHzHE4G2YCXqoG5FTHUiCC4SIbr6XcLZBY05ya9EKjYek9O5xOAwjGq+1JdGBAS7Q9ScoA==",
+      "license": "MIT",
+      "dependencies": {
+        "inherits": "^2.0.3",
+        "string_decoder": "^1.1.1",
+        "util-deprecate": "^1.0.1"
+      },
+      "engines": {
+        "node": ">= 6"
+      }
+    },
+    "node_modules/safe-buffer": {
+      "version": "5.2.1",
+      "resolved": "https://registry.npmjs.org/safe-buffer/-/safe-buffer-5.2.1.tgz",
+      "integrity": "sha512-rp3So07KcdmmKbGvgaNxQSJr7bGVSVk5S9Eq1F+ppbRo70+YeaDxkw5Dd8NPN+GD6bjnYm2VuPuCXmpuYvmCXQ==",
+      "funding": [
+        {
+          "type": "github",
+          "url": "https://github.com/sponsors/feross"
+        },
+        {
+          "type": "patreon",
+          "url": "https://www.patreon.com/feross"
+        },
+        {
+          "type": "consulting",
+          "url": "https://feross.org/support"
+        }
+      ],
+      "license": "MIT"
+    },
+    "node_modules/safer-buffer": {
+      "version": "2.1.2",
+      "resolved": "https://registry.npmjs.org/safer-buffer/-/safer-buffer-2.1.2.tgz",
+      "integrity": "sha512-YZo3K82SD7Riyi0E1EQPojLz7kpepnSQI9IyPbHHg1XXXevb5dJI7tpyN2ADxGcQbHG7vcyRHk0cbwqcQriUtg==",
+      "license": "MIT"
+    },
+    "node_modules/send": {
+      "version": "0.19.0",
+      "resolved": "https://registry.npmjs.org/send/-/send-0.19.0.tgz",
+      "integrity": "sha512-dW41u5VfLXu8SJh5bwRmyYUbAoSB3c9uQh6L8h/KtsFREPWpbX1lrljJo186Jc4nmci/sGUZ9a0a0J2zgfq2hw==",
+      "license": "MIT",
+      "dependencies": {
+        "debug": "2.6.9",
+        "depd": "2.0.0",
+        "destroy": "1.2.0",
+        "encodeurl": "~1.0.2",
+        "escape-html": "~1.0.3",
+        "etag": "~1.8.1",
+        "fresh": "0.5.2",
+        "http-errors": "2.0.0",
+        "mime": "1.6.0",
+        "ms": "2.1.3",
+        "on-finished": "2.4.1",
+        "range-parser": "~1.2.1",
+        "statuses": "2.0.1"
+      },
+      "engines": {
+        "node": ">= 0.8.0"
+      }
+    },
+    "node_modules/send/node_modules/encodeurl": {
+      "version": "1.0.2",
+      "resolved": "https://registry.npmjs.org/encodeurl/-/encodeurl-1.0.2.tgz",
+      "integrity": "sha512-TPJXq8JqFaVYm2CWmPvnP2Iyo4ZSM7/QKcSmuMLDObfpH5fi7RUGmd/rTDf+rut/saiDiQEeVTNgAmJEdAOx0w==",
+      "license": "MIT",
+      "engines": {
+        "node": ">= 0.8"
+      }
+    },
+    "node_modules/send/node_modules/ms": {
+      "version": "2.1.3",
+      "resolved": "https://registry.npmjs.org/ms/-/ms-2.1.3.tgz",
+      "integrity": "sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==",
+      "license": "MIT"
+    },
+    "node_modules/serve-static": {
+      "version": "1.16.2",
+      "resolved": "https://registry.npmjs.org/serve-static/-/serve-static-1.16.2.tgz",
+      "integrity": "sha512-VqpjJZKadQB/PEbEwvFdO43Ax5dFBZ2UECszz8bQ7pi7wt//PWe1P6MN7eCnjsatYtBT6EuiClbjSWP2WrIoTw==",
+      "license": "MIT",
+      "dependencies": {
+        "encodeurl": "~2.0.0",
+        "escape-html": "~1.0.3",
+        "parseurl": "~1.3.3",
+        "send": "0.19.0"
+      },
+      "engines": {
+        "node": ">= 0.8.0"
+      }
+    },
+    "node_modules/setprototypeof": {
+      "version": "1.2.0",
+      "resolved": "https://registry.npmjs.org/setprototypeof/-/setprototypeof-1.2.0.tgz",
+      "integrity": "sha512-E5LDX7Wrp85Kil5bhZv46j8jOeboKq5JMmYM3gVGdGH8xFpPWXUMsNrlODCrkoxMEeNi/XZIwuRvY4XNwYMJpw==",
+      "license": "ISC"
+    },
+    "node_modules/side-channel": {
+      "version": "1.1.0",
+      "resolved": "https://registry.npmjs.org/side-channel/-/side-channel-1.1.0.tgz",
+      "integrity": "sha512-ZX99e6tRweoUXqR+VBrslhda51Nh5MTQwou5tnUDgbtyM0dBgmhEDtWGP/xbKn6hqfPRHujUNwz5fy/wbbhnpw==",
+      "license": "MIT",
+      "dependencies": {
+        "es-errors": "^1.3.0",
+        "object-inspect": "^1.13.3",
+        "side-channel-list": "^1.0.0",
+        "side-channel-map": "^1.0.1",
+        "side-channel-weakmap": "^1.0.2"
+      },
+      "engines": {
+        "node": ">= 0.4"
+      },
+      "funding": {
+        "url": "https://github.com/sponsors/ljharb"
+      }
+    },
+    "node_modules/side-channel-list": {
+      "version": "1.0.0",
+      "resolved": "https://registry.npmjs.org/side-channel-list/-/side-channel-list-1.0.0.tgz",
+      "integrity": "sha512-FCLHtRD/gnpCiCHEiJLOwdmFP+wzCmDEkc9y7NsYxeF4u7Btsn1ZuwgwJGxImImHicJArLP4R0yX4c2KCrMrTA==",
+      "license": "MIT",
+      "dependencies": {
+        "es-errors": "^1.3.0",
+        "object-inspect": "^1.13.3"
+      },
+      "engines": {
+        "node": ">= 0.4"
+      },
+      "funding": {
+        "url": "https://github.com/sponsors/ljharb"
+      }
+    },
+    "node_modules/side-channel-map": {
+      "version": "1.0.1",
+      "resolved": "https://registry.npmjs.org/side-channel-map/-/side-channel-map-1.0.1.tgz",
+      "integrity": "sha512-VCjCNfgMsby3tTdo02nbjtM/ewra6jPHmpThenkTYh8pG9ucZ/1P8So4u4FGBek/BjpOVsDCMoLA/iuBKIFXRA==",
+      "license": "MIT",
+      "dependencies": {
+        "call-bound": "^1.0.2",
+        "es-errors": "^1.3.0",
+        "get-intrinsic": "^1.2.5",
+        "object-inspect": "^1.13.3"
+      },
+      "engines": {
+        "node": ">= 0.4"
+      },
+      "funding": {
+        "url": "https://github.com/sponsors/ljharb"
+      }
+    },
+    "node_modules/side-channel-weakmap": {
+      "version": "1.0.2",
+      "resolved": "https://registry.npmjs.org/side-channel-weakmap/-/side-channel-weakmap-1.0.2.tgz",
+      "integrity": "sha512-WPS/HvHQTYnHisLo9McqBHOJk2FkHO/tlpvldyrnem4aeQp4hai3gythswg6p01oSoTl58rcpiFAjF2br2Ak2A==",
+      "license": "MIT",
+      "dependencies": {
+        "call-bound": "^1.0.2",
+        "es-errors": "^1.3.0",
+        "get-intrinsic": "^1.2.5",
+        "object-inspect": "^1.13.3",
+        "side-channel-map": "^1.0.1"
+      },
+      "engines": {
+        "node": ">= 0.4"
+      },
+      "funding": {
+        "url": "https://github.com/sponsors/ljharb"
+      }
+    },
+    "node_modules/sift": {
+      "version": "17.1.3",
+      "resolved": "https://registry.npmjs.org/sift/-/sift-17.1.3.tgz",
+      "integrity": "sha512-Rtlj66/b0ICeFzYTuNvX/EF1igRbbnGSvEyT79McoZa/DeGhMyC5pWKOEsZKnpkqtSeovd5FL/bjHWC3CIIvCQ==",
+      "license": "MIT"
+    },
+    "node_modules/sparse-bitfield": {
+      "version": "3.0.3",
+      "resolved": "https://registry.npmjs.org/sparse-bitfield/-/sparse-bitfield-3.0.3.tgz",
+      "integrity": "sha512-kvzhi7vqKTfkh0PZU+2D2PIllw2ymqJKujUcyPMd9Y75Nv4nPbGJZXNhxsgdQab2BmlDct1YnfQCguEvHr7VsQ==",
+      "license": "MIT",
+      "dependencies": {
+        "memory-pager": "^1.0.2"
+      }
+    },
+    "node_modules/statuses": {
+      "version": "2.0.1",
+      "resolved": "https://registry.npmjs.org/statuses/-/statuses-2.0.1.tgz",
+      "integrity": "sha512-RwNA9Z/7PrK06rYLIzFMlaF+l73iwpzsqRIFgbMLbTcLD6cOao82TaWefPXQvB2fOC4AjuYSEndS7N/mTCbkdQ==",
+      "license": "MIT",
+      "engines": {
+        "node": ">= 0.8"
+      }
+    },
+    "node_modules/streamsearch": {
+      "version": "1.1.0",
+      "resolved": "https://registry.npmjs.org/streamsearch/-/streamsearch-1.1.0.tgz",
+      "integrity": "sha512-Mcc5wHehp9aXz1ax6bZUyY5afg9u2rv5cqQI3mRrYkGC8rW2hM02jWuwjtL++LS5qinSyhj2QfLyNsuc+VsExg==",
+      "engines": {
+        "node": ">=10.0.0"
+      }
+    },
+    "node_modules/string_decoder": {
+      "version": "1.3.0",
+      "resolved": "https://registry.npmjs.org/string_decoder/-/string_decoder-1.3.0.tgz",
+      "integrity": "sha512-hkRX8U1WjJFd8LsDJ2yQ/wWWxaopEsABU1XfkM8A+j0+85JAGppt16cr1Whg6KIbb4okU6Mql6BOj+uup/wKeA==",
+      "license": "MIT",
+      "dependencies": {
+        "safe-buffer": "~5.2.0"
+      }
+    },
+    "node_modules/stripe": {
+      "version": "15.12.0",
+      "resolved": "https://registry.npmjs.org/stripe/-/stripe-15.12.0.tgz",
+      "integrity": "sha512-slTbYS1WhRJXVB8YXU8fgHizkUrM9KJyrw4Dd8pLEwzKHYyQTIE46EePC2MVbSDZdE24o1GdNtzmJV4PrPpmJA==",
+      "license": "MIT",
+      "dependencies": {
+        "@types/node": ">=8.1.0",
+        "qs": "^6.11.0"
+      },
+      "engines": {
+        "node": ">=12.*"
+      }
+    },
+    "node_modules/toidentifier": {
+      "version": "1.0.1",
+      "resolved": "https://registry.npmjs.org/toidentifier/-/toidentifier-1.0.1.tgz",
+      "integrity": "sha512-o5sSPKEkg/DIQNmH43V0/uerLrpzVedkUh8tGNvaeXpfpuwjKenlSox/2O/BTlZUtEe+JG7s5YhEz608PlAHRA==",
+      "license": "MIT",
+      "engines": {
+        "node": ">=0.6"
+      }
+    },
+    "node_modules/tr46": {
+      "version": "5.1.1",
+      "resolved": "https://registry.npmjs.org/tr46/-/tr46-5.1.1.tgz",
+      "integrity": "sha512-hdF5ZgjTqgAntKkklYw0R03MG2x/bSzTtkxmIRw/sTNV8YXsCJ1tfLAX23lhxhHJlEf3CRCOCGGWw3vI3GaSPw==",
+      "license": "MIT",
+      "dependencies": {
+        "punycode": "^2.3.1"
+      },
+      "engines": {
+        "node": ">=18"
+      }
+    },
+    "node_modules/type-is": {
+      "version": "1.6.18",
+      "resolved": "https://registry.npmjs.org/type-is/-/type-is-1.6.18.tgz",
+      "integrity": "sha512-TkRKr9sUTxEH8MdfuCSP7VizJyzRNMjj2J2do2Jr3Kym598JVdEksuzPQCnlFPW4ky9Q+iA+ma9BGm06XQBy8g==",
+      "license": "MIT",
+      "dependencies": {
+        "media-typer": "0.3.0",
+        "mime-types": "~2.1.24"
+      },
+      "engines": {
+        "node": ">= 0.6"
+      }
+    },
+    "node_modules/typedarray": {
+      "version": "0.0.6",
+      "resolved": "https://registry.npmjs.org/typedarray/-/typedarray-0.0.6.tgz",
+      "integrity": "sha512-/aCDEGatGvZ2BIk+HmLf4ifCJFwvKFNb9/JeZPMulfgFracn9QFcAf5GO8B/mweUjSoblS5In0cWhqpfs/5PQA==",
+      "license": "MIT"
+    },
+    "node_modules/undici-types": {
+      "version": "7.16.0",
+      "resolved": "https://registry.npmjs.org/undici-types/-/undici-types-7.16.0.tgz",
+      "integrity": "sha512-Zz+aZWSj8LE6zoxD+xrjh4VfkIG8Ya6LvYkZqtUQGJPZjYl53ypCaUwWqo7eI0x66KBGeRo+mlBEkMSeSZ38Nw==",
+      "license": "MIT"
+    },
+    "node_modules/unpipe": {
+      "version": "1.0.0",
+      "resolved": "https://registry.npmjs.org/unpipe/-/unpipe-1.0.0.tgz",
+      "integrity": "sha512-pjy2bYhSsufwWlKwPc+l3cN7+wuJlK6uz0YdJEOlQDbl6jo/YlPi4mb8agUkVC8BF7V8NuzeyPNqRksA3hztKQ==",
+      "license": "MIT",
+      "engines": {
+        "node": ">= 0.8"
+      }
+    },
+    "node_modules/util-deprecate": {
+      "version": "1.0.2",
+      "resolved": "https://registry.npmjs.org/util-deprecate/-/util-deprecate-1.0.2.tgz",
+      "integrity": "sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==",
+      "license": "MIT"
+    },
+    "node_modules/utils-merge": {
+      "version": "1.0.1",
+      "resolved": "https://registry.npmjs.org/utils-merge/-/utils-merge-1.0.1.tgz",
+      "integrity": "sha512-pMZTvIkT1d+TFGvDOqodOclx0QWkkgi6Tdoa8gC8ffGAAqz9pzPTZWAybbsHHoED/ztMtkv/VoYTYyShUn81hA==",
+      "license": "MIT",
+      "engines": {
+        "node": ">= 0.4.0"
+      }
+    },
+    "node_modules/uuid": {
+      "version": "9.0.1",
+      "resolved": "https://registry.npmjs.org/uuid/-/uuid-9.0.1.tgz",
+      "integrity": "sha512-b+1eJOlsR9K8HJpow9Ok3fiWOWSIcIzXodvv0rQjVoOVNpWMpxf1wZNpt4y9h10odCNrqnYp1OBzRktckBe3sA==",
+      "funding": [
+        "https://github.com/sponsors/broofa",
+        "https://github.com/sponsors/ctavan"
+      ],
+      "license": "MIT",
+      "bin": {
+        "uuid": "dist/bin/uuid"
+      }
+    },
+    "node_modules/vary": {
+      "version": "1.1.2",
+      "resolved": "https://registry.npmjs.org/vary/-/vary-1.1.2.tgz",
+      "integrity": "sha512-BNGbWLfd0eUPabhkXUVm0j8uuvREyTh5ovRa/dyow/BqAbZJyC+5fU+IzQOzmAKzYqYRAISoRhdQr3eIZ/PXqg==",
+      "license": "MIT",
+      "engines": {
+        "node": ">= 0.8"
+      }
+    },
+    "node_modules/webidl-conversions": {
+      "version": "7.0.0",
+      "resolved": "https://registry.npmjs.org/webidl-conversions/-/webidl-conversions-7.0.0.tgz",
+      "integrity": "sha512-VwddBukDzu71offAQR975unBIGqfKZpM+8ZX6ySk8nYhVoo5CYaZyzt3YBvYtRtO+aoGlqxPg/B87NGVZ/fu6g==",
+      "license": "BSD-2-Clause",
+      "engines": {
+        "node": ">=12"
+      }
+    },
+    "node_modules/whatwg-url": {
+      "version": "14.2.0",
+      "resolved": "https://registry.npmjs.org/whatwg-url/-/whatwg-url-14.2.0.tgz",
+      "integrity": "sha512-De72GdQZzNTUBBChsXueQUnPKDkg/5A5zp7pFDuQAj5UFoENpiACU0wlCvzpAGnTkj++ihpKwKyYewn/XNUbKw==",
+      "license": "MIT",
+      "dependencies": {
+        "tr46": "^5.1.0",
+        "webidl-conversions": "^7.0.0"
+      },
+      "engines": {
+        "node": ">=18"
+      }
+    },
+    "node_modules/xtend": {
+      "version": "4.0.2",
+      "resolved": "https://registry.npmjs.org/xtend/-/xtend-4.0.2.tgz",
+      "integrity": "sha512-LKYU1iAXJXUgAXn9URjiu+MWhyUXHsvfp7mcuYm9dSUKK0/CjtrUwFAxD82/mCWbtLsGjFIad0wIsod4zrTAEQ==",
+      "license": "MIT",
+      "engines": {
+        "node": ">=0.4"
+      }
+    }
+  }
+}
+const multer = require('multer');
+const path = require('path');
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+// Cloudinary storage for categories
+const storageCategory = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'categories',
+    format: async (req, file) => 'png',
+    public_id: (req, file) => {
+      return `category_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+    },
+  },
+});
+
+const uploadCategory = multer({
+  storage: storageCategory,
+  limits: {
+    fileSize: 1024 * 1024 * 5 // 5MB
+  },
+  fileFilter: function (req, file, cb) {
+    const filetypes = /jpeg|jpg|png/;
+    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = filetypes.test(file.mimetype);
+
+    if (mimetype && extname) {
+      return cb(null, true);
+    } else {
+      cb(new Error('Error: Only JPEG, JPG, PNG files are allowed!'));
+    }
+  }
+});
+
+// Cloudinary storage for products
+const storageProduct = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'products',
+    format: async (req, file) => 'png',
+    public_id: (req, file) => {
+      return `product_${Date.now()}_${file.originalname.split('.')[0]}`;
+    },
+  },
+});
+
+const uploadProduct = multer({
+  storage: storageProduct,
+  limits: {
+    fileSize: 1024 * 1024 * 5 // 5MB
+  },
+  fileFilter: function (req, file, cb) {
+    const filetypes = /jpeg|jpg|png/;
+    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = filetypes.test(file.mimetype);
+
+    if (mimetype && extname) {
+      return cb(null, true);
+    } else {
+      cb(new Error('Error: Only JPEG, JPG, PNG files are allowed!'));
+    }
+  }
+});
+
+// Cloudinary storage for posters
+const storagePoster = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'posters',
+    format: async (req, file) => 'png',
+    public_id: (req, file) => {
+      return `poster_${Date.now()}_${file.originalname.split('.')[0]}`;
+    },
+  },
+});
+
+const uploadPosters = multer({
+  storage: storagePoster,
+  limits: {
+    fileSize: 1024 * 1024 * 5 // 5MB
+  },
+  fileFilter: function (req, file, cb) {
+    const filetypes = /jpeg|jpg|png/;
+    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = filetypes.test(file.mimetype);
+
+    if (mimetype && extname) {
+      return cb(null, true);
+    } else {
+      cb(new Error('Error: Only JPEG, JPG, PNG files are allowed!'));
+    }
+  }
+});
+
+// Cloudinary storage for payment proofs
+const storagePaymentProof = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'payment-proofs',
+    format: async (req, file) => 'png',
+    public_id: (req, file) => {
+      return `payment_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+    },
+  },
+});
+
+const uploadPaymentProof = multer({
+  storage: storagePaymentProof,
+  limits: {
+    fileSize: 1024 * 1024 * 5 // 5MB
+  },
+  fileFilter: function (req, file, cb) {
+    const filetypes = /jpeg|jpg|png/;
+    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = filetypes.test(file.mimetype);
+
+    if (mimetype && extname) {
+      return cb(null, true);
+    } else {
+      cb(new Error('Error: Only JPEG, JPG, PNG files are allowed!'));
+    }
+  }
+});
+
+module.exports = {
+    uploadCategory,
+    uploadProduct,
+    uploadPosters,
+    uploadPaymentProof,
+    cloudinary
+};
+#!/bin/bash
+
+ENV_FILE=".env"
+LOCAL_DB="mongodb://127.0.0.1:27017/rapid"
+ATLAS_DB="mongodb+srv://yonasmarketplace_db:DnO3zO2TtCRdin1f@market-cluster.zphhv9i.mongodb.net/rapid?retryWrites=true&w=majority"
+
+if [ "$1" = "local" ]; then
+    # Remove any existing MONGO_URL line and add the correct one
+    grep -v "^MONGO_URL=" "$ENV_FILE" > "$ENV_FILE.tmp"
+    echo "MONGO_URL=$LOCAL_DB" >> "$ENV_FILE.tmp"
+    mv "$ENV_FILE.tmp" "$ENV_FILE"
+    echo "✅ Switched to LOCAL MongoDB (for campus development)"
+    
+elif [ "$1" = "atlas" ]; then
+    # Remove any existing MONGO_URL line and add the correct one
+    grep -v "^MONGO_URL=" "$ENV_FILE" > "$ENV_FILE.tmp"
+    echo "MONGO_URL=$ATLAS_DB" >> "$ENV_FILE.tmp"
+    mv "$ENV_FILE.tmp" "$ENV_FILE"
+    echo "✅ Switched to ATLAS MongoDB (for production/testing)"
+    
+elif [ "$1" = "status" ]; then
+    if grep -q "^MONGO_URL=" "$ENV_FILE"; then
+        CURRENT_DB=$(grep "^MONGO_URL=" "$ENV_FILE" | cut -d'=' -f2-)
+        if [[ "$CURRENT_DB" == *"127.0.0.1"* ]]; then
+            echo "📱 Current: LOCAL MongoDB"
+        else
+            echo "☁️  Current: ATLAS MongoDB"
+        fi
+    else
+        echo "❌ No MONGO_URL found in .env"
+    fi
+    
+else
+    echo "Usage: ./switch-db.sh [local|atlas|status]"
+    echo "  local  - Use local MongoDB (for campus)"
+    echo "  atlas  - Use MongoDB Atlas (when you have good internet)"
+    echo "  status - Show current database"
+const express = require('express');
+const cors = require('cors');
+const mongoose = require('mongoose');
+const asyncHandler = require('express-async-handler');
+const dotenv = require('dotenv');
+const path = require('path');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+
+dotenv.config();
+
+const app = express();
+
+// Rate limiting - more permissive for development
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: process.env.NODE_ENV === 'production' ? 100 : 5000, // Higher limit for development
+  message: {
+    success: false,
+    message: 'Too many requests from this IP, please try again later.'
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+app.use(limiter);
+
+// CORS configuration - Allow Flutter apps and common development origins
+const allowedOrigins = process.env.NODE_ENV === 'production' 
+  ? [
+      'https://youradminapp.com', 
+      'https://yourcustomerapp.com',
+      'https://www.youradminapp.com',
+      'https://www.yourcustomerapp.com'
+    ]
+  : [
+      'http://localhost:*',
+      'http://10.161.175.199:*',
+      'http://192.168.*:*',
+      'http://127.0.0.1:*',
+      'http://0.0.0.0:*',
+      // Flutter Android emulator
+      'http://10.0.2.2:*',
+      // Flutter iOS simulator
+      'http://localhost:*',
+      // Allow all origins in development for testing
+      '*'
+    ];
+
+app.use(cors({ 
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps, curl requests, Flutter apps)
+    if (!origin) return callback(null, true);
+    
+    // In development, allow all origins for testing
+    if (process.env.NODE_ENV !== 'production') {
+      return callback(null, true);
+    }
+    
+    // In production, use strict CORS
+    if (allowedOrigins.some(pattern => {
+      if (pattern.includes('*')) {
+        const regex = new RegExp('^' + pattern.replace(/\*/g, '.*') + '$');
+        return regex.test(origin);
+      }
+      return pattern === origin;
+    })) {
+      callback(null, true);
+    } else {
+      console.log('CORS blocked origin:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin']
+}));
+
+// Handle preflight requests
+app.options('*', cors());
+
+// Security headers with Helmet - relaxed for development
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+  contentSecurityPolicy: false, // Disable CSP for development
+  crossOriginEmbedderPolicy: false
+}));
+
+// Body parsing middleware
+app.use(express.json({ limit: '50mb' })); // Increased limit for image uploads
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+
+// Serve static files
+app.use('/image/products', express.static(path.join(__dirname, 'public/products')));
+app.use('/image/category', express.static(path.join(__dirname, 'public/category')));
+app.use('/image/poster', express.static(path.join(__dirname, 'public/posters')));  
+app.use('/image/payment-proofs', express.static(path.join(__dirname, 'public/payment-proofs')));
+
+// MongoDB connection with better error handling
+mongoose.set('strictQuery', true);
+
+const connectDB = async () => {
+  try {
+    console.log('🔗 Connecting to MongoDB:', process.env.MONGO_URL ? 'URL provided' : 'No URL found');
+    await mongoose.connect(process.env.MONGO_URL, {
+      serverSelectionTimeoutMS: 10000, // Increased timeout
+      socketTimeoutMS: 45000,
+      maxPoolSize: 10,
+    });
+    console.log('✅ Connected to Database');
+  } catch (error) {
+    console.error('❌ Database connection failed:', error.message);
+    console.log('💡 Check your .env file for MONGO_URL');
+    process.exit(1);
+  }
+};
+
+connectDB();
+
+const db = mongoose.connection;
+db.on('error', (error) => {
+  console.error('MongoDB connection error:', error);
+});
+db.on('disconnected', () => {
+  console.log('MongoDB disconnected - attempting to reconnect...');
+});
+db.on('reconnected', () => {
+  console.log('MongoDB reconnected');
+});
+
+// Request logging middleware
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.path} - IP: ${req.ip} - Origin: ${req.headers.origin || 'No Origin'}`);
+  next();
+});
+
+// Routes
+app.use('/categories', require('./routes/category'));
+app.use('/subCategories', require('./routes/subCategory'));
+app.use('/brands', require('./routes/brand'));
+app.use('/variantTypes', require('./routes/variantType'));
+app.use('/variants', require('./routes/variant'));
+app.use('/products', require('./routes/product'));
+app.use('/couponCodes', require('./routes/couponCode'));
+app.use('/posters', require('./routes/poster'));
+app.use('/users', require('./routes/user'));
+app.use('/orders', require('./routes/order'));
+app.use('/payment', require('./routes/payment'));
+app.use('/notification', require('./routes/notification'));
+app.use('/verification', require('./routes/verification'));
+app.use('/ratings', require('./routes/rating'));
+app.use('/admin-users', require('./routes/adminUser'));
+
+// Health check route
+app.get('/health', asyncHandler(async (req, res) => {
+  const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
+  
+  res.json({ 
+    success: true, 
+    message: 'API is healthy', 
+    data: {
+      timestamp: new Date().toISOString(),
+      database: dbStatus,
+      environment: process.env.NODE_ENV || 'development',
+      cors: 'enabled',
+      rateLimit: 'enabled'
+    }
+  });
+}));
+
+// Test route
+app.get('/', asyncHandler(async (req, res) => {
+  res.json({ 
+    success: true, 
+    message: 'API working successfully', 
+    data: {
+      version: '1.0.0',
+      environment: process.env.NODE_ENV || 'development',
+      database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
+    }
+  });
+}));
+
+// Initialize super admin if not exists
+const initializeSuperAdmin = async () => {
+  try {
+    const AdminUser = require('./model/adminUser');
+    const superAdminExists = await AdminUser.findOne({ 
+      $or: [
+        { clearanceLevel: 'super_admin' },
+        { name: 'admin' }
+      ]
+    });
+    
+    if (!superAdminExists) {
+      const superAdmin = new AdminUser({
+        username: 'superadmin',
+        password: 'admin123', // Change this in production!
+        name: 'Super Administrator',
+        email: 'superadmin@yourapp.com',
+        clearanceLevel: 'super_admin'
+      });
+      await superAdmin.save();
+      console.log('✅ Super admin user created');
+      console.log('🔐 Default credentials:');
+      console.log('   Username: superadmin');
+      console.log('   Password: admin123');
+      console.log('⚠️  CHANGE THESE CREDENTIALS IN PRODUCTION!');
+    } else {
+      console.log('✅ Admin user already exists');
+    }
+  } catch (error) {
+    console.error('Error initializing super admin:', error);
+  }
+};
+
+// 404 handler
+app.use('*', (req, res) => {
+  res.status(404).json({
+    success: false,
+    message: `Route ${req.originalUrl} not found`,
+    availableRoutes: [
+      '/categories',
+      '/subCategories', 
+      '/brands',
+      '/variantTypes',
+      '/variants',
+      '/products',
+      '/couponCodes',
+      '/posters',
+      '/users',
+      '/orders',
+      '/health'
+    ]
+  });
+});
+
+// Global error handler
+app.use((error, req, res, next) => {
+  console.error('Error:', error);
+  
+  // CORS error
+  if (error.message === 'Not allowed by CORS') {
+    return res.status(403).json({
+      success: false,
+      message: 'CORS policy: Origin not allowed',
+      yourOrigin: req.headers.origin,
+      allowedOrigins: allowedOrigins
+    });
+  }
+  
+  // Rate limit error
+  if (error.statusCode === 429) {
+    return res.status(429).json({
+      success: false,
+      message: 'Too many requests, please try again later.'
+    });
+  }
+  
+  // MongoDB duplicate key error
+  if (error.code === 11000) {
+    const field = Object.keys(error.keyValue)[0];
+    return res.status(400).json({
+      success: false,
+      message: `${field} already exists`
+    });
+  }
+  
+  // MongoDB validation error
+  if (error.name === 'ValidationError') {
+    const errors = Object.values(error.errors).map(err => err.message);
+    return res.status(400).json({
+      success: false,
+      message: 'Validation failed',
+      errors: errors
+    });
+  }
+  
+  // Default error
+  res.status(error.status || 500).json({
+    success: false,
+    message: error.message || 'Internal server error',
+    ...(process.env.NODE_ENV === 'development' && { stack: error.stack })
+  });
+});
+
+db.once('open', () => {
+  console.log('✅ Connected to Database');
+  initializeSuperAdmin();
+});
+
+// Graceful shutdown
+process.on('SIGINT', async () => {
+  console.log('Shutting down gracefully...');
+  await mongoose.connection.close();
+  console.log('MongoDB connection closed.');
+  process.exit(0);
+});
+
+process.on('SIGTERM', async () => {
+  console.log('Shutting down gracefully...');
+  await mongoose.connection.close();
+  console.log('MongoDB connection closed.');
+  process.exit(0);
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`📊 Health check: http://localhost:${PORT}/health`);
+  console.log(`🔗 Local network: http://10.161.175.199:${PORT}/health`);
+  console.log(`🔧 CORS: ${process.env.NODE_ENV === 'production' ? 'Strict' : 'Permissive'}`);
+});
+{
+  "name": "online-store",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "production": "NODE_ENV=production node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.12.2",
+    "body-parser": "^1.20.2",
+    "cloudinary": "^1.41.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.6.1",
+    "express": "^4.19.2",
+    "express-async-handler": "^1.2.0",
+    "express-rate-limit": "^8.2.1",
+    "helmet": "^8.1.0",
+    "mongoose": "^8.3.2",
+    "multer": "^2.0.2",
+    "multer-storage-cloudinary": "^4.0.0",
+    "nodemailer": "^6.10.1",
+    "stripe": "^15.6.0",
+    "uuid": "^9.0.1"
+  }
+}
+PORT=3000
+NODE_ENV=production
+SERVER_BASE_URL=https://api.yourdomain.com
+
+# ---------- DATABASE ----------
+MONGO_URL=mongodb+srv://yonasmarketplace_db:YourPassword@market-cluster.zphhv9i.mongodb.net/rapid?retryWrites=true&w=majority
+
+# ---------- CLOUDINARY ----------
+CLOUDINARY_CLOUD_NAME=dwf72fafc
+CLOUDINARY_API_KEY=131685397139419
+CLOUDINARY_API_SECRET=od2VCMKQ_UlNZnSyQjqogWusvOY
+
+# ---------- EMAIL ----------
+EMAIL_USER=your-email@gmail.com
+EMAIL_PASSWORD=your-app-password
+
+# ---------- PAYMENT ----------
+STRIPE_PBLK_KET_TST=your_stripe_publishable_key
+STRIPE_SKRT_KET_TST=your_stripe_secret_key
+RAZORPAY_KEY_TEST=your_razorpay_key
+
+# ---------- NOTIFICATION ----------
+ONE_SIGNAL_APP_ID=your_onesignal_app_id
+ONE_SIGNAL_REST_API_KEY=your_onesignal_rest_api_key
