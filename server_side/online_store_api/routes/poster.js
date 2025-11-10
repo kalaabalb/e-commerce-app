@@ -29,7 +29,7 @@ router.get('/:id', asyncHandler(async (req, res) => {
     }
 }));
 
-// Create a new poster
+// Create a new poster with Cloudinary
 router.post('/', asyncHandler(async (req, res) => {
     try {
         uploadPosters.single('img')(req, res, async function (err) {
@@ -38,19 +38,25 @@ router.post('/', asyncHandler(async (req, res) => {
                     err.message = 'File size is too large. Maximum filesize is 5MB.';
                 }
                 console.log(`Add poster: ${err}`);
-                return res.json({ success: false, message: err });
+                return res.json({ success: false, message: err.message });
             } else if (err) {
                 console.log(`Add poster: ${err}`);
-                return res.json({ success: false, message: err });
+                return res.json({ success: false, message: err.message });
             }
             const { posterName } = req.body;
-            let imageUrl = 'no_url';
+            let imageUrl = '';
+
             if (req.file) {
-                imageUrl = `http://localhost:3000/image/poster/${req.file.filename}`;
+                // Cloudinary provides the URL directly in req.file.path
+                imageUrl = req.file.path;
             }
 
             if (!posterName) {
                 return res.status(400).json({ success: false, message: "Name is required." });
+            }
+
+            if (!imageUrl) {
+                return res.status(400).json({ success: false, message: "Image is required." });
             }
 
             try {
@@ -73,10 +79,10 @@ router.post('/', asyncHandler(async (req, res) => {
     }
 }));
 
-// Update a poster
+// Update a poster with Cloudinary
 router.put('/:id', asyncHandler(async (req, res) => {
     try {
-        const categoryID = req.params.id;
+        const posterID = req.params.id;
         uploadPosters.single('img')(req, res, async function (err) {
             if (err instanceof multer.MulterError) {
                 if (err.code === 'LIMIT_FILE_SIZE') {
@@ -92,9 +98,8 @@ router.put('/:id', asyncHandler(async (req, res) => {
             const { posterName } = req.body;
             let image = req.body.image;
 
-
             if (req.file) {
-                image = `http://localhost:3000/image/poster/${req.file.filename}`;
+                image = req.file.path; // Cloudinary URL
             }
 
             if (!posterName || !image) {
@@ -102,7 +107,7 @@ router.put('/:id', asyncHandler(async (req, res) => {
             }
 
             try {
-                const updatedPoster = await Poster.findByIdAndUpdate(categoryID, { posterName: posterName, imageUrl: image }, { new: true });
+                const updatedPoster = await Poster.findByIdAndUpdate(posterID, { posterName: posterName, imageUrl: image }, { new: true });
                 if (!updatedPoster) {
                     return res.status(404).json({ success: false, message: "Poster not found." });
                 }

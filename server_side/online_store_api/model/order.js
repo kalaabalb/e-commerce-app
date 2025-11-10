@@ -10,11 +10,11 @@ const orderSchema = new mongoose.Schema({
     type: Date,
     default: Date.now
   },
-  orderStatus: {
-    type: String,
-    enum: ['pending', 'processing', 'shipped', 'delivered', 'cancelled'],
-    default: 'pending'
-  },
+orderStatus: {
+  type: String,
+  enum: ['pending', 'processing', 'shipped', 'delivered', 'cancelled', 'payment_pending', 'payment_verified'],
+  default: 'pending'
+},
   items: [
     {
       productID: {
@@ -51,16 +51,26 @@ const orderSchema = new mongoose.Schema({
     postalCode: String,
     country: String
   },
-
   paymentMethod: {
     type: String,
-    enum: ['cod', 'prepaid']
+    enum: ['cod', 'cbe', 'telebirr'],
+    required: true
   },
-
+  paymentStatus: {
+    type: String,
+    enum: ['pending', 'verified', 'failed'],
+    default: 'pending'
+  },
+  paymentProof: {
+    imageUrl: String,
+    uploadedAt: Date,
+    verified: Boolean,
+    verifiedAt: Date
+  },
   couponCode: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Coupon'
-},
+  },
   orderTotal: {
     subtotal: Number,
     discount: Number,
@@ -69,6 +79,8 @@ const orderSchema = new mongoose.Schema({
   trackingUrl: {
     type: String
   },
+}, {
+  timestamps: true
 });
 
 const Order = mongoose.model('Order', orderSchema);

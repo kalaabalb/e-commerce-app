@@ -31,7 +31,7 @@ router.get('/:id', asyncHandler(async (req, res) => {
     }
 }));
 
-// Create a new category with image upload
+// Create a new category with image upload to Cloudinary
 router.post('/', asyncHandler(async (req, res) => {
     try {
         uploadCategory.single('img')(req, res, async function (err) {
@@ -40,20 +40,25 @@ router.post('/', asyncHandler(async (req, res) => {
                     err.message = 'File size is too large. Maximum filesize is 5MB.';
                 }
                 console.log(`Add category: ${err}`);
-                return res.json({ success: false, message: err });
+                return res.json({ success: false, message: err.message });
             } else if (err) {
                 console.log(`Add category: ${err}`);
-                return res.json({ success: false, message: err });
+                return res.json({ success: false, message: err.message });
             }
             const { name } = req.body;
-            let imageUrl = 'no_url';
+            let imageUrl = '';
+
             if (req.file) {
-                imageUrl = `http://localhost:3000/image/category/${req.file.filename}`;
+                // Cloudinary provides the URL directly in req.file.path
+                imageUrl = req.file.path;
             }
-            console.log('url ', req.file)
 
             if (!name) {
                 return res.status(400).json({ success: false, message: "Name is required." });
+            }
+
+            if (!imageUrl) {
+                return res.status(400).json({ success: false, message: "Image is required." });
             }
 
             try {
@@ -76,7 +81,7 @@ router.post('/', asyncHandler(async (req, res) => {
     }
 }));
 
-// Update a category
+// Update a category with Cloudinary
 router.put('/:id', asyncHandler(async (req, res) => {
     try {
         const categoryID = req.params.id;
@@ -96,7 +101,7 @@ router.put('/:id', asyncHandler(async (req, res) => {
             let image = req.body.image;
 
             if (req.file) {
-                image = `http://localhost:3000/image/category/${req.file.filename}`;
+                image = req.file.path; // Cloudinary URL
             }
 
             if (!name || !image) {
@@ -148,10 +153,5 @@ router.delete('/:id', asyncHandler(async (req, res) => {
         res.status(500).json({ success: false, message: error.message });
     }
 }));
-
-
-
-
-
 
 module.exports = router;

@@ -39,9 +39,7 @@ router.get('/:id', asyncHandler(async (req, res) => {
     }
 }));
 
-
-
-// create new product
+// create new product with Cloudinary
 router.post('/', asyncHandler(async (req, res) => {
     try {
         // Execute the Multer middleware to handle multiple file fields
@@ -62,7 +60,7 @@ router.post('/', asyncHandler(async (req, res) => {
             } else if (err) {
                 // Handle other errors, if any
                 console.log(`Add product: ${err}`);
-                return res.json({ success: false, message: err });
+                return res.json({ success: false, message: err.message });
             }
 
             // Extract product data from the request body
@@ -81,7 +79,8 @@ router.post('/', asyncHandler(async (req, res) => {
             fields.forEach((field, index) => {
                 if (req.files[field] && req.files[field].length > 0) {
                     const file = req.files[field][0];
-                    const imageUrl = `http://localhost:3000/image/products/${file.filename}`;
+                    // Cloudinary provides the URL directly in file.path
+                    const imageUrl = file.path;
                     imageUrls.push({ image: index + 1, url: imageUrl });
                 }
             });
@@ -102,9 +101,7 @@ router.post('/', asyncHandler(async (req, res) => {
     }
 }));
 
-
-
-// Update a product
+// Update a product with Cloudinary
 router.put('/:id', asyncHandler(async (req, res) => {
     const productId = req.params.id;
     try {
@@ -146,7 +143,8 @@ router.put('/:id', asyncHandler(async (req, res) => {
             fields.forEach((field, index) => {
                 if (req.files[field] && req.files[field].length > 0) {
                     const file = req.files[field][0];
-                    const imageUrl = `http://localhost:3000/image/products/${file.filename}`;
+                    // Cloudinary provides the URL directly in file.path
+                    const imageUrl = file.path;
                     // Update the specific image URL in the images array
                     let imageEntry = productToUpdate.images.find(img => img.image === (index + 1));
                     if (imageEntry) {

@@ -1,0 +1,75 @@
+########################
+# SYSTEM / OS FILES
+########################
+.DS_Store
+Thumbs.db
+*.swp
+*.log
+*.tmp
+
+########################
+# IDE / EDITOR FILES
+########################
+.idea/
+*.iml
+*.ipr
+*.iws
+.atom/
+.history/
+.svn/
+.vscode/
+
+########################
+# FLUTTER / DART
+########################
+**/build/
+**/.dart_tool/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/.pub-cache/
+**/.pub/
+**/doc/api/
+**/ios/Flutter/.last_build_id
+**/ios/.symlinks/
+**/ios/Pods/
+**/.packages
+**/coverage/
+
+########################
+# ANDROID STUDIO
+########################
+**/.gradle/
+**/local.properties
+**/android/app/debug/
+**/android/app/profile/
+**/android/app/release/
+
+########################
+# SERVER SIDE (Node / Express)
+########################
+server_side/**/node_modules/
+server_side/**/npm-debug.log*
+server_side/**/yarn-debug.log*
+server_side/**/yarn-error.log*
+server_side/**/.env
+server_side/**/logs/
+server_side/**/tmp/
+server_side/**/dist/
+server_side/**/build/
+server_side/online_store_api/public/payment-proofs/
+server_side/online_store_api/public/products/
+server_side/online_store_api/public/category/
+server_side/online_store_api/public/posters/
+server_side/online_store_api/public/payment-proofs/
+photos/
+
+########################
+# RUNTIME UPLOADS / IMAGES
+########################
+photos/product/
+server_side/online_store_api/public/products/
+
+########################
+# MISC / MIGRATION
+########################
+migrate_working_dir/

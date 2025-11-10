@@ -1,70 +1,118 @@
 const express = require('express');
 const asyncHandler = require('express-async-handler');
 const router = express.Router();
-const dotenv = require('dotenv');
-dotenv.config();
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+const { uploadPaymentProof, cloudinary } = require('../uploadFile');
 
-// for stripe payment gateway
-const stripe = require('stripe')(process.env.STRIPE_SKRT_KET_TST);
-
-
-
-router.post('/stripe', asyncHandler(async (req, res) => {
+// Upload payment proof to Cloudinary
+router.post('/upload-proof', uploadPaymentProof.single('proofImage'), asyncHandler(async (req, res) => {
   try {
-    console.log('stripe');
-    const { email, name, address, amount, currency, description } = req.body;
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: "No file uploaded." });
+    }
 
-    const customer = await stripe.customers.create({
-      email: email,
-      name: name,
-      address: address,
+    const imageUrl = req.file.path; // Cloudinary URL
+    
+    res.json({ 
+      success: true, 
+      message: "Payment proof uploaded successfully.", 
+      data: {
+        imageUrl: imageUrl
+      }
     });
+  } catch (error) {
+    console.error('🔴 [UPLOAD] Error uploading payment proof:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+}));
 
-    const ephemeralKey = await stripe.ephemeralKeys.create(
-      { customer: customer.id },
-      { apiVersion: '2023-10-16' }
+// Alternative endpoint for base64 image upload to Cloudinary
+router.post('/upload-proof-base64', asyncHandler(async (req, res) => {
+  try {
+    console.log('🟡 [UPLOAD-BASE64] Received upload request');
+    const { image, fileName, orderAmount } = req.body;
+    
+    if (!image || !fileName) {
+      console.log('🔴 [UPLOAD-BASE64] Missing image or fileName');
+      return res.status(400).json({ success: false, message: "Image data and filename are required." });
+    }
+
+    console.log('🟡 [UPLOAD-BASE64] Processing image, fileName:', fileName);
+
+    // Remove data:image/jpeg;base64, prefix if present
+    const base64Data = image.replace(/^data:image\/\w+;base64,/, '');
+    
+    try {
+      // Upload base64 image directly to Cloudinary
+      const uploadResponse = await cloudinary.uploader.upload(
+        `data:image/png;base64,${base64Data}`, 
+        {
+          folder: 'payment-proofs',
+          public_id: `payment_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
+          resource_type: 'image'
+        }
+      );
+
+      console.log('🟡 [UPLOAD-BASE64] Cloudinary upload successful');
+      
+      res.json({ 
+        success: true, 
+        message: "Payment proof uploaded successfully.", 
+        data: {
+          imageUrl: uploadResponse.secure_url,
+          verified: false,
+          verifiedAt: null
+        }
+      });
+      
+      console.log('🟡 [UPLOAD-BASE64] Response sent successfully');
+      
+    } catch (uploadError) {
+      console.error('🔴 [UPLOAD-BASE64] Cloudinary upload error:', uploadError);
+      throw uploadError;
+    }
+    
+  } catch (error) {
+    console.error('🔴 [UPLOAD-BASE64] Error uploading payment proof:', error);
+    console.error('🔴 [UPLOAD-BASE64] Error stack:', error.stack);
+    res.status(500).json({ success: false, message: error.message });
+  }
+}));
+
+// Verify payment (admin endpoint)
+router.post('/verify-payment/:orderId', asyncHandler(async (req, res) => {
+  try {
+    const orderId = req.params.orderId;
+    const { verified, adminNotes } = req.body;
+    
+    // Update order payment status
+    const Order = require('../model/order');
+    const updatedOrder = await Order.findByIdAndUpdate(
+      orderId,
+      { 
+        paymentStatus: verified ? 'verified' : 'failed',
+        orderStatus: verified ? 'processing' : 'cancelled',
+        'paymentProof.verifiedAt': verified ? new Date() : null,
+        adminNotes: adminNotes
+      },
+      { new: true }
     );
 
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: amount,
-      currency: currency,
-      customer: customer.id,
-      description: description,
-      automatic_payment_methods: {
-        enabled: true,
-      },
-    });
+    if (!updatedOrder) {
+      return res.status(404).json({ success: false, message: "Order not found." });
+    }
 
-    res.json({
-      paymentIntent: paymentIntent.client_secret,
-      ephemeralKey: ephemeralKey.secret,
-      customer: customer.id,
-      publishableKey: process.env.STRIPE_PBLK_KET_TST,
+    res.json({ 
+      success: true, 
+      message: `Payment ${verified ? 'verified' : 'rejected'} successfully.`,
+      data: updatedOrder
     });
-
   } catch (error) {
-    console.log(error);
-    return res.json({ error: true, message: error.message, data: null });
+    console.error('Error verifying payment:', error);
+    res.status(500).json({ success: false, message: error.message });
   }
 }));
-
-
-
-
-
-router.post('/razorpay', asyncHandler(async (req, res) => {
-  try {
-    console.log('razorpay')
-    const razorpayKey  = process.env.RAZORPAY_KEY_TEST
-    res.json({  key: razorpayKey });
-  } catch (error) {
-    console.log(error.message)
-    res.status(500).json({ error: true, message: error.message, data: null });
-  }
-}));
-
-
-
-
 
 module.exports = router;

@@ -1,3 +1,4 @@
+// model/product.js - Updated version
 const mongoose = require('mongoose');
 
 const productSchema = new mongoose.Schema({
@@ -49,9 +50,14 @@ const productSchema = new mongoose.Schema({
             type: String,
             required: true
         }
-    }]
+    }],
+    // Add createdBy field to track who created this product
+    createdBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'AdminUser',
+        required: true
+    }
 }, { timestamps: true });
 
 const Product = mongoose.model('Product', productSchema);
-
 module.exports = Product;

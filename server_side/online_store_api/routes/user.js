@@ -52,20 +52,23 @@ router.get('/:id', asyncHandler(async (req, res) => {
     }
 }));
 
-// Create a new user
+// In your user routes, update the register endpoint
 router.post('/register', asyncHandler(async (req, res) => {
-    const { name, password } = req.body;
-    if (!name || !password) {
-        return res.status(400).json({ success: false, message: "Name, and password are required." });
-    }
+  const { name, email, password } = req.body;
+  if (!name || !password) {
+    return res.status(400).json({ success: false, message: "Name and password are required." });
+  }
 
-    try {
-        const user = new User({ name, password });
-        const newUser = await user.save();
-        res.json({ success: true, message: "User created successfully.", data: null });
-    } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
+  try {
+    const user = new User({ name, email, password });
+    const newUser = await user.save();
+    res.json({ success: true, message: "User created successfully. Please verify your email.", data: null });
+  } catch (error) {
+    if (error.code === 11000) {
+      return res.status(400).json({ success: false, message: "Email already exists." });
     }
+    res.status(500).json({ success: false, message: error.message });
+  }
 }));
 
 // Update a user
