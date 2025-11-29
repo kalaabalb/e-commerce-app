@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'dart:typed_data';
-import 'dart:developer' show log;
 import 'package:admin_panal_start/models/api_response.dart';
 import 'package:admin_panal_start/utility/snack_bar_helper.dart';
 import 'package:admin_panal_start/widgets/camera_picker_dialog.dart';
@@ -82,7 +81,7 @@ class CategoryProvider extends ChangeNotifier {
       Map<String, dynamic> formDataMap = {
         'name': categoryNameCtrl.text.trim(),
         'Image': 'no_image',
-        'createdBy': currentUserId, // Add createdBy
+        'adminId': currentUserId, // CHANGED from createdBy to adminId
       };
 
       final FormData form = await createFormData(
@@ -142,10 +141,17 @@ class CategoryProvider extends ChangeNotifier {
 
       final currentUserId = _authService.getUserId();
 
+      if (currentUserId == null) {
+        SnackBarHelper.showErrorSnackBar(
+            "Authentication required. Please login again.");
+        setLoading(false);
+        return;
+      }
+
       Map<String, dynamic> formDataMap = {
         'name': categoryNameCtrl.text.trim(),
         'image': categoryForUpdate?.image ?? '',
-        'adminId': currentUserId, // Add adminId for ownership check
+        'adminId': currentUserId, // Use adminId consistently
       };
 
       final FormData form = await createFormData(
@@ -165,7 +171,7 @@ class CategoryProvider extends ChangeNotifier {
           clearFields();
           SnackBarHelper.showSuccessSnackBar(
               'Category updated successfully! ✅');
-          log('update category');
+          print('update category');
           await _dataProvider.getAllCategory();
         } else {
           SnackBarHelper.showErrorSnackBar(
@@ -244,7 +250,7 @@ class CategoryProvider extends ChangeNotifier {
       Response response = await service.deleteItem(
         endpointUrl: 'categories',
         itemId: category.sId ?? '',
-        body: {'adminId': currentUserId}, // Add adminId for ownership check
+        body: {'adminId': currentUserId}, // Use adminId consistently
       );
 
       if (response.isOk) {

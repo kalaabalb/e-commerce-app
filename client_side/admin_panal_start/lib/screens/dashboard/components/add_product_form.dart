@@ -185,15 +185,13 @@ class ProductSubmitForm extends StatelessWidget {
     return Consumer<DashBoardProvider>(
       builder: (context, dashProvider, child) {
         return CustomDropdown(
-          key: ValueKey(dashProvider.selectedCategory?.sId),
+          key: ValueKey('category_${dashProvider.selectedCategory?.sId}'),
           initialValue: dashProvider.selectedCategory,
-          hintText: dashProvider.selectedCategory?.name ?? 'Select category',
+          hintText: 'Select category',
           items: context.dataProvider.categories,
           displayItem: (Category? category) => category?.name ?? '',
           onChanged: (newValue) {
-            if (newValue != null) {
-              context.dashBoardProvider.filterSubcategory(newValue);
-            }
+            context.dashBoardProvider.filterSubcategory(newValue);
           },
           validator: (value) {
             if (value == null) {
@@ -210,18 +208,18 @@ class ProductSubmitForm extends StatelessWidget {
     return Consumer<DashBoardProvider>(
       builder: (context, dashProvider, child) {
         return CustomDropdown(
-          key: ValueKey(dashProvider.selectedSubCategory?.sId),
-          hintText: dashProvider.selectedSubCategory?.name ?? 'Sub category',
+          key: ValueKey(
+              'subcategory_${dashProvider.selectedSubCategory?.sId}_${dashProvider.subCategoriesByCategory.length}'),
+          hintText: 'Select sub category',
           items: dashProvider.subCategoriesByCategory,
           initialValue: dashProvider.selectedSubCategory,
           displayItem: (SubCategory? subCategory) => subCategory?.name ?? '',
           onChanged: (newValue) {
-            if (newValue != null) {
-              context.dashBoardProvider.filterBrand(newValue);
-            }
+            context.dashBoardProvider.filterBrand(newValue);
           },
           validator: (value) {
-            if (value == null) {
+            if (value == null &&
+                dashProvider.subCategoriesByCategory.isNotEmpty) {
               return 'Please select sub category';
             }
             return null;
@@ -235,20 +233,19 @@ class ProductSubmitForm extends StatelessWidget {
     return Consumer<DashBoardProvider>(
       builder: (context, dashProvider, child) {
         return CustomDropdown(
-          key: ValueKey(dashProvider.selectedBrand?.sId),
+          key: ValueKey(
+              'brand_${dashProvider.selectedBrand?.sId}_${dashProvider.brandsBySubCategory.length}'),
           initialValue: dashProvider.selectedBrand,
           items: dashProvider.brandsBySubCategory,
-          hintText: dashProvider.selectedBrand?.name ?? 'Select Brand',
+          hintText: 'Select brand',
           displayItem: (Brand? brand) => brand?.name ?? '',
           onChanged: (newValue) {
-            if (newValue != null) {
-              dashProvider.selectedBrand = newValue;
-              dashProvider.updateUI();
-            }
+            dashProvider.selectedBrand = newValue;
+            dashProvider.updateUI();
           },
           validator: (value) {
-            if (value == null) {
-              return 'Please brand';
+            if (value == null && dashProvider.brandsBySubCategory.isNotEmpty) {
+              return 'Please select brand';
             }
             return null;
           },
@@ -361,16 +358,15 @@ class ProductSubmitForm extends StatelessWidget {
     return Consumer<DashBoardProvider>(
       builder: (context, dashProvider, child) {
         return CustomDropdown(
-          key: ValueKey(dashProvider.selectedVariantType?.sId),
+          key:
+              ValueKey('variant_type_${dashProvider.selectedVariantType?.sId}'),
           initialValue: dashProvider.selectedVariantType,
           items: context.dataProvider.variantTypes,
           displayItem: (VariantType? variantType) => variantType?.name ?? '',
           onChanged: (newValue) {
-            if (newValue != null) {
-              context.dashBoardProvider.filterVariant(newValue);
-            }
+            context.dashBoardProvider.filterVariant(newValue);
           },
-          hintText: 'Select Variant type',
+          hintText: 'Select variant type',
         );
       },
     );
@@ -379,17 +375,16 @@ class ProductSubmitForm extends StatelessWidget {
   Widget _buildVariantMultiSelect(BuildContext context) {
     return Consumer<DashBoardProvider>(
       builder: (context, dashProvider, child) {
-        final filteredSelectedItems = dashProvider.selectedVariants
-            .where((item) => dashProvider.variantsByVariantType.contains(item))
-            .toList();
         return MultiSelectDropDown(
+          key: ValueKey(
+              'variants_${dashProvider.selectedVariantType?.sId}_${dashProvider.variantsByVariantType.length}'),
           items: dashProvider.variantsByVariantType,
           onSelectionChanged: (newValue) {
             dashProvider.selectedVariants = newValue;
             dashProvider.updateUI();
           },
           displayItem: (String item) => item,
-          selectedItems: filteredSelectedItems,
+          selectedItems: dashProvider.selectedVariants,
         );
       },
     );

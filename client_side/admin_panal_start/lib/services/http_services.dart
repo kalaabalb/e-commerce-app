@@ -1,3 +1,4 @@
+import 'package:admin_panal_start/services/admin_auth_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -158,13 +159,16 @@ class HttpService extends GetConnect {
     }
   }
 
-  // Enhanced DELETE
   Future<Response> deleteItem({
     required String endpointUrl,
     required String itemId,
     Map<String, dynamic>? body,
     bool showErrors = true,
   }) async {
+    print('🗑️ [HTTP] DELETE request: $endpointUrl/$itemId');
+    print('   - Body: ${body?.toString() ?? "null"}');
+    print('   - Auth token: ${authToken != null ? "exists" : "missing"}');
+
     try {
       final Map<String, String> headers = {
         'Content-Type': 'application/json',
@@ -172,7 +176,6 @@ class HttpService extends GetConnect {
           'Authorization': 'Bearer ${_authToken.value}',
       };
 
-      // For DELETE with body, we need to use request() method
       final response = await request(
         '/$endpointUrl/$itemId',
         'DELETE',
@@ -180,8 +183,12 @@ class HttpService extends GetConnect {
         body: body,
       );
 
+      print('🗑️ [HTTP] DELETE response: ${response.statusCode}');
+      print('   - Body: ${response.body}');
+
       return _handleResponse(response, showErrors: showErrors);
     } catch (e) {
+      print('❌ [HTTP] DELETE error: $e');
       return _buildErrorResponse(e);
     }
   }
@@ -214,42 +221,68 @@ class HttpService extends GetConnect {
     }
   }
 
-  // Centralized response handling
   Response _handleResponse(Response response, {bool showErrors = true}) {
+    print('🔍 [HTTP] Handling response - Status: ${response.statusCode}');
+
     if (response.statusCode == null) {
+      print('❌ [HTTP] No status code - connection issue');
       return _buildErrorResponse('No connection to server');
     }
 
-    // Handle authentication errors
-    if (response.statusCode == 401) {
-      _handleUnauthorized();
+    // Handle rate limiting errors (429)
+    if (response.statusCode == 429) {
+      print('⏰ [HTTP] Rate limited - too many requests');
       if (showErrors) {
         Get.snackbar(
-          'Session Expired',
-          'Please login again',
-          backgroundColor: Colors.red,
+          'Too Many Requests',
+          'Please wait a moment and try again',
+          backgroundColor: Colors.orange,
           colorText: Colors.white,
-          duration: const Duration(seconds: 5),
+          duration: Duration(seconds: 5),
         );
       }
+      return response;
+    }
+
+    // Handle authentication errors - DON'T AUTO LOGOUT IMMEDIATELY
+    if (response.statusCode == 401) {
+      print('🔐 [HTTP] 401 Unauthorized response received');
+
+      // Only logout if we're not already on login page
+      if (Get.currentRoute != '/login') {
+        if (showErrors) {
+          Get.snackbar(
+            'Session Expired',
+            'Please login again',
+            backgroundColor: Colors.orange,
+            colorText: Colors.white,
+            duration: Duration(seconds: 3),
+          );
+        }
+
+        // Use delayed navigation to avoid context issues
+        Future.delayed(Duration(seconds: 2), () {
+          if (Get.currentRoute != '/login') {
+            print('🔄 [HTTP] Navigating to login due to unauthorized access');
+            Get.find<AdminAuthService>().logout(showMessage: false);
+          }
+        });
+      }
+
+      return response;
     }
 
     // Handle other error status codes
-    if (response.statusCode! >= 400 && showErrors) {
-      _showErrorSnackbar(response);
+    if (response.statusCode! >= 400) {
+      print('⚠️ [HTTP] Error response: ${response.statusCode}');
+      if (showErrors) {
+        _showErrorSnackbar(response);
+      }
+    } else {
+      print('✅ [HTTP] Success response: ${response.statusCode}');
     }
 
     return response;
-  }
-
-  void _handleUnauthorized() {
-    clearAuthorizationHeader();
-    // Use delayed navigation to avoid context issues
-    Future.delayed(Duration.zero, () {
-      if (Get.currentRoute != '/login') {
-        Get.offAllNamed('/login');
-      }
-    });
   }
 
   void _showErrorSnackbar(Response response) {
@@ -266,7 +299,10 @@ class HttpService extends GetConnect {
       errorMessage = response.statusText ?? 'Unknown error';
     }
 
-    if (errorMessage.isNotEmpty && Get.isSnackbarOpen == false) {
+    // Don't show snackbar for 401 errors (handled above)
+    if (errorMessage.isNotEmpty &&
+        Get.isSnackbarOpen == false &&
+        response.statusCode != 401) {
       Get.snackbar(
         'Error',
         errorMessage,
@@ -312,5 +348,38 @@ class HttpService extends GetConnect {
     if (kDebugMode) {
       print('🧹 [CACHE] All cached data cleared');
     }
+  }
+
+  // Add retry mechanism for failed requests
+  Future<Response> getItemsWithRetry({
+    required String endpointUrl,
+    Map<String, dynamic>? query,
+    int maxRetries = 3,
+    bool showErrors = true,
+  }) async {
+    for (int attempt = 0; attempt < maxRetries; attempt++) {
+      try {
+        final response = await getItems(
+          endpointUrl: endpointUrl,
+          query: query,
+          showErrors: showErrors &&
+              attempt == maxRetries - 1, // Only show errors on last attempt
+        );
+
+        // If rate limited, wait and retry
+        if (response.statusCode == 429 && attempt < maxRetries - 1) {
+          await Future.delayed(Duration(seconds: 2 * (attempt + 1)));
+          continue;
+        }
+
+        return response;
+      } catch (e) {
+        if (attempt == maxRetries - 1) {
+          rethrow;
+        }
+        await Future.delayed(Duration(seconds: 1));
+      }
+    }
+    return _buildErrorResponse('Max retries exceeded');
   }
 }

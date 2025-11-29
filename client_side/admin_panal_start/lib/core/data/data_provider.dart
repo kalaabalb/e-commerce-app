@@ -122,18 +122,13 @@ class DataProvider extends ChangeNotifier {
         return;
       }
 
-      await Future.wait([
-        getAllProduct(),
-        getAllCategory(),
-        getAllSubCategory(),
-        getAllBrands(),
-        getAllVariantType(),
-        getAllVariant(),
-        getAllCoupons(),
-        getAllPosters(),
-        getAllOrders(),
-        getAllNotifications(),
-      ], eagerError: true);
+      // Load all necessary data sequentially to ensure dependencies
+      await getAllCategory();
+      await getAllSubCategory();
+      await getAllBrands();
+      await getAllVariantType();
+      await getAllVariant();
+      await getAllProduct();
 
       debugDataState();
     } catch (e) {

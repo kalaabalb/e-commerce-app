@@ -57,6 +57,12 @@ class BrandProvider extends ChangeNotifier {
         return;
       }
 
+      if (selectedSubCategory == null) {
+        SnackBarHelper.showErrorSnackBar("Please select a subcategory");
+        setLoading(false);
+        return;
+      }
+
       final currentUserId = _authService.getUserId();
 
       if (currentUserId == null) {
@@ -69,7 +75,7 @@ class BrandProvider extends ChangeNotifier {
       Map<String, dynamic> brand = {
         'name': brandNameCtrl.text.trim(),
         'subcategoryId': selectedSubCategory?.sId,
-        'createdBy': currentUserId, // Add admin ID for ownership
+        'adminId': currentUserId, // Use adminId consistently
       };
 
       final response = await service.addItem(
@@ -124,10 +130,17 @@ class BrandProvider extends ChangeNotifier {
 
       final currentUserId = _authService.getUserId();
 
+      if (currentUserId == null) {
+        SnackBarHelper.showErrorSnackBar(
+            "Authentication required. Please login again.");
+        setLoading(false);
+        return;
+      }
+
       Map<String, dynamic> brand = {
         'name': brandNameCtrl.text.trim(),
         'subcategoryId': selectedSubCategory?.sId,
-        'adminId': currentUserId, // Add adminId for ownership check
+        'adminId': currentUserId, // Use adminId consistently
       };
 
       final response = await service.updateItem(
@@ -219,7 +232,7 @@ class BrandProvider extends ChangeNotifier {
       Response response = await service.deleteItem(
         endpointUrl: 'brands',
         itemId: brand.sId ?? '',
-        body: {'adminId': currentUserId}, // Add adminId for ownership check
+        body: {'adminId': currentUserId}, // Use adminId consistently
       );
 
       if (response.isOk) {
@@ -247,10 +260,14 @@ class BrandProvider extends ChangeNotifier {
     }
   }
 
-  setDataForUpdateBrand(Brand? brand) {
+  setDataForUpdateBrand(Brand? brand) async {
     if (brand != null) {
       brandForUpdate = brand;
       brandNameCtrl.text = brand.name ?? '';
+
+      // Find and set the subcategory with a small delay to ensure data is loaded
+      await Future.delayed(Duration(milliseconds: 100));
+
       selectedSubCategory = _dataProvider.subCategories.firstWhereOrNull(
         (element) => element.sId == brand.subcategoryId?.sId,
       );

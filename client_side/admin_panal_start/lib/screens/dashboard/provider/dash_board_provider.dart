@@ -111,7 +111,7 @@ class DashBoardProvider extends ChangeNotifier {
         'proBrandId': selectedBrand?.sId,
         'proVariantTypeId': selectedVariantType?.sId,
         'proVariantId': selectedVariants,
-        'adminId': currentUserId,
+        'adminId': currentUserId, // Use adminId consistently
       };
 
       formDataMap.removeWhere((key, value) => value == null || value == '');
@@ -172,6 +172,13 @@ class DashBoardProvider extends ChangeNotifier {
       final authService = Get.find<AdminAuthService>();
       final currentUserId = authService.getUserId();
 
+      if (currentUserId == null) {
+        SnackBarHelper.showErrorSnackBar(
+            "Authentication required. Please login again.");
+        setLoading(false);
+        return;
+      }
+
       Map<String, dynamic> formDataMap = {
         'name': productNameCtrl.text.trim(),
         'description': productDescCtrl.text.trim(),
@@ -184,7 +191,7 @@ class DashBoardProvider extends ChangeNotifier {
         'proBrandId': selectedBrand?.sId,
         'proVariantTypeId': selectedVariantType?.sId,
         'proVariantId': selectedVariants,
-        'adminId': currentUserId,
+        'adminId': currentUserId, // Use adminId consistently
       };
 
       formDataMap.removeWhere((key, value) => value == null || value == '');
@@ -243,12 +250,14 @@ class DashBoardProvider extends ChangeNotifier {
   deleteProduct(Product product) async {
     try {
       setLoading(true);
+      clearError();
 
       final authService = Get.find<AdminAuthService>();
       final currentUserId = authService.getUserId();
 
       if (currentUserId == null) {
         SnackBarHelper.showErrorSnackBar("Authentication required");
+        setLoading(false);
         return;
       }
 
@@ -280,23 +289,29 @@ class DashBoardProvider extends ChangeNotifier {
       Response response = await service.deleteItem(
         endpointUrl: 'products',
         itemId: product.sId ?? '',
-        body: {'adminId': currentUserId},
+        body: {'adminId': currentUserId}, // Use adminId consistently
       );
 
       if (response.isOk) {
-        ApiResponse apiResponse = ApiResponse.fromJson(response.body, null);
-        if (apiResponse.success) {
+        final responseBody = response.body;
+
+        // Check if response indicates success
+        if (responseBody is Map && responseBody['success'] == true) {
           SnackBarHelper.showSuccessSnackBar("Product deleted successfully");
           await _dataProvider.getAllProduct();
         } else {
-          SnackBarHelper.showErrorSnackBar(
-            "Failed to delete product: ${apiResponse.message}",
-          );
+          final errorMessage =
+              responseBody?['message'] ?? "Failed to delete product";
+          SnackBarHelper.showErrorSnackBar(errorMessage);
         }
       } else {
-        SnackBarHelper.showErrorSnackBar(
-          "Error: ${response.body?["message"] ?? response.statusText}",
-        );
+        // Don't logout for non-401 errors
+        if (response.statusCode != 401) {
+          final errorMessage = response.body?['message'] ??
+              response.statusText ??
+              "Failed to delete product";
+          SnackBarHelper.showErrorSnackBar(errorMessage);
+        }
       }
     } catch (e) {
       print("Delete product error: $e");
@@ -392,45 +407,60 @@ class DashBoardProvider extends ChangeNotifier {
     return form;
   }
 
-  filterSubcategory(Category category) {
+  void filterSubcategory(Category? category) {
     selectedBrand = null;
     selectedCategory = category;
     selectedSubCategory = null;
     subCategoriesByCategory.clear();
 
-    final newList = _dataProvider.subCategories
-        .where((subcategory) => subcategory.categoryId?.sId == category.sId)
-        .toList();
-    subCategoriesByCategory = newList;
+    if (category != null) {
+      final newList = _dataProvider.subCategories
+          .where((subcategory) => subcategory.categoryId?.sId == category.sId)
+          .toList();
+      subCategoriesByCategory = newList;
+    } else {
+      subCategoriesByCategory = [];
+    }
+
     notifyListeners();
   }
 
-  filterBrand(SubCategory subCategory) {
+  void filterBrand(SubCategory? subCategory) {
     selectedBrand = null;
     selectedSubCategory = subCategory;
     brandsBySubCategory.clear();
 
-    final newList = _dataProvider.brands
-        .where((brand) => brand.subcategoryId?.sId == subCategory.sId)
-        .toList();
-    brandsBySubCategory = newList;
+    if (subCategory != null) {
+      final newList = _dataProvider.brands
+          .where((brand) => brand.subcategoryId?.sId == subCategory.sId)
+          .toList();
+      brandsBySubCategory = newList;
+    } else {
+      brandsBySubCategory = [];
+    }
+
     notifyListeners();
   }
 
-  filterVariant(VariantType variantType) {
+  void filterVariant(VariantType? variantType) {
     selectedVariants = [];
     selectedVariantType = variantType;
     variantsByVariantType.clear();
 
-    final newList = _dataProvider.variants
-        .where((variant) => variant.variantTypeId?.sId == variantType.sId)
-        .toList();
-    variantsByVariantType =
-        newList.map((variant) => variant.name ?? '').toList();
+    if (variantType != null) {
+      final newList = _dataProvider.variants
+          .where((variant) => variant.variantTypeId?.sId == variantType.sId)
+          .toList();
+      variantsByVariantType =
+          newList.map((variant) => variant.name ?? '').toList();
+    } else {
+      variantsByVariantType = [];
+    }
+
     notifyListeners();
   }
 
-  setDataForUpdateProduct(Product? product) {
+  setDataForUpdateProduct(Product? product) async {
     if (product != null) {
       productForUpdate = product;
 
@@ -440,55 +470,46 @@ class DashBoardProvider extends ChangeNotifier {
       productOffPriceCtrl.text = product.offerPrice?.toString() ?? '';
       productQntCtrl.text = product.quantity?.toString() ?? '';
 
+      // Set category and filter subcategories
       selectedCategory = _dataProvider.categories.firstWhereOrNull(
         (element) => element.sId == product.proCategoryId?.sId,
       );
 
       if (selectedCategory != null) {
-        final newListCategory = _dataProvider.subCategories
-            .where(
-              (subcategory) =>
-                  subcategory.categoryId?.sId == product.proCategoryId?.sId,
-            )
-            .toList();
-        subCategoriesByCategory = newListCategory;
+        // Wait for data to load before filtering
+        await Future.delayed(Duration(milliseconds: 100));
+        filterSubcategory(selectedCategory);
       }
 
+      // Set subcategory and filter brands
       selectedSubCategory = _dataProvider.subCategories.firstWhereOrNull(
         (element) => element.sId == product.proSubCategoryId?.sId,
       );
 
       if (selectedSubCategory != null) {
-        final newListBrand = _dataProvider.brands
-            .where(
-              (brand) =>
-                  brand.subcategoryId?.sId == product.proSubCategoryId?.sId,
-            )
-            .toList();
-        brandsBySubCategory = newListBrand;
+        await Future.delayed(Duration(milliseconds: 100));
+        filterBrand(selectedSubCategory);
       }
 
+      // Set brand
       selectedBrand = _dataProvider.brands.firstWhereOrNull(
         (element) => element.sId == product.proBrandId?.sId,
       );
 
+      // Set variant type and filter variants
       selectedVariantType = _dataProvider.variantTypes.firstWhereOrNull(
         (element) => element.sId == product.proVariantTypeId?.sId,
       );
 
       if (selectedVariantType != null) {
-        final newListVariant = _dataProvider.variants
-            .where(
-              (variant) =>
-                  variant.variantTypeId?.sId == product.proVariantTypeId?.sId,
-            )
-            .toList();
-        final List<String> variantNames =
-            newListVariant.map((variant) => variant.name ?? '').toList();
-        variantsByVariantType = variantNames;
+        await Future.delayed(Duration(milliseconds: 100));
+        filterVariant(selectedVariantType);
       }
 
       selectedVariants = product.proVariantId ?? [];
+
+      // Force UI update
+      scheduleNotifyListeners();
     } else {
       _resetFieldsForUpdate();
     }

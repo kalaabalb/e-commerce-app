@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import '../../../models/coupon.dart';
 import '../../../models/product.dart';
 import 'package:flutter/cupertino.dart';
@@ -30,6 +29,10 @@ class CouponCodeProvider extends ChangeNotifier {
   SubCategory? selectedSubCategory;
   Product? selectedProduct;
 
+  // Filtered lists for cascade dropdowns
+  List<SubCategory> filteredSubCategories = [];
+  List<Product> filteredProducts = [];
+
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
@@ -53,6 +56,33 @@ class CouponCodeProvider extends ChangeNotifier {
   // Clear errors
   void clearError() {
     _errorMessage = null;
+  }
+
+  // Cascade filtering methods
+  void filterSubCategoriesByCategory(Category? category) {
+    selectedSubCategory = null;
+    selectedProduct = null;
+    filteredSubCategories.clear();
+    filteredProducts.clear();
+
+    if (category != null) {
+      filteredSubCategories = _dataProvider.subCategories
+          .where((subCategory) => subCategory.categoryId?.sId == category.sId)
+          .toList();
+    }
+    notifyListeners();
+  }
+
+  void filterProductsBySubCategory(SubCategory? subCategory) {
+    selectedProduct = null;
+    filteredProducts.clear();
+
+    if (subCategory != null) {
+      filteredProducts = _dataProvider.products
+          .where((product) => product.proSubCategoryId?.sId == subCategory.sId)
+          .toList();
+    }
+    notifyListeners();
   }
 
   addCoupon() async {
@@ -85,14 +115,18 @@ class CouponCodeProvider extends ChangeNotifier {
       Map<String, dynamic> coupon = {
         'couponCode': couponCodeCtrl.text.trim(),
         'discountType': selectedDiscountType,
-        'discountAmount': discountAmountCtrl.text,
-        'minimumPurchaseAmount': minimumPurchaseAmountCtrl.text,
+        'discountAmount': discountAmountCtrl.text.isEmpty
+            ? 0
+            : double.parse(discountAmountCtrl.text),
+        'minimumPurchaseAmount': minimumPurchaseAmountCtrl.text.isEmpty
+            ? 0
+            : double.parse(minimumPurchaseAmountCtrl.text),
         'endDate': endDateCtrl.text,
         'status': selectedCouponStatus,
         'applicableCategory': selectedCategory?.sId,
         'applicableSubCategory': selectedSubCategory?.sId,
         'applicableProduct': selectedProduct?.sId,
-        'createdBy': currentUserId, // Add createdBy
+        'adminId': currentUserId, // Use adminId consistently
       };
 
       final response = await service.addItem(
@@ -147,17 +181,28 @@ class CouponCodeProvider extends ChangeNotifier {
 
       final currentUserId = _authService.getUserId();
 
+      if (currentUserId == null) {
+        SnackBarHelper.showErrorSnackBar(
+            "Authentication required. Please login again.");
+        setLoading(false);
+        return;
+      }
+
       Map<String, dynamic> coupon = {
         'couponCode': couponCodeCtrl.text.trim(),
         'discountType': selectedDiscountType,
-        'discountAmount': discountAmountCtrl.text,
-        'minimumPurchaseAmount': minimumPurchaseAmountCtrl.text,
+        'discountAmount': discountAmountCtrl.text.isEmpty
+            ? 0
+            : double.parse(discountAmountCtrl.text),
+        'minimumPurchaseAmount': minimumPurchaseAmountCtrl.text.isEmpty
+            ? 0
+            : double.parse(minimumPurchaseAmountCtrl.text),
         'endDate': endDateCtrl.text,
         'status': selectedCouponStatus,
         'applicableCategory': selectedCategory?.sId,
         'applicableSubCategory': selectedSubCategory?.sId,
         'applicableProduct': selectedProduct?.sId,
-        'adminId': currentUserId, // Add adminId for ownership check
+        'adminId': currentUserId, // Use adminId consistently
       };
 
       final response = await service.updateItem(
@@ -249,7 +294,7 @@ class CouponCodeProvider extends ChangeNotifier {
       Response response = await service.deleteItem(
         endpointUrl: 'couponCodes',
         itemId: coupon.sId ?? '',
-        body: {'adminId': currentUserId}, // Add adminId for ownership check
+        body: {'adminId': currentUserId}, // Use adminId consistently
       );
 
       if (response.isOk) {
@@ -277,21 +322,37 @@ class CouponCodeProvider extends ChangeNotifier {
     }
   }
 
-  setDataForUpdateCoupon(Coupon? coupon) {
+  setDataForUpdateCoupon(Coupon? coupon) async {
     if (coupon != null) {
       couponForUpdate = coupon;
       couponCodeCtrl.text = coupon.couponCode ?? '';
       selectedDiscountType = coupon.discountType ?? 'fixed';
-      discountAmountCtrl.text = '${coupon.discountAmount}';
-      minimumPurchaseAmountCtrl.text = '${coupon.minimumPurchaseAmount}';
-      endDateCtrl.text = '${coupon.endDate}';
+      discountAmountCtrl.text = '${coupon.discountAmount ?? ''}';
+      minimumPurchaseAmountCtrl.text = '${coupon.minimumPurchaseAmount ?? ''}';
+      endDateCtrl.text = '${coupon.endDate ?? ''}';
       selectedCouponStatus = coupon.status ?? 'active';
+
+      // Set category and filter subcategories
       selectedCategory = _dataProvider.categories.firstWhereOrNull(
         (element) => element.sId == coupon.applicableCategory?.sId,
       );
+
+      if (selectedCategory != null) {
+        await Future.delayed(Duration(milliseconds: 100));
+        filterSubCategoriesByCategory(selectedCategory);
+      }
+
+      // Set subcategory and filter products
       selectedSubCategory = _dataProvider.subCategories.firstWhereOrNull(
         (element) => element.sId == coupon.applicableSubCategory?.sId,
       );
+
+      if (selectedSubCategory != null) {
+        await Future.delayed(Duration(milliseconds: 100));
+        filterProductsBySubCategory(selectedSubCategory);
+      }
+
+      // Set product
       selectedProduct = _dataProvider.products.firstWhereOrNull(
         (element) => element.sId == coupon.applicableProduct?.sId,
       );
@@ -306,6 +367,8 @@ class CouponCodeProvider extends ChangeNotifier {
     selectedCategory = null;
     selectedSubCategory = null;
     selectedProduct = null;
+    filteredSubCategories.clear();
+    filteredProducts.clear();
 
     couponCodeCtrl.clear();
     discountAmountCtrl.clear();
