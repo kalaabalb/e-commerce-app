@@ -76,7 +76,8 @@ class OrderDetailsScreen extends StatelessWidget {
             ),
           InfoCard(
             title: 'Total',
-            value: 'Birr ${order.orderTotal?.total?.toStringAsFixed(2) ?? '0.00'}',
+            value:
+                'Birr ${order.orderTotal?.total?.toStringAsFixed(2) ?? '0.00'}',
             isTotal: true,
           ),
         ],

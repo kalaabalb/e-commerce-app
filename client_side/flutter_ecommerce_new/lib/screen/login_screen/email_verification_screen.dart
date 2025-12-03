@@ -1,4 +1,3 @@
-// lib/screen/login_screen/email_verification_screen.dart
 import 'dart:async';
 
 import 'package:e_commerce_flutter/screen/login_screen/login_screen.dart';

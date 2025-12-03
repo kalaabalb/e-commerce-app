@@ -620,28 +620,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ListTile(
                 leading: const Icon(Icons.email, color: AppColor.darkOrange),
                 title: Text(context.dataProvider.translate('email_support')),
-                subtitle: const Text('support@yourapp.com'),
+                subtitle: const Text('yonasmarketplace@gmial.com'),
                 onTap: () {
                   Navigator.pop(context);
                   Get.snackbar(
                     context.dataProvider.translate('email_support'),
                     context.dataProvider.currentLanguage == 'am'
-                        ? 'ኢሜይል ተልኳል: support@yourapp.com'
-                        : 'Email sent to: support@yourapp.com',
+                        ? 'ኢሜይል ተልኳል: yonasmarketplace@gmial.com'
+                        : 'Email sent to: yonasmarketplace@gmial.com',
                   );
                 },
               ),
               ListTile(
                 leading: const Icon(Icons.phone, color: AppColor.darkOrange),
                 title: Text(context.dataProvider.translate('call_support')),
-                subtitle: const Text('+1-234-567-8900'),
+                subtitle: const Text('0922737271'),
                 onTap: () {
                   Navigator.pop(context);
                   Get.snackbar(
                     context.dataProvider.translate('call_support'),
                     context.dataProvider.currentLanguage == 'am'
-                        ? 'የስልክ መጥሪያ: +1-234-567-8900'
-                        : 'Call support: +1-234-567-8900',
+                        ? 'የስልክ መጥሪያ: 0922737271'
+                        : 'Call support: 0922737271',
                   );
                 },
               ),
@@ -669,9 +669,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                context.dataProvider.currentLanguage == 'am'
-                    ? 'ይህ አስደሳች የመስመር ላይ ሻጭ መተግበሪያ ነው።'
-                    : 'This is an amazing e-commerce app.',
+                'YO-mobiles the best place to get your wishes.',
                 style: const TextStyle(fontSize: 16),
               ),
               const SizedBox(height: 10),

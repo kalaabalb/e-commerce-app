@@ -28,45 +28,64 @@ class PosterSection extends StatelessWidget {
                   ),
                   child: Row(
                     children: [
-                      Padding(
-                        padding: const EdgeInsets.only(left: 20),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              '${dataProvider.posters[index].posterName}',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .displaySmall
-                                  ?.copyWith(color: Colors.white),
-                            ),
-                            // Removed the "Get Now" button
-                          ],
+                      Expanded(
+                        // Wrap with Expanded
+                        child: Padding(
+                          padding: const EdgeInsets.only(left: 20),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Flexible(
+                                // Add Flexible for text
+                                child: Text(
+                                  '${dataProvider.posters[index].posterName}',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .displaySmall
+                                      ?.copyWith(color: Colors.white),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 2,
+                                ),
+                              ),
+                              // Removed the "Get Now" button
+                            ],
+                          ),
                         ),
                       ),
-                      const Spacer(),
-                      Image.network(
-                        '${dataProvider.posters[index].imageUrl}',
-                        height: 125,
-                        fit: BoxFit.cover,
-                        loadingBuilder: (BuildContext context, Widget child,
-                            ImageChunkEvent? loadingProgress) {
-                          if (loadingProgress == null) return child;
-                          return Center(
-                            child: CircularProgressIndicator(
-                              value: loadingProgress.expectedTotalBytes != null
-                                  ? loadingProgress.cumulativeBytesLoaded /
-                                      loadingProgress.expectedTotalBytes!
-                                  : null,
-                            ),
-                          );
-                        },
-                        errorBuilder: (BuildContext context, Object exception,
-                            StackTrace? stackTrace) {
-                          return const Icon(Icons.error, color: Colors.red);
-                        },
-                      )
+                      ClipRRect(
+                        // Wrap image with ClipRRect
+                        borderRadius: BorderRadius.circular(15),
+                        child: SizedBox(
+                          width: 120, // Fixed width for image
+                          child: Image.network(
+                            '${dataProvider.posters[index].imageUrl}',
+                            height: 125,
+                            fit: BoxFit.cover,
+                            loadingBuilder: (BuildContext context, Widget child,
+                                ImageChunkEvent? loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return Center(
+                                child: CircularProgressIndicator(
+                                  value: loadingProgress.expectedTotalBytes !=
+                                          null
+                                      ? loadingProgress.cumulativeBytesLoaded /
+                                          loadingProgress.expectedTotalBytes!
+                                      : null,
+                                ),
+                              );
+                            },
+                            errorBuilder: (BuildContext context,
+                                Object exception, StackTrace? stackTrace) {
+                              return Container(
+                                color: Colors.grey[200],
+                                child:
+                                    const Icon(Icons.error, color: Colors.red),
+                              );
+                            },
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),

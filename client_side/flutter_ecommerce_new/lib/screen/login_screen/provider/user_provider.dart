@@ -1,4 +1,3 @@
-// lib/screen/login_screen/provider/user_provider.dart
 import 'package:e_commerce_flutter/screen/home_screen.dart';
 import 'package:e_commerce_flutter/screen/login_screen/email_verification_screen.dart';
 import 'package:e_commerce_flutter/screen/login_screen/forgot_password_screen.dart';

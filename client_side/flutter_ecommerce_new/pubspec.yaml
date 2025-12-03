@@ -1,9 +1,7 @@
 name: e_commerce_flutter
 description: A complete Flutter e-commerce application
-
 publish_to: 'none'
-
-version: 1.0.0+1
+version: 1.0.0+2
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -29,6 +27,7 @@ dependencies:
   cached_network_image: ^3.4.1
   # razorpay_flutter: ^1.4.0  # Commented out for now
   onesignal_flutter: ^5.1.6
+  flutter_launcher_icons: ^0.13.1  # ADD THIS LINE
 
 dev_dependencies:
   flutter_test:

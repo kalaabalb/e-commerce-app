@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:e_commerce_flutter/utility/app_color.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
-import '../../../models/coupon.dart';
+
 import '../../login_screen/provider/user_provider.dart';
 import '../../../services/http_services.dart';
 import 'package:flutter/material.dart';
@@ -26,11 +26,8 @@ class CartProvider extends ChangeNotifier {
   TextEditingController stateController = TextEditingController();
   TextEditingController postalCodeController = TextEditingController();
   TextEditingController countryController = TextEditingController();
-  TextEditingController couponController = TextEditingController();
   bool isExpanded = false;
 
-  Coupon? couponApplied;
-  double couponCodeDiscount = 0;
   String selectedPaymentOption = 'cod';
 
   // QR Screenshot related
@@ -172,78 +169,9 @@ class CartProvider extends ChangeNotifier {
   }
 
   double getGrandTotal() {
-    double grandTotal = getCartSubTotal() - couponCodeDiscount;
+    double grandTotal = getCartSubTotal();
     print('🟡 Grand total: Birr ${grandTotal.toStringAsFixed(2)}');
     return grandTotal > 0 ? grandTotal : 0;
-  }
-
-  checkCoupon() async {
-    try {
-      if (couponController.text.isEmpty) {
-        SnackBarHelper.showErrorSnackBar('Enter a coupon code');
-        return;
-      }
-
-      _isLoading = true;
-      notifyListeners();
-
-      List<String> productIds =
-          myCartItems.map((cartItem) => cartItem.productId).toList();
-
-      Map<String, dynamic> couponData = {
-        'couponCode': couponController.text,
-        'purchaseAmount': getCartSubTotal(),
-        'productIds': productIds,
-      };
-
-      final response = await service.addItem(
-        endpointUrl: 'couponCodes/check-coupon',
-        itemData: couponData,
-      );
-
-      if (response.isOk) {
-        final ApiResponse<Coupon> apiResponse = ApiResponse.fromJson(
-          response.body,
-          (json) => Coupon.fromJson(json as Map<String, dynamic>),
-        );
-
-        if (apiResponse.success == true) {
-          Coupon? coupon = apiResponse.data;
-          if (coupon != null) {
-            couponApplied = coupon;
-            couponCodeDiscount = getCouponDiscountAmount(coupon);
-            SnackBarHelper.showSuccessSnackBar('Coupon applied successfully!');
-          } else {
-            SnackBarHelper.showErrorSnackBar('Invalid coupon');
-          }
-        } else {
-          SnackBarHelper.showErrorSnackBar(apiResponse.message);
-        }
-      } else {
-        SnackBarHelper.showErrorSnackBar('Failed to validate coupon');
-      }
-    } catch (e) {
-      SnackBarHelper.showErrorSnackBar('Error validating coupon: $e');
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
-  }
-
-  double getCouponDiscountAmount(Coupon coupon) {
-    double discountAmount = 0;
-    String discountType = coupon.discountType ?? 'fixed';
-
-    if (discountType == 'fixed') {
-      discountAmount = coupon.discountAmount ?? 0;
-    } else {
-      double discountPercentage = coupon.discountAmount ?? 0;
-      discountAmount = getCartSubTotal() * (discountPercentage / 100);
-    }
-
-    return discountAmount > getCartSubTotal()
-        ? getCartSubTotal()
-        : discountAmount;
   }
 
   // Pick QR Screenshot from gallery
@@ -383,10 +311,8 @@ class CartProvider extends ChangeNotifier {
                 'verified': false,
               }
             : null,
-        'couponCode': couponApplied?.sId,
         'orderTotal': {
           "subtotal": getCartSubTotal(),
-          "discount": couponCodeDiscount,
           "total": getGrandTotal(),
         },
       };
@@ -473,14 +399,6 @@ class CartProvider extends ChangeNotifier {
               Get.offAllNamed('/');
             },
             child: const Text('🛍️ Continue Shopping'),
-          ),
-          TextButton(
-            onPressed: () {
-              Get.back();
-              // Navigate to orders screen
-              Get.toNamed('/orders');
-            },
-            child: const Text('📋 View Orders'),
           ),
         ],
       ),
@@ -921,13 +839,6 @@ class CartProvider extends ChangeNotifier {
     } catch (e) {}
   }
 
-  void clearCouponDiscount() {
-    couponApplied = null;
-    couponCodeDiscount = 0;
-    couponController.text = '';
-    notifyListeners();
-  }
-
   void togglePaymentInstructions() {
     _showPaymentInstructions = !_showPaymentInstructions;
     notifyListeners();
@@ -943,13 +854,6 @@ class CartProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void clearCoupon() {
-    couponApplied = null;
-    couponCodeDiscount = 0;
-    couponController.clear();
-    notifyListeners();
-  }
-
   void clearForm() {
     phoneController.clear();
     streetController.clear();
@@ -957,12 +861,9 @@ class CartProvider extends ChangeNotifier {
     stateController.clear();
     postalCodeController.clear();
     countryController.clear();
-    couponController.clear();
     _paymentProofImage = null;
     _paymentProofUrl = null;
     selectedPaymentOption = 'cod';
-    couponApplied = null;
-    couponCodeDiscount = 0;
     isExpanded = false;
     notifyListeners();
   }
@@ -987,7 +888,6 @@ class CartProvider extends ChangeNotifier {
     stateController.dispose();
     postalCodeController.dispose();
     countryController.dispose();
-    couponController.dispose();
     super.dispose();
   }
 }

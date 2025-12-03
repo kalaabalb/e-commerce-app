@@ -133,22 +133,6 @@ class ProductGridItem extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      IconButton(
-                        padding: EdgeInsets.zero,
-                        constraints: BoxConstraints(),
-                        onPressed: () {
-                          favoriteProvider.updateToFavoriteList(
-                              product.sId!); // CORRECT - instance access
-                        },
-                        icon: Icon(
-                          favoriteProvider.checkIsItemFavorite(
-                                  product.sId!) // CORRECT - instance access
-                              ? Icons.favorite
-                              : Icons.favorite_border,
-                          color: AppColor.darkOrange,
-                          size: 20,
-                        ),
-                      ),
                     ],
                   );
                 },

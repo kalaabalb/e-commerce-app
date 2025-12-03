@@ -8,8 +8,8 @@ import 'package:e_commerce_flutter/utility/snack_bar_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../../widget/app_bar_action_button.dart';
-import '../../../widget/product_grid_view.dart';
+import '../../widget/app_bar_action_button.dart';
+import '../../widget/product_grid_view.dart';
 import 'components/category_selector.dart';
 import 'components/poster_section.dart';
 import '../../utility/app_color.dart';
@@ -537,11 +537,11 @@ class ProductListScreen extends StatelessWidget {
                 leading: const Icon(Icons.email, color: AppColor.darkOrange),
                 title: Text(
                   context.safeDataProvider.safeTranslate(
-                    'email_support',
-                    fallback: 'Email Support',
+                    'telegram_support',
+                    fallback: 'telegram Support',
                   ),
                 ),
-                subtitle: const Text('support@yourapp.com'),
+                subtitle: const Text('@Yoni125'),
                 onTap: () {
                   _launchEmail(context);
                   Navigator.pop(context);
@@ -555,27 +555,10 @@ class ProductListScreen extends StatelessWidget {
                     fallback: 'Call Support',
                   ),
                 ),
-                subtitle: const Text('+1-234-567-8900'),
+                subtitle: const Text('0922737271'),
                 onTap: () {
                   _launchPhoneCall(context);
                   Navigator.pop(context);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.chat, color: AppColor.darkOrange),
-                title: Text(
-                  context.safeDataProvider.safeTranslate(
-                    'live_chat',
-                    fallback: 'Live Chat',
-                  ),
-                ),
-                onTap: () {
-                  Navigator.pop(context);
-                  SnackBarHelper.showSuccessSnackBar(
-                    context.safeDataProvider.currentLanguage == 'am'
-                        ? 'ቀጥታ ውይይት በቅርብ ጊዜ ይመጣል!'
-                        : 'Live chat coming soon!',
-                  );
                 },
               ),
             ],
@@ -601,7 +584,7 @@ class ProductListScreen extends StatelessWidget {
 
     final Uri emailLaunchUri = Uri(
       scheme: 'mailto',
-      path: 'support@yourapp.com',
+      path: 'yonasmarketplace@gmial.com',
       query: _encodeQueryParameters(<String, String>{
         'subject': 'App Support Request',
       }),
@@ -619,7 +602,7 @@ class ProductListScreen extends StatelessWidget {
   void _launchPhoneCall(BuildContext context) async {
     final isAmharic = context.safeDataProvider.currentLanguage == 'am';
 
-    final Uri phoneLaunchUri = Uri(scheme: 'tel', path: '+12345678900');
+    final Uri phoneLaunchUri = Uri(scheme: 'tel', path: '+0922737271');
 
     if (await canLaunchUrl(phoneLaunchUri)) {
       await launchUrl(phoneLaunchUri);

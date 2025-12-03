@@ -1,4 +1,3 @@
-// lib/screen/login_screen/forgot_password_screen.dart
 import 'dart:async';
 
 import 'package:e_commerce_flutter/utility/extensions.dart';

@@ -9,7 +9,6 @@ class Order {
   String? paymentMethod;
   String? paymentStatus;
   PaymentProof? paymentProof;
-  CouponCode? couponCode;
   String? trackingUrl;
   String? orderDate;
   int? iV;
@@ -25,7 +24,6 @@ class Order {
     this.paymentMethod,
     this.paymentStatus,
     this.paymentProof,
-    this.couponCode,
     this.trackingUrl,
     this.orderDate,
     this.iV,
@@ -53,9 +51,6 @@ class Order {
     paymentProof = json['paymentProof'] != null
         ? PaymentProof.fromJson(json['paymentProof'])
         : null;
-    couponCode = json['couponCode'] != null
-        ? CouponCode.fromJson(json['couponCode'])
-        : null;
     trackingUrl = json['trackingUrl'];
     orderDate = json['orderDate'];
     iV = json['__v'];
@@ -82,9 +77,6 @@ class Order {
     data['paymentStatus'] = paymentStatus;
     if (paymentProof != null) {
       data['paymentProof'] = paymentProof!.toJson();
-    }
-    if (couponCode != null) {
-      data['couponCode'] = couponCode!.toJson();
     }
     data['trackingUrl'] = trackingUrl;
     data['orderDate'] = orderDate;
@@ -283,36 +275,6 @@ class PaymentProof {
     data['uploadedAt'] = uploadedAt;
     data['verified'] = verified;
     data['verifiedAt'] = verifiedAt;
-    return data;
-  }
-}
-
-class CouponCode {
-  String? sId;
-  String? couponCode;
-  String? discountType;
-  int? discountAmount;
-
-  CouponCode({
-    this.sId,
-    this.couponCode,
-    this.discountType,
-    this.discountAmount,
-  });
-
-  CouponCode.fromJson(Map<String, dynamic> json) {
-    sId = json['_id'];
-    couponCode = json['couponCode'];
-    discountType = json['discountType'];
-    discountAmount = json['discountAmount'];
-  }
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = <String, dynamic>{};
-    data['_id'] = sId;
-    data['couponCode'] = couponCode;
-    data['discountType'] = discountType;
-    data['discountAmount'] = discountAmount;
     return data;
   }
 }

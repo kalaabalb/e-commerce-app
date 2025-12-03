@@ -6,14 +6,12 @@ import '../../../utility/extensions.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../widget/applay_coupon_btn.dart';
 import '../../../widget/custom_text_field.dart';
 import '../../../shared/widgets/cards.dart';
 import '../../../shared/widgets/forms.dart';
 
 void showCustomBottomSheet(BuildContext context) {
   final cartProvider = context.cartProvider;
-  cartProvider.clearCouponDiscount();
   cartProvider.retrieveSavedAddress();
 
   showModalBottomSheet(
@@ -270,50 +268,6 @@ void showCustomBottomSheet(BuildContext context) {
 
                       const SizedBox(height: 10),
 
-                      // Coupon Code Field
-                      CustomCard(
-                        child: Padding(
-                          padding: const EdgeInsets.all(15),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                context.dataProvider.safeTranslate(
-                                  'enter_coupon_code',
-                                  fallback: 'Coupon Code',
-                                ),
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                ),
-                              ),
-                              const SizedBox(height: 10),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: CustomTextField(
-                                      height: 60,
-                                      labelText:
-                                          context.dataProvider.safeTranslate(
-                                        'enter_coupon_code',
-                                        fallback: 'Enter coupon code',
-                                      ),
-                                      controller: cartProvider.couponController,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 10),
-                                  ApplyCouponButton(
-                                    onPressed: () {
-                                      cartProvider.checkCoupon();
-                                    },
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-
                       const SizedBox(height: 10),
 
                       // Total Amount Display
@@ -342,14 +296,6 @@ void showCustomBottomSheet(BuildContext context) {
                                         "Birr ${cartProvider.getCartSubTotal().toStringAsFixed(2)}",
                                   ),
                                   const SizedBox(height: 8),
-                                  InfoCard(
-                                    title: context.dataProvider.safeTranslate(
-                                      'discount',
-                                      fallback: 'Discount:',
-                                    ),
-                                    value:
-                                        "-Birr ${cartProvider.couponCodeDiscount.toStringAsFixed(2)}",
-                                  ),
                                   const Divider(),
                                   InfoCard(
                                     title: context.dataProvider.safeTranslate(
