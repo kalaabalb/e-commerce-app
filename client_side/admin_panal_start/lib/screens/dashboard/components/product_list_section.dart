@@ -61,8 +61,8 @@ class ProductListSection extends StatelessWidget {
               }
 
               return ResponsiveDataTable(
-                dataRowMinHeight: 70,
-                dataRowMaxHeight: 90,
+                dataRowMinHeight: 60,
+                dataRowMaxHeight: 78,
                 columns: const [
                   DataColumn(label: Text("Product")),
                   DataColumn(label: Text("Category")),
@@ -181,8 +181,8 @@ DataRow productDataRow(BuildContext context, Product productInfo, int index,
           child: Row(
             children: [
               Container(
-                width: 50,
-                height: 50,
+                width: 42,
+                height: 42,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8),
                   color: Colors.grey[800],

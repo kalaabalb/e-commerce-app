@@ -24,8 +24,11 @@ class CustomDropdown<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final resolvedValue =
+        items.any((item) => item == initialValue) ? initialValue : null;
+
     return Padding(
-      padding: const EdgeInsets.all(8.0),
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: DropdownButtonFormField<T>(
         isExpanded: isExpanded,
         decoration: InputDecoration(
@@ -46,11 +49,11 @@ class CustomDropdown<T> extends StatelessWidget {
           filled: true,
           fillColor: Colors.transparent,
           contentPadding: EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: ResponsiveUtils.isMobile(context) ? 12 : 16,
+            horizontal: 14,
+            vertical: ResponsiveUtils.isMobile(context) ? 10 : 14,
           ),
         ),
-        value: initialValue,
+        value: resolvedValue,
         items: items.map((T value) {
           return DropdownMenuItem<T>(
             value: value,

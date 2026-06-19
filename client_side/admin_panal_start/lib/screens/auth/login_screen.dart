@@ -236,30 +236,33 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       if (result.success) {
-        Get.offAllNamed('/main');
-        Get.snackbar(
-          'Success',
-          'Login successful',
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
-          duration: const Duration(seconds: 2),
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Login successful'),
+            backgroundColor: Colors.green,
+            duration: Duration(milliseconds: 900),
+          ),
         );
+        await Future.delayed(const Duration(milliseconds: 250));
+        if (mounted) {
+          Get.offAllNamed('/main');
+        }
       } else {
-        Get.snackbar(
-          'Login Failed',
-          result.message,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-          duration: const Duration(seconds: 3),
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result.message),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 2),
+          ),
         );
       }
     } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Login failed: ${e.toString()}',
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-        duration: const Duration(seconds: 3),
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Login failed: ${e.toString()}'),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 2),
+        ),
       );
     } finally {
       _isLoading.value = false;

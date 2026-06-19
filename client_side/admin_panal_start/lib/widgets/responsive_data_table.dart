@@ -41,8 +41,8 @@ class ResponsiveDataTable extends StatelessWidget {
             minWidth: MediaQuery.of(context).size.width,
           ),
           child: DataTable(
-            columnSpacing: 10,
-            horizontalMargin: 12,
+            columnSpacing: 8,
+            horizontalMargin: 8,
             headingRowHeight: 46,
             dataRowMinHeight: dataRowMinHeight ?? 58,
             dataRowMaxHeight: dataRowMaxHeight ?? 76,

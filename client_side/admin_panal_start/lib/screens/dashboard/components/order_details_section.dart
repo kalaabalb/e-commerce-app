@@ -44,7 +44,7 @@ class OrderDetailsSection extends StatelessWidget {
               ),
               SizedBox(height: isMobile ? 10 : defaultPadding),
               SizedBox(
-                height: isMobile ? 150 : 200,
+                height: isMobile ? 132 : 200,
                 child: totalOrder == 0
                     ? Center(
                         child: Text(
@@ -61,9 +61,9 @@ class OrderDetailsSection extends StatelessWidget {
               isMobile
                   ? GridView.count(
                       crossAxisCount: 2,
-                      childAspectRatio: 2.6,
-                      crossAxisSpacing: 8,
-                      mainAxisSpacing: 8,
+                      childAspectRatio: 3.1,
+                      crossAxisSpacing: 6,
+                      mainAxisSpacing: 6,
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
                       children: [

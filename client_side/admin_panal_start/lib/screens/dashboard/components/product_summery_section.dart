@@ -65,9 +65,13 @@ class ProductSummerySection extends StatelessWidget {
           shrinkWrap: true,
           itemCount: productSummeryItems.length,
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: ResponsiveUtils.getGridCrossAxisCount(context),
-            crossAxisSpacing: defaultPadding,
-            mainAxisSpacing: defaultPadding,
+            crossAxisCount: ResponsiveUtils.isMobile(context)
+                ? 2
+                : ResponsiveUtils.getGridCrossAxisCount(context),
+            crossAxisSpacing:
+                ResponsiveUtils.isMobile(context) ? 8 : defaultPadding,
+            mainAxisSpacing:
+                ResponsiveUtils.isMobile(context) ? 8 : defaultPadding,
             childAspectRatio: _getAspectRatio(context),
           ),
           itemBuilder: (context, index) => ProductSummeryCard(
@@ -82,8 +86,8 @@ class ProductSummerySection extends StatelessWidget {
   }
 
   double _getAspectRatio(BuildContext context) {
-    if (ResponsiveUtils.isMobile(context)) return 2.25;
-    if (ResponsiveUtils.isTablet(context)) return 1.25;
-    return 1.12;
+    if (ResponsiveUtils.isMobile(context)) return 1.55;
+    if (ResponsiveUtils.isTablet(context)) return 1.18;
+    return 1.28;
   }
 }

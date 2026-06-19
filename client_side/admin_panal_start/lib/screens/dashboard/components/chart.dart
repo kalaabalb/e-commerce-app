@@ -15,13 +15,13 @@ class Chart extends StatelessWidget {
     final isMobile = ResponsiveUtils.isMobile(context);
 
     return SizedBox(
-      height: isMobile ? 132 : 200,
+      height: isMobile ? 112 : 200,
       child: Stack(
         children: [
           PieChart(
             PieChartData(
               sectionsSpace: 0,
-              centerSpaceRadius: isMobile ? 42 : 70,
+              centerSpaceRadius: isMobile ? 32 : 70,
               startDegreeOffset: -90,
               sections: _buildPieChartSelectionData(context),
             ),
@@ -30,7 +30,7 @@ class Chart extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                SizedBox(height: defaultPadding),
+                SizedBox(height: isMobile ? 6 : defaultPadding),
                 Consumer<DataProvider>(
                   builder: (context, dataProvider, child) {
                     return Text(
@@ -45,7 +45,7 @@ class Chart extends StatelessWidget {
                     );
                   },
                 ),
-                SizedBox(height: defaultPadding),
+                SizedBox(height: isMobile ? 4 : defaultPadding),
                 Text(
                   "Orders",
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(

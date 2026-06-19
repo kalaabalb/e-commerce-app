@@ -31,45 +31,84 @@ class OrderInfoCard extends StatelessWidget {
           Radius.circular(16),
         ),
       ),
-      child: Row(
-        children: [
-          SizedBox(
-            height: isMobile ? 18 : 20,
-            width: isMobile ? 18 : 20,
-            child: SvgPicture.asset(
-              svgSrc,
-              colorFilter:
-                  const ColorFilter.mode(Colors.white70, BlendMode.srcIn),
-            ),
-          ),
-          Expanded(
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: isMobile ? 10 : 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
+      child: isMobile
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SizedBox(
+                  height: 18,
+                  width: 18,
+                  child: SvgPicture.asset(
+                    svgSrc,
+                    colorFilter: const ColorFilter.mode(
+                      Colors.white70,
+                      BlendMode.srcIn,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 11,
+                      ),
+                ),
+                Text(
+                  "$totalOrder orders",
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                        color: Colors.white70,
+                        fontSize: 10,
+                      ),
+                ),
+              ],
+            )
+          : Row(
+              children: [
+                SizedBox(
+                  height: 20,
+                  width: 20,
+                  child: SvgPicture.asset(
+                    svgSrc,
+                    colorFilter:
+                        const ColorFilter.mode(Colors.white70, BlendMode.srcIn),
+                  ),
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style:
+                              Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                         ),
+                        Text(
+                          "$totalOrder orders",
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodySmall!
+                              .copyWith(color: Colors.white70),
+                        ),
+                      ],
+                    ),
                   ),
-                  Text(
-                    "$totalOrder orders",
-                    style: Theme.of(context)
-                        .textTheme
-                        .bodySmall!
-                        .copyWith(color: Colors.white70),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ),
-        ],
-      ),
     );
   }
 }

@@ -17,14 +17,30 @@ import '../../../widgets/custom_dropdown.dart';
 import '../../../widgets/custom_text_field.dart';
 import '../../../widgets/product_image_card.dart';
 
-class ProductSubmitForm extends StatelessWidget {
+class ProductSubmitForm extends StatefulWidget {
   final Product? product;
 
   const ProductSubmitForm({super.key, this.product});
 
   @override
+  State<ProductSubmitForm> createState() => _ProductSubmitFormState();
+}
+
+class _ProductSubmitFormState extends State<ProductSubmitForm> {
+  bool _initialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _initialized) return;
+      context.dashBoardProvider.setDataForUpdateProduct(widget.product);
+      _initialized = true;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    context.dashBoardProvider.setDataForUpdateProduct(product);
     return Form(
       key: context.dashBoardProvider.addProductFormKey,
       child: SingleChildScrollView(
@@ -60,7 +76,7 @@ class ProductSubmitForm extends StatelessWidget {
             _buildVariantSection(context),
             SizedBox(height: ResponsiveUtils.getPadding(context)),
             _buildActionButtons(context),
-            SizedBox(height: 8), // Small bottom padding
+            SizedBox(height: 8),
           ],
         ),
       ),
@@ -69,11 +85,11 @@ class ProductSubmitForm extends StatelessWidget {
 
   Widget _buildImageSection(BuildContext context) {
     final images = [
-      _ImageCardData('Main', 1, product?.images.safeElementAt(0)?.url),
-      _ImageCardData('Second', 2, product?.images.safeElementAt(1)?.url),
-      _ImageCardData('Third', 3, product?.images.safeElementAt(2)?.url),
-      _ImageCardData('Fourth', 4, product?.images.safeElementAt(3)?.url),
-      _ImageCardData('Fifth', 5, product?.images.safeElementAt(4)?.url),
+      _ImageCardData('Main', 1, widget.product?.images.safeElementAt(0)?.url),
+      _ImageCardData('Second', 2, widget.product?.images.safeElementAt(1)?.url),
+      _ImageCardData('Third', 3, widget.product?.images.safeElementAt(2)?.url),
+      _ImageCardData('Fourth', 4, widget.product?.images.safeElementAt(3)?.url),
+      _ImageCardData('Fifth', 5, widget.product?.images.safeElementAt(4)?.url),
     ];
 
     return Container(
@@ -448,7 +464,7 @@ extension SafeList<T> on List<T>? {
   }
 }
 
-void showAddProductForm(BuildContext context, Product? product) {
+Future<void> showAddProductForm(BuildContext context, Product? product) async {
   showDialog(
     context: context,
     builder: (BuildContext context) {

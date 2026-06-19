@@ -18,6 +18,8 @@ class OrderScreen extends StatefulWidget {
 }
 
 class _OrderScreenState extends State<OrderScreen> {
+  String _selectedFilter = 'All orders';
+
   @override
   void initState() {
     super.initState();
@@ -121,7 +123,7 @@ class _OrderScreenState extends State<OrderScreen> {
   Widget _buildFilterDropdown(BuildContext context) {
     return CustomDropdown(
       hintText: 'Filter Orders',
-      initialValue: 'All orders',
+      initialValue: _selectedFilter,
       items: [
         'All orders',
         'pending',
@@ -134,10 +136,12 @@ class _OrderScreenState extends State<OrderScreen> {
       ],
       displayItem: (val) => val,
       onChanged: (newValue) {
+        if (newValue == null) return;
+        setState(() => _selectedFilter = newValue);
         if (newValue?.toLowerCase() == 'all orders') {
           context.dataProvider.filterOrders('');
         } else {
-          context.dataProvider.filterOrders(newValue?.toLowerCase() ?? '');
+          context.dataProvider.filterOrders(newValue.toLowerCase());
         }
       },
       validator: (value) {

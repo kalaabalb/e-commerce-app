@@ -47,7 +47,18 @@ class SideMenu extends StatelessWidget {
               ),
             ),
             child: compact
-                ? Image.asset("assets/images/logo.png", height: 40)
+                ? ClipOval(
+                    child: Container(
+                      width: 40,
+                      height: 40,
+                      color: Colors.white.withOpacity(0.04),
+                      padding: const EdgeInsets.all(6),
+                      child: Image.asset(
+                        "assets/images/logo.png",
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                  )
                 : Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [

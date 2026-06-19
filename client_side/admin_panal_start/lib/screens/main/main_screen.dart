@@ -102,10 +102,14 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
                     children: [
                       const Text(
                         'Admin Panel',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(fontWeight: FontWeight.w700),
                       ),
                       Text(
                         provider.currentScreenName,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                             fontSize: 12, color: Colors.white70),
                       ),
