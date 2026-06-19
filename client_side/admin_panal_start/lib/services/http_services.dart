@@ -30,10 +30,12 @@ class HttpService extends GetConnect {
       request.headers['Content-Type'] = 'application/json';
 
       if (kDebugMode) {
-        print('🚀 [HTTP] ${request.method.toUpperCase()} ${request.url}');
-        if (request.headers['Authorization'] != null) {
-          print(
-              '   🔐 Auth: Bearer ***${_authToken.value.substring(_authToken.value.length - 6)}');
+        if (kDebugMode) {
+          print('🚀 [HTTP] ${request.method.toUpperCase()} ${request.url}');
+          if (request.headers['Authorization'] != null) {
+            print(
+                '   🔐 Auth: Bearer ***${_authToken.value.substring(_authToken.value.length - 6)}');
+          }
         }
       }
 
@@ -43,10 +45,12 @@ class HttpService extends GetConnect {
     // Add response modifier for logging
     httpClient.addResponseModifier<void>((request, response) {
       if (kDebugMode) {
-        print(
-            '📡 [HTTP] ${response.statusCode} ${request.method.toUpperCase()} ${request.url}');
-        if (response.statusCode != 200 && response.statusCode != 201) {
-          print('   ⚠️  Response: ${response.bodyString}');
+        if (kDebugMode) {
+          print(
+              '📡 [HTTP] ${response.statusCode} ${request.method.toUpperCase()} ${request.url}');
+          if (response.statusCode != 200 && response.statusCode != 201) {
+            print('   ⚠️  Response: ${response.bodyString}');
+          }
         }
       }
       return response;
@@ -69,7 +73,9 @@ class HttpService extends GetConnect {
       _authToken.value = token;
       _storage.write('auth_token', token);
       if (kDebugMode) {
+      if (kDebugMode) {
         print('🔐 [AUTH] Token set: ***${token.substring(token.length - 6)}');
+      }
       }
     }
   }
@@ -78,7 +84,9 @@ class HttpService extends GetConnect {
     _authToken.value = '';
     _storage.remove('auth_token');
     if (kDebugMode) {
-      print('🔐 [AUTH] Token cleared');
+      if (kDebugMode) {
+        print('🔐 [AUTH] Token cleared');
+      }
     }
   }
 
@@ -93,7 +101,9 @@ class HttpService extends GetConnect {
     }
 
     if (kDebugMode) {
-      print('❌ [HTTP ERROR] $message');
+      if (kDebugMode) {
+        print('❌ [HTTP ERROR] $message');
+      }
     }
 
     return Response(
@@ -165,9 +175,11 @@ class HttpService extends GetConnect {
     Map<String, dynamic>? body,
     bool showErrors = true,
   }) async {
-    print('🗑️ [HTTP] DELETE request: $endpointUrl/$itemId');
-    print('   - Body: ${body?.toString() ?? "null"}');
-    print('   - Auth token: ${authToken != null ? "exists" : "missing"}');
+    if (kDebugMode) {
+      print('🗑️ [HTTP] DELETE request: $endpointUrl/$itemId');
+      print('   - Body: ${body?.toString() ?? "null"}');
+      print('   - Auth token: ${authToken != null ? "exists" : "missing"}');
+    }
 
     try {
       final Map<String, String> headers = {
@@ -183,12 +195,16 @@ class HttpService extends GetConnect {
         body: body,
       );
 
-      print('🗑️ [HTTP] DELETE response: ${response.statusCode}');
-      print('   - Body: ${response.body}');
+      if (kDebugMode) {
+        print('🗑️ [HTTP] DELETE response: ${response.statusCode}');
+        print('   - Body: ${response.body}');
+      }
 
       return _handleResponse(response, showErrors: showErrors);
     } catch (e) {
-      print('❌ [HTTP] DELETE error: $e');
+      if (kDebugMode) {
+        print('❌ [HTTP] DELETE error: $e');
+      }
       return _buildErrorResponse(e);
     }
   }
@@ -222,16 +238,22 @@ class HttpService extends GetConnect {
   }
 
   Response _handleResponse(Response response, {bool showErrors = true}) {
-    print('🔍 [HTTP] Handling response - Status: ${response.statusCode}');
+    if (kDebugMode) {
+      print('🔍 [HTTP] Handling response - Status: ${response.statusCode}');
+    }
 
     if (response.statusCode == null) {
-      print('❌ [HTTP] No status code - connection issue');
+      if (kDebugMode) {
+        print('❌ [HTTP] No status code - connection issue');
+      }
       return _buildErrorResponse('No connection to server');
     }
 
     // Handle rate limiting errors (429)
     if (response.statusCode == 429) {
-      print('⏰ [HTTP] Rate limited - too many requests');
+      if (kDebugMode) {
+        print('⏰ [HTTP] Rate limited - too many requests');
+      }
       if (showErrors) {
         Get.snackbar(
           'Too Many Requests',
@@ -246,7 +268,9 @@ class HttpService extends GetConnect {
 
     // Handle authentication errors - DON'T AUTO LOGOUT IMMEDIATELY
     if (response.statusCode == 401) {
-      print('🔐 [HTTP] 401 Unauthorized response received');
+      if (kDebugMode) {
+        print('🔐 [HTTP] 401 Unauthorized response received');
+      }
 
       // Only logout if we're not already on login page
       if (Get.currentRoute != '/login') {
@@ -263,7 +287,9 @@ class HttpService extends GetConnect {
         // Use delayed navigation to avoid context issues
         Future.delayed(Duration(seconds: 2), () {
           if (Get.currentRoute != '/login') {
-            print('🔄 [HTTP] Navigating to login due to unauthorized access');
+            if (kDebugMode) {
+              print('🔄 [HTTP] Navigating to login due to unauthorized access');
+            }
             Get.find<AdminAuthService>().logout(showMessage: false);
           }
         });
@@ -274,12 +300,16 @@ class HttpService extends GetConnect {
 
     // Handle other error status codes
     if (response.statusCode! >= 400) {
-      print('⚠️ [HTTP] Error response: ${response.statusCode}');
+      if (kDebugMode) {
+        print('⚠️ [HTTP] Error response: ${response.statusCode}');
+      }
       if (showErrors) {
         _showErrorSnackbar(response);
       }
     } else {
-      print('✅ [HTTP] Success response: ${response.statusCode}');
+      if (kDebugMode) {
+        print('✅ [HTTP] Success response: ${response.statusCode}');
+      }
     }
 
     return response;
@@ -322,7 +352,9 @@ class HttpService extends GetConnect {
       return response.statusCode == 200;
     } catch (e) {
       if (kDebugMode) {
-        print('🔗 [CONNECTION] Failed: $e');
+        if (kDebugMode) {
+          print('🔗 [CONNECTION] Failed: $e');
+        }
       }
       return false;
     }
@@ -346,7 +378,9 @@ class HttpService extends GetConnect {
     _storage.erase();
     clearAuthorizationHeader();
     if (kDebugMode) {
-      print('🧹 [CACHE] All cached data cleared');
+      if (kDebugMode) {
+        print('🧹 [CACHE] All cached data cleared');
+      }
     }
   }
 

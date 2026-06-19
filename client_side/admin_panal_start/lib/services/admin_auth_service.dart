@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:admin_panal_start/models/product.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
@@ -27,9 +28,11 @@ class AdminAuthService extends GetxService {
     final token = _storage.read('auth_token');
     final userData = _storage.read('user_data');
 
-    print('🔄 [AUTH] Loading authentication state...');
-    print('   - Token exists: ${token != null}');
-    print('   - User data exists: ${userData != null}');
+    if (kDebugMode) {
+      debugPrint('🔄 [AUTH] Loading authentication state...');
+      debugPrint('   - Token exists: ${token != null}');
+      debugPrint('   - User data exists: ${userData != null}');
+    }
 
     if (token != null && userData != null) {
       try {
@@ -37,16 +40,22 @@ class AdminAuthService extends GetxService {
         isLoggedIn.value = true;
         _httpService.setAuthorizationHeader(token);
 
-        print('✅ [AUTH] Authentication state loaded successfully');
-        print('   - User: ${currentUser.value?.username}');
-        print('   - Clearance Level: ${currentUser.value?.clearanceLevel}');
-        print('   - Can manage users: ${canManageUsers()}');
+        if (kDebugMode) {
+          debugPrint('✅ [AUTH] Authentication state loaded successfully');
+          debugPrint('   - User: ${currentUser.value?.username}');
+          debugPrint('   - Clearance Level: ${currentUser.value?.clearanceLevel}');
+          debugPrint('   - Can manage users: ${canManageUsers()}');
+        }
       } catch (e) {
-        print('❌ [AUTH] Error loading user data: $e');
+        if (kDebugMode) {
+          debugPrint('❌ [AUTH] Error loading user data: $e');
+        }
         _clearAuthData();
       }
     } else {
-      print('❌ [AUTH] No authentication data found in storage');
+      if (kDebugMode) {
+        debugPrint('❌ [AUTH] No authentication data found in storage');
+      }
     }
   }
 
@@ -54,8 +63,10 @@ class AdminAuthService extends GetxService {
     try {
       isLoading.value = true;
 
-      print('🔐 [AUTH] Attempting admin login...');
-      print('   - Username: $username');
+      if (kDebugMode) {
+        debugPrint('🔐 [AUTH] Attempting admin login...');
+        debugPrint('   - Username: $username');
+      }
 
       if (username.isEmpty || password.isEmpty) {
         return ApiResponse(
@@ -73,10 +84,14 @@ class AdminAuthService extends GetxService {
         },
       );
 
-      print('📥 [AUTH] Login response received');
-      print('   - Status: ${response.statusCode}');
+      if (kDebugMode) {
+        debugPrint('📥 [AUTH] Login response received');
+        debugPrint('   - Status: ${response.statusCode}');
+      }
       final loginBody = _normalizeResponseBody(response.body);
-      print('   - Success: ${loginBody is Map ? loginBody['success'] : null}');
+      if (kDebugMode) {
+        debugPrint('   - Success: ${loginBody is Map ? loginBody['success'] : null}');
+      }
 
       if (response.isOk) {
         final responseBody = loginBody;
@@ -137,12 +152,14 @@ class AdminAuthService extends GetxService {
               ? token
               : 'local-auth-${user.sId ?? user.username ?? DateTime.now().millisecondsSinceEpoch}';
 
-          print('✅ [AUTH] Login successful!');
-          print('   - User ID: ${user.sId}');
-          print('   - Username: ${user.username}');
-          print('   - Name: ${user.name}');
-          print('   - Clearance Level: ${user.clearanceLevel}');
-          print('   - Is Super Admin: ${user.isSuperAdmin}');
+          if (kDebugMode) {
+            debugPrint('✅ [AUTH] Login successful!');
+            debugPrint('   - User ID: ${user.sId}');
+            debugPrint('   - Username: ${user.username}');
+            debugPrint('   - Name: ${user.name}');
+            debugPrint('   - Clearance Level: ${user.clearanceLevel}');
+            debugPrint('   - Is Super Admin: ${user.isSuperAdmin}');
+          }
 
           // Store authentication data securely
           await _storage.write('auth_token', effectiveToken);
@@ -179,7 +196,9 @@ class AdminAuthService extends GetxService {
         );
       }
     } catch (e) {
-      print('❌ [AUTH] Login error: $e');
+      if (kDebugMode) {
+        debugPrint('❌ [AUTH] Login error: $e');
+      }
       return ApiResponse(
         success: false,
         message:
@@ -273,7 +292,9 @@ class AdminAuthService extends GetxService {
   }
 
   Future<void> logout({bool showMessage = true}) async {
-    print('🚪 [AUTH] Logging out user: ${currentUser.value?.username}');
+    if (kDebugMode) {
+      debugPrint('🚪 [AUTH] Logging out user: ${currentUser.value?.username}');
+    }
     _clearAuthData();
 
     if (showMessage) {
@@ -296,7 +317,9 @@ class AdminAuthService extends GetxService {
     adminUsers.clear();
     _httpService.clearAuthorizationHeader();
 
-    print('🧹 [AUTH] Authentication data cleared');
+    if (kDebugMode) {
+      debugPrint('🧹 [AUTH] Authentication data cleared');
+    }
   }
 
   Future<ApiResponse<List<AdminUser>>> getAdminUsers() async {
@@ -359,7 +382,9 @@ class AdminAuthService extends GetxService {
         );
       }
     } catch (e) {
-      print('❌ [AUTH] Get admin users error: $e');
+      if (kDebugMode) {
+        debugPrint('❌ [AUTH] Get admin users error: $e');
+      }
       return ApiResponse(
         success: false,
         message: 'Network error occurred while loading users',
@@ -431,7 +456,9 @@ class AdminAuthService extends GetxService {
         );
       }
     } catch (e) {
-      print('❌ [AUTH] Create admin user error: $e');
+      if (kDebugMode) {
+        debugPrint('❌ [AUTH] Create admin user error: $e');
+      }
       return ApiResponse(
         success: false,
         message: 'Failed to create user: $e',
@@ -510,7 +537,9 @@ class AdminAuthService extends GetxService {
         );
       }
     } catch (e) {
-      print('❌ [AUTH] Update admin user error: $e');
+      if (kDebugMode) {
+        debugPrint('❌ [AUTH] Update admin user error: $e');
+      }
       return ApiResponse(
         success: false,
         message: 'Failed to update user: $e',
@@ -587,7 +616,9 @@ class AdminAuthService extends GetxService {
         );
       }
     } catch (e) {
-      print('❌ [AUTH] Delete admin user error: $e');
+      if (kDebugMode) {
+        debugPrint('❌ [AUTH] Delete admin user error: $e');
+      }
       return ApiResponse(
         success: false,
         message: 'Failed to delete user: $e',
@@ -630,7 +661,7 @@ class AdminAuthService extends GetxService {
     }
 
     // For other models with createdBy field
-    if (item is dynamic && item.createdBy != null) {
+    if (item.createdBy != null) {
       return item.createdBy.toString() == currentUserId;
     }
 

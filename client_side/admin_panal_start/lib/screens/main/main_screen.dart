@@ -18,7 +18,6 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  bool _dataInitialized = false;
   final AdminAuthService _authService = Get.find<AdminAuthService>();
   Timer? _refreshTimer;
 
@@ -36,17 +35,19 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
         Get.offAllNamed('/login');
         return;
       }
-      _initializeData();
+      _refreshCurrentScreenData();
     });
   }
 
-  void _initializeData() {
-    if (!_dataInitialized) {
-      final dataProvider = Provider.of<DataProvider>(context, listen: false);
-      dataProvider.testConnection();
-      dataProvider.initializeAppData();
-      _dataInitialized = true;
-    }
+  void _refreshCurrentScreenData({bool force = false}) {
+    if (!mounted || !_authService.isLoggedIn.value) return;
+
+    final dataProvider = context.read<DataProvider>();
+    final mainScreenProvider = context.read<MainScreenProvider>();
+    dataProvider.refreshScreenData(
+      mainScreenProvider.currentScreenName,
+      forceRefresh: force,
+    );
   }
 
   void _startAutoRefresh() {
@@ -60,10 +61,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
   }
 
   void _refreshAppData({bool force = false}) {
-    if (!mounted || !_authService.isLoggedIn.value) return;
-
-    final dataProvider = context.read<DataProvider>();
-    dataProvider.initializeAppData(forceRefresh: force);
+    _refreshCurrentScreenData(force: force);
   }
 
   @override

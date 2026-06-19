@@ -70,41 +70,17 @@ class DataProvider extends ChangeNotifier {
   DataProvider();
 
   void initializeAppData({bool forceRefresh = false}) {
-    _initializeData(forceRefresh: forceRefresh);
-  }
-
-  Future<void> _initializeData({bool forceRefresh = false}) async {
-    if (_isInitializing) return;
-
-    try {
-      _isInitializing = true;
-      _isLoading = true;
-      notifyListeners();
-
-      await Future.wait([
-        getAllProduct(),
-        getAllVariant(),
-        getAllCategory(),
-        getAllSubCategory(),
-        getAllBrands(),
-        getAllVariantType(),
-        getAllPosters(),
-        getAllOrders(),
-        getAllNotifications(),
-      ], eagerError: false);
-      debugDataState();
-    } catch (e) {
-      if (kDebugMode) {
-        print('❌ Error initializing DataProvider: $e');
-      }
-    } finally {
-      _isLoading = false;
-      _isInitializing = false;
-      notifyListeners();
-    }
+    refreshScreenData('Dashboard', forceRefresh: forceRefresh);
   }
 
   Future<void> initializeData({bool forceRefresh = false}) async {
+    await refreshScreenData('Dashboard', forceRefresh: forceRefresh);
+  }
+
+  Future<void> refreshScreenData(
+    String screenName, {
+    bool forceRefresh = false,
+  }) async {
     if (_isInitializing) return;
 
     try {
@@ -115,24 +91,47 @@ class DataProvider extends ChangeNotifier {
 
       if (!_authService.isLoggedIn.value) {
         _errorMessage = 'Authentication required. Please login first.';
-        _isLoading = false;
-        notifyListeners();
         return;
       }
 
-      // Load all necessary data sequentially to ensure dependencies
-      await getAllCategory();
-      await getAllSubCategory();
-      await getAllBrands();
-      await getAllVariantType();
-      await getAllVariant();
-      await getAllProduct();
+      final normalizedScreen = screenName.toLowerCase();
 
-      debugDataState();
-    } catch (e) {
-      _errorMessage = 'Failed to initialize data: ${e.toString()}';
+      if (normalizedScreen == 'dashboard') {
+        await Future.wait([
+          getAllProduct(),
+          getAllCategory(),
+          getAllSubCategory(),
+          getAllBrands(),
+          getAllVariantType(),
+        ], eagerError: false);
+      } else if (normalizedScreen == 'order' ||
+          normalizedScreen == 'paymentverification') {
+        await getAllOrders();
+      } else if (normalizedScreen == 'category') {
+        await getAllCategory();
+      } else if (normalizedScreen == 'subcategory') {
+        await getAllSubCategory();
+      } else if (normalizedScreen == 'brands') {
+        await getAllBrands();
+      } else if (normalizedScreen == 'varianttype') {
+        await getAllVariantType();
+      } else if (normalizedScreen == 'variants') {
+        await getAllVariant();
+      } else if (normalizedScreen == 'poster') {
+        await getAllPosters();
+      } else if (normalizedScreen == 'notifications') {
+        await getAllNotifications();
+      } else if (normalizedScreen == 'ratings') {
+        await getAllProduct();
+      }
+
       if (kDebugMode) {
-        print('❌ Error initializing DataProvider: $e');
+        debugDataState();
+      }
+    } catch (e) {
+      _errorMessage = 'Failed to refresh data: ${e.toString()}';
+      if (kDebugMode) {
+        print('❌ Error refreshing DataProvider: $e');
       }
     } finally {
       _isLoading = false;
@@ -178,15 +177,19 @@ class DataProvider extends ChangeNotifier {
   void testConnectivity() async {
     try {
       final response = await service.getItems(endpointUrl: 'health');
-      print('🔗 Connection test: ${response.statusCode}');
+      if (kDebugMode) {
+        print('🔗 Connection test: ${response.statusCode}');
+      }
     } catch (e) {
-      print('🔗 Connection test failed: $e');
+      if (kDebugMode) {
+        print('🔗 Connection test failed: $e');
+      }
     }
   }
 
   void testConnection() async {
     try {
-      final response = await service.getItems(endpointUrl: 'health');
+      await service.getItems(endpointUrl: 'health');
     } catch (e) {
       if (kDebugMode) {
         print('Connection test failed: $e');
@@ -206,7 +209,7 @@ class DataProvider extends ChangeNotifier {
         final data = response.body;
         if (data is Map) {
           if (data['data'] is List) {
-            final products = data['data'] as List;
+            final _ = data['data'] as List;
           }
         }
       }
@@ -1069,7 +1072,7 @@ class DataProvider extends ChangeNotifier {
   }
 
   Future<void> refreshAllData({bool showSnack = false}) async {
-    await initializeData(forceRefresh: true);
+    await refreshScreenData('Dashboard', forceRefresh: true);
     if (showSnack) {
       SnackBarHelper.showSuccessSnackBar('Data refreshed successfully');
     }
