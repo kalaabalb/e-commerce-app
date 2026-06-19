@@ -9,6 +9,8 @@ import 'components/side_menu.dart';
 import 'provider/main_screen_provider.dart';
 
 class MainScreen extends StatefulWidget {
+  const MainScreen({super.key});
+
   @override
   State<MainScreen> createState() => _MainScreenState();
 }
@@ -27,7 +29,6 @@ class _MainScreenState extends State<MainScreen> {
   void _checkAuthentication() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!_authService.isLoggedIn.value) {
-        print('🔐 User not authenticated, redirecting to login');
         Get.offAllNamed('/login');
         return;
       }
@@ -38,7 +39,6 @@ class _MainScreenState extends State<MainScreen> {
   void _initializeData() {
     if (!_dataInitialized) {
       final dataProvider = Provider.of<DataProvider>(context, listen: false);
-      print('🚀 Initializing app data from MainScreen...');
       dataProvider.testConnection();
       dataProvider.initializeAppData();
       _dataInitialized = true;
@@ -47,13 +47,10 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Check authentication status
     if (!_authService.isLoggedIn.value) {
-      return Scaffold(
+      return const Scaffold(
         backgroundColor: bgColor,
-        body: Center(
-          child: CircularProgressIndicator(),
-        ),
+        body: Center(child: CircularProgressIndicator()),
       );
     }
 
@@ -62,12 +59,40 @@ class _MainScreenState extends State<MainScreen> {
       backgroundColor: bgColor,
       appBar: ResponsiveUtils.isMobile(context)
           ? AppBar(
-              title: Text('Admin Panel'),
+              title: Consumer<MainScreenProvider>(
+                builder: (context, provider, child) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text(
+                        'Admin Panel',
+                        style: TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                      Text(
+                        provider.currentScreenName,
+                        style: const TextStyle(
+                            fontSize: 12, color: Colors.white70),
+                      ),
+                    ],
+                  );
+                },
+              ),
               backgroundColor: secondaryColor,
+              elevation: 0,
               leading: IconButton(
-                icon: Icon(Icons.menu),
+                icon: const Icon(Icons.menu),
                 onPressed: () => _scaffoldKey.currentState?.openDrawer(),
               ),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.logout),
+                  onPressed: () async {
+                    await _authService.logout();
+                    Get.offAllNamed('/login');
+                  },
+                ),
+              ],
             )
           : null,
       drawer: ResponsiveUtils.isMobile(context)
@@ -96,7 +121,7 @@ class _MainScreenState extends State<MainScreen> {
   Widget _buildMobileDrawer(BuildContext context) {
     return Drawer(
       backgroundColor: secondaryColor,
-      width: MediaQuery.of(context).size.width * 0.8,
+      width: MediaQuery.of(context).size.width * 0.88,
       child: SideMenu(
         onItemSelected: () {
           if (_scaffoldKey.currentState?.isDrawerOpen ?? false) {
@@ -108,7 +133,7 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   Widget _buildDesktopSidebar(BuildContext context) {
-    return Container(
+    return SizedBox(
       width: ResponsiveUtils.isTablet(context) ? 80 : 250,
       child: SideMenu(
         onItemSelected: () {},

@@ -1,55 +1,80 @@
 import 'package:admin_panal_start/services/admin_auth_service.dart';
 import 'package:admin_panal_start/utility/constants.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../utility/extensions.dart';
-import 'package:flutter/material.dart';
 
 class SideMenu extends StatelessWidget {
   final VoidCallback onItemSelected;
   final bool compact;
 
   const SideMenu({
-    Key? key,
+    super.key,
     required this.onItemSelected,
     this.compact = false,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
     final AdminAuthService adminAuthService = Get.find<AdminAuthService>();
+    final currentScreen = context.mainScreenProvider.currentScreenName;
+    final isMobile = MediaQuery.of(context).size.width < 600;
 
     return Container(
       width: compact ? 80 : null,
       color: secondaryColor,
       child: ListView(
+        padding: EdgeInsets.zero,
         shrinkWrap: true,
-        physics: ClampingScrollPhysics(),
+        physics: const ClampingScrollPhysics(),
         children: [
-          if (compact)
-            Container(
-              padding: EdgeInsets.all(defaultPadding / 2),
-              child: Image.asset("assets/images/logo.png", height: 40),
-            )
-          else
-            Container(
-              padding: EdgeInsets.all(defaultPadding - 4),
-              height: 110,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    height: 45,
-                    child: Image.asset(
-                      "assets/images/logo.png",
-                      fit: BoxFit.contain,
-                    ),
-                  ),
-                  SizedBox(height: 4),
+          Container(
+            padding: EdgeInsets.fromLTRB(
+              compact ? 12 : 16,
+              compact ? 16 : 28,
+              compact ? 12 : 16,
+              20,
+            ),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Colors.white.withOpacity(0.06),
+                  Colors.transparent,
                 ],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
               ),
             ),
-          _buildMenuItems(context),
+            child: compact
+                ? Image.asset("assets/images/logo.png", height: 40)
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Image.asset(
+                        "assets/images/logo.png",
+                        height: isMobile ? 44 : 52,
+                        fit: BoxFit.contain,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        "Marketplace Admin",
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        adminAuthService.currentAdmin?.name ?? "Administrator",
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: Colors.white70,
+                            ),
+                      ),
+                    ],
+                  ),
+          ),
+          _buildMenuItems(context, currentScreen),
           DrawerListTile(
             title: "Logout",
             icon: Icons.logout,
@@ -63,7 +88,7 @@ class SideMenu extends StatelessWidget {
     );
   }
 
-  Widget _buildMenuItems(BuildContext context) {
+  Widget _buildMenuItems(BuildContext context, String currentScreen) {
     final authService = Get.find<AdminAuthService>();
     final menuItems = [
       {"title": "Dashboard", "icon": Icons.dashboard, "screen": "Dashboard"},
@@ -106,16 +131,19 @@ class SideMenu extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: menuItems
-          .map((item) => DrawerListTile(
-                title: item["title"] as String,
-                icon: item["icon"] as IconData,
-                compact: compact,
-                press: () {
-                  context.mainScreenProvider
-                      .navigateToScreen(item["screen"] as String);
-                  onItemSelected();
-                },
-              ))
+          .map(
+            (item) => DrawerListTile(
+              title: item["title"] as String,
+              icon: item["icon"] as IconData,
+              compact: compact,
+              active: currentScreen == item["screen"],
+              press: () {
+                context.mainScreenProvider
+                    .navigateToScreen(item["screen"] as String);
+                onItemSelected();
+              },
+            ),
+          )
           .toList(),
     );
   }
@@ -127,18 +155,19 @@ class SideMenu extends StatelessWidget {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: secondaryColor,
-        title: Text(
+        title: const Text(
           "Logout",
           style: TextStyle(color: Colors.white),
         ),
-        content: Text(
+        content: const Text(
           "Are you sure you want to logout?",
           style: TextStyle(color: Colors.white70),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: Text("Cancel", style: TextStyle(color: Colors.white70)),
+            child:
+                const Text("Cancel", style: TextStyle(color: Colors.white70)),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -147,7 +176,7 @@ class SideMenu extends StatelessWidget {
               Get.offAllNamed('/login');
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: Text("Logout"),
+            child: const Text("Logout"),
           ),
         ],
       ),
@@ -157,30 +186,48 @@ class SideMenu extends StatelessWidget {
 
 class DrawerListTile extends StatelessWidget {
   const DrawerListTile({
-    Key? key,
+    super.key,
     required this.title,
     required this.press,
     this.compact = false,
+    this.active = false,
     required this.icon,
-  }) : super(key: key);
+  });
 
   final String title;
   final VoidCallback press;
   final bool compact;
+  final bool active;
   final IconData icon;
 
   @override
   Widget build(BuildContext context) {
     return ListTile(
       dense: true,
+      contentPadding: EdgeInsets.symmetric(
+        horizontal: compact ? 10 : 16,
+        vertical: 2,
+      ),
       onTap: press,
       horizontalTitleGap: compact ? 0.0 : 16.0,
-      leading: Icon(icon, color: Colors.white54, size: 16),
+      leading: Icon(
+        icon,
+        color: active ? Colors.white : Colors.white54,
+        size: compact ? 18 : 16,
+      ),
+      tileColor: active ? Colors.white.withOpacity(0.08) : null,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
       title: compact
           ? null
           : Text(
               title,
-              style: TextStyle(color: Colors.white54, fontSize: 13),
+              style: TextStyle(
+                color: active ? Colors.white : Colors.white54,
+                fontSize: 13,
+                fontWeight: active ? FontWeight.w600 : FontWeight.normal,
+              ),
             ),
     );
   }

@@ -30,7 +30,7 @@ class ResponsiveUtils {
   }
 
   static int getGridCrossAxisCount(BuildContext context) {
-    if (isMobile(context)) return 2;
+    if (isMobile(context)) return 1;
     if (isTablet(context)) return 3;
     return 4;
   }

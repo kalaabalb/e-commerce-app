@@ -12,27 +12,110 @@ class ResponsiveHeader extends StatelessWidget {
   final String? actionButtonText;
 
   const ResponsiveHeader({
-    Key? key,
+    super.key,
     required this.title,
     this.onSearch,
     this.actionButton,
     this.actionButtonText,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
     final AdminAuthService authService = Get.find<AdminAuthService>();
+    final isMobile = ResponsiveUtils.isMobile(context);
+
+    if (isMobile) {
+      return Obx(() {
+        final currentAdmin = authService.currentAdmin;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                CircleAvatar(
+                  radius: 18,
+                  backgroundColor: primaryColor,
+                  child: Text(
+                    currentAdmin?.name?.substring(0, 1).toUpperCase() ?? 'A',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                const Gap(12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                      ),
+                      const Gap(2),
+                      Text(
+                        currentAdmin?.name ?? 'Admin',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: Colors.white70,
+                            ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            if (onSearch != null) const Gap(12),
+            if (onSearch != null)
+              TextField(
+                onChanged: onSearch,
+                decoration: InputDecoration(
+                  hintText: "Search",
+                  filled: true,
+                  fillColor: secondaryColor,
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide.none,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  prefixIcon: const Icon(Icons.search, color: Colors.white54),
+                ),
+              ),
+            if (actionButton != null && actionButtonText != null) const Gap(12),
+            if (actionButton != null && actionButtonText != null)
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  onPressed: actionButton,
+                  icon: const Icon(Icons.add),
+                  label: Text(actionButtonText!),
+                ),
+              ),
+          ],
+        );
+      });
+    }
 
     return Row(
       children: [
         Expanded(
           child: Text(
             title,
-            style: Theme.of(context).textTheme.headlineSmall,
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
           ),
         ),
         if (onSearch != null) ...[
-          Expanded(
+          SizedBox(
+            width: 320,
             child: TextField(
               onChanged: onSearch,
               decoration: InputDecoration(
@@ -52,24 +135,19 @@ class ResponsiveHeader extends StatelessWidget {
         if (actionButton != null && actionButtonText != null) ...[
           ElevatedButton.icon(
             style: TextButton.styleFrom(
-              padding: EdgeInsets.symmetric(
-                horizontal: ResponsiveUtils.isMobile(context)
-                    ? defaultPadding
-                    : defaultPadding * 1.5,
-                vertical: ResponsiveUtils.isMobile(context)
-                    ? defaultPadding / 2
-                    : defaultPadding,
+              padding: const EdgeInsets.symmetric(
+                horizontal: defaultPadding * 1.5,
+                vertical: defaultPadding,
               ),
             ),
             onPressed: actionButton,
             icon: const Icon(Icons.add),
             label: Text(actionButtonText!),
           ),
-          Gap(ResponsiveUtils.isMobile(context) ? 8 : 20),
+          const Gap(20),
         ],
-        // User info section
         Obx(() {
-          final currentAdmin = authService.currentAdmin; // This should work now
+          final currentAdmin = authService.currentAdmin;
           return Row(
             children: [
               CircleAvatar(
@@ -79,30 +157,28 @@ class ResponsiveHeader extends StatelessWidget {
                   style: const TextStyle(color: Colors.white),
                 ),
               ),
-              if (!ResponsiveUtils.isMobile(context)) ...[
-                const Gap(8),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      currentAdmin?.name ?? 'Admin',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                      ),
+              const Gap(8),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    currentAdmin?.name ?? 'Admin',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
                     ),
-                    Text(
-                      currentAdmin?.clearanceLevel?.replaceAll('_', ' ') ??
-                          'Admin',
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 12,
-                      ),
+                  ),
+                  Text(
+                    currentAdmin?.clearanceLevel?.replaceAll('_', ' ') ??
+                        'Admin',
+                    style: const TextStyle(
+                      color: Colors.white70,
+                      fontSize: 12,
                     ),
-                  ],
-                ),
-              ],
+                  ),
+                ],
+              ),
             ],
           );
         }),
