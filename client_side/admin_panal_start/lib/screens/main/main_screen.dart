@@ -5,6 +5,7 @@ import 'package:admin_panal_start/utility/responsive_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:provider/provider.dart';
+import 'dart:async';
 import 'components/side_menu.dart';
 import 'provider/main_screen_provider.dart';
 
@@ -15,15 +16,18 @@ class MainScreen extends StatefulWidget {
   State<MainScreen> createState() => _MainScreenState();
 }
 
-class _MainScreenState extends State<MainScreen> {
+class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   bool _dataInitialized = false;
   final AdminAuthService _authService = Get.find<AdminAuthService>();
+  Timer? _refreshTimer;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _checkAuthentication();
+    _startAutoRefresh();
   }
 
   void _checkAuthentication() {
@@ -43,6 +47,37 @@ class _MainScreenState extends State<MainScreen> {
       dataProvider.initializeAppData();
       _dataInitialized = true;
     }
+  }
+
+  void _startAutoRefresh() {
+    _refreshTimer?.cancel();
+    _refreshTimer = Timer.periodic(const Duration(seconds: 75), (_) {
+      if (!mounted || !_authService.isLoggedIn.value) {
+        return;
+      }
+      _refreshAppData();
+    });
+  }
+
+  void _refreshAppData({bool force = false}) {
+    if (!mounted || !_authService.isLoggedIn.value) return;
+
+    final dataProvider = context.read<DataProvider>();
+    dataProvider.initializeAppData(forceRefresh: force);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _refreshAppData(force: true);
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _refreshTimer?.cancel();
+    super.dispose();
   }
 
   @override

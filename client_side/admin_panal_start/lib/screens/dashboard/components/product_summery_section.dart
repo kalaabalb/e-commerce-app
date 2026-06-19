@@ -82,8 +82,8 @@ class ProductSummerySection extends StatelessWidget {
   }
 
   double _getAspectRatio(BuildContext context) {
-    if (ResponsiveUtils.isMobile(context)) return 1.2;
-    if (ResponsiveUtils.isTablet(context)) return 1.3;
-    return 1.4;
+    if (ResponsiveUtils.isMobile(context)) return 1.75;
+    if (ResponsiveUtils.isTablet(context)) return 1.45;
+    return 1.5;
   }
 }

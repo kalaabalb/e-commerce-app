@@ -2,7 +2,9 @@ import 'package:admin_panal_start/services/admin_auth_service.dart';
 import 'package:admin_panal_start/utility/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:provider/provider.dart';
 import '../../../utility/extensions.dart';
+import '../provider/main_screen_provider.dart';
 
 class SideMenu extends StatelessWidget {
   final VoidCallback onItemSelected;
@@ -17,7 +19,6 @@ class SideMenu extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final AdminAuthService adminAuthService = Get.find<AdminAuthService>();
-    final currentScreen = context.mainScreenProvider.currentScreenName;
     final isMobile = MediaQuery.of(context).size.width < 600;
 
     return Container(
@@ -74,7 +75,11 @@ class SideMenu extends StatelessWidget {
                     ],
                   ),
           ),
-          _buildMenuItems(context, currentScreen),
+          Consumer<MainScreenProvider>(
+            builder: (context, provider, _) {
+              return _buildMenuItems(context, provider.currentScreenName);
+            },
+          ),
           DrawerListTile(
             title: "Logout",
             icon: Icons.logout,
@@ -202,11 +207,13 @@ class DrawerListTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final selectedColor = Colors.white.withOpacity(0.10);
+
     return ListTile(
       dense: true,
       contentPadding: EdgeInsets.symmetric(
         horizontal: compact ? 10 : 16,
-        vertical: 2,
+        vertical: compact ? 2 : 4,
       ),
       onTap: press,
       horizontalTitleGap: compact ? 0.0 : 16.0,
@@ -215,10 +222,20 @@ class DrawerListTile extends StatelessWidget {
         color: active ? Colors.white : Colors.white54,
         size: compact ? 18 : 16,
       ),
-      tileColor: active ? Colors.white.withOpacity(0.08) : null,
+      tileColor: active ? selectedColor : null,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10),
       ),
+      trailing: active
+          ? Container(
+              width: 4,
+              height: 24,
+              decoration: BoxDecoration(
+                color: primaryColor,
+                borderRadius: BorderRadius.circular(99),
+              ),
+            )
+          : null,
       title: compact
           ? null
           : Text(

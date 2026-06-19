@@ -1,4 +1,3 @@
-import 'package:admin_panal_start/utility/extensions.dart';
 import 'package:admin_panal_start/utility/responsive_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
@@ -35,9 +34,11 @@ class DashboardScreen extends StatelessWidget {
   }
 
   Widget _buildHeroStrip(BuildContext context) {
+    final isMobile = ResponsiveUtils.isMobile(context);
+
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(18),
+      padding: EdgeInsets.all(isMobile ? 14 : 18),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           colors: [Color(0xFF142B57), Color(0xFF0F172A)],
@@ -55,26 +56,30 @@ class DashboardScreen extends StatelessWidget {
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   color: Colors.white,
                   fontWeight: FontWeight.w700,
+                  fontSize: isMobile ? 14 : null,
                 ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: isMobile ? 6 : 8),
           Text(
-            'Fast actions for products, order handling, and catalog maintenance.',
+            'Fast actions for products, orders, and catalog updates.',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Colors.white70,
                   height: 1.4,
+                  fontSize: isMobile ? 12.5 : null,
                 ),
           ),
-          const SizedBox(height: 14),
-          Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            children: const [
-              _DashboardChip(label: 'Touch friendly'),
-              _DashboardChip(label: 'Responsive tables'),
-              _DashboardChip(label: 'Role based access'),
-            ],
-          ),
+          if (!isMobile) ...[
+            const SizedBox(height: 14),
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: const [
+                _DashboardChip(label: 'Touch friendly'),
+                _DashboardChip(label: 'Responsive tables'),
+                _DashboardChip(label: 'Role based access'),
+              ],
+            ),
+          ],
         ],
       ),
     );
@@ -86,7 +91,6 @@ class DashboardScreen extends StatelessWidget {
         _ActionBar(
           title: 'My Products',
           onAdd: () => showAddProductForm(context, null),
-          onRefresh: () => context.dataProvider.getAllProduct(showSnack: true),
           compact: true,
         ),
         const Gap(defaultPadding),
@@ -110,8 +114,6 @@ class DashboardScreen extends StatelessWidget {
               _ActionBar(
                 title: 'My Products',
                 onAdd: () => showAddProductForm(context, null),
-                onRefresh: () =>
-                    context.dataProvider.getAllProduct(showSnack: true),
               ),
               const Gap(defaultPadding),
               const ProductSummerySection(),
@@ -131,13 +133,13 @@ class _ActionBar extends StatelessWidget {
   const _ActionBar({
     required this.title,
     required this.onAdd,
-    required this.onRefresh,
+    this.onRefresh,
     this.compact = false,
   });
 
   final String title;
   final VoidCallback onAdd;
-  final VoidCallback onRefresh;
+  final VoidCallback? onRefresh;
   final bool compact;
 
   @override
@@ -169,11 +171,13 @@ class _ActionBar extends StatelessWidget {
                         label: const Text('Add'),
                       ),
                     ),
-                    const SizedBox(width: 10),
-                    IconButton(
-                      onPressed: onRefresh,
-                      icon: const Icon(Icons.refresh),
-                    ),
+                    if (onRefresh != null) ...[
+                      const SizedBox(width: 10),
+                      IconButton(
+                        onPressed: onRefresh,
+                        icon: const Icon(Icons.sync),
+                      ),
+                    ],
                   ],
                 ),
               ],
@@ -193,11 +197,13 @@ class _ActionBar extends StatelessWidget {
                   icon: const Icon(Icons.add),
                   label: const Text('Add New'),
                 ),
-                const SizedBox(width: 12),
-                IconButton(
-                  onPressed: onRefresh,
-                  icon: const Icon(Icons.refresh),
-                ),
+                if (onRefresh != null) ...[
+                  const SizedBox(width: 12),
+                  IconButton(
+                    onPressed: onRefresh,
+                    icon: const Icon(Icons.sync),
+                  ),
+                ],
               ],
             ),
     );
