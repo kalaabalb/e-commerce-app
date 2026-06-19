@@ -38,9 +38,9 @@ class _LoginScreenState extends State<LoginScreen> {
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              Color(0xFF0F172A),
-              Color(0xFF111827),
-              Color(0xFF1E293B),
+              Color(0xFF091120),
+              Color(0xFF0D1630),
+              Color(0xFF101B36),
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -49,17 +49,14 @@ class _LoginScreenState extends State<LoginScreen> {
         child: SafeArea(
           child: Center(
             child: SingleChildScrollView(
-              padding: EdgeInsets.symmetric(
-                horizontal: isMobile ? 16 : 24,
-                vertical: 24,
-              ),
+              padding: const EdgeInsets.all(18),
               child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 980),
+                constraints: const BoxConstraints(maxWidth: 1120),
                 child: Container(
                   decoration: BoxDecoration(
-                    color: secondaryColor.withOpacity(0.92),
-                    borderRadius: BorderRadius.circular(isMobile ? 24 : 28),
-                    border: Border.all(color: Colors.white.withOpacity(0.08)),
+                    borderRadius: BorderRadius.circular(28),
+                    color: surfaceColor.withOpacity(0.82),
+                    border: Border.all(color: borderColor),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withOpacity(0.35),
@@ -85,12 +82,12 @@ class _LoginScreenState extends State<LoginScreen> {
     return Row(
       children: [
         Expanded(
-          flex: 5,
+          flex: 6,
           child: Container(
             padding: const EdgeInsets.all(32),
             decoration: const BoxDecoration(
               gradient: LinearGradient(
-                colors: [Color(0xFF1D4ED8), Color(0xFF0F172A)],
+                colors: [Color(0xFF123A7B), Color(0xFF0E1730)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -99,26 +96,39 @@ class _LoginScreenState extends State<LoginScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _buildBrandBlock(context),
-                const SizedBox(height: 24),
+                _buildBrandRow(context),
+                const SizedBox(height: 36),
                 Text(
-                  'Manage catalog, orders, and content from one control center.',
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  'Operate the store with a clean control room, not a plain admin form.',
+                  style: Theme.of(context).textTheme.displaySmall?.copyWith(
                         color: Colors.white,
-                        fontWeight: FontWeight.w700,
-                        height: 1.15,
+                        fontWeight: FontWeight.w800,
+                        height: 1.08,
                       ),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 16),
+                Text(
+                  'Inventory, orders, categories, and moderation all sit in one responsive workspace that works on desktop and mobile.',
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        color: Colors.white70,
+                        height: 1.45,
+                      ),
+                ),
+                const SizedBox(height: 26),
                 Wrap(
                   spacing: 12,
                   runSpacing: 12,
                   children: const [
-                    _LoginStatChip(label: 'Products', value: 'Fast CRUD'),
-                    _LoginStatChip(label: 'Orders', value: 'Live updates'),
-                    _LoginStatChip(label: 'Users', value: 'Role aware'),
+                    _InfoPill(
+                        icon: Icons.space_dashboard, label: 'Live boards'),
+                    _InfoPill(
+                        icon: Icons.table_view_rounded, label: 'Fast tables'),
+                    _InfoPill(icon: Icons.phone_android, label: 'Mobile ready'),
+                    _InfoPill(icon: Icons.shield_outlined, label: 'Role aware'),
                   ],
                 ),
+                const SizedBox(height: 28),
+                const _LoginPreviewPanel(),
               ],
             ),
           ),
@@ -127,7 +137,7 @@ class _LoginScreenState extends State<LoginScreen> {
           flex: 4,
           child: Padding(
             padding: const EdgeInsets.all(28),
-            child: _buildLoginPanel(context),
+            child: _buildFormSurface(context),
           ),
         ),
       ],
@@ -138,49 +148,54 @@ class _LoginScreenState extends State<LoginScreen> {
     return Padding(
       padding: const EdgeInsets.all(18),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _buildBrandBlock(context, compact: true),
-          const SizedBox(height: 20),
+          _buildBrandRow(context, compact: true),
+          const SizedBox(height: 18),
           Text(
-            'Sign in to continue',
+            'Marketplace Admin',
             textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                   color: Colors.white,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w800,
                 ),
           ),
           const SizedBox(height: 8),
           Text(
-            'Use the admin account to manage your store from phone or desktop.',
+            'A responsive dashboard built for touch, scanning, and quick actions.',
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Colors.white70,
                   height: 1.4,
                 ),
           ),
-          const SizedBox(height: 20),
-          _buildLoginPanel(context),
+          const SizedBox(height: 18),
+          const _LoginPreviewPanel(compact: true),
+          const SizedBox(height: 18),
+          _buildFormSurface(context),
         ],
       ),
     );
   }
 
-  Widget _buildBrandBlock(BuildContext context, {bool compact = false}) {
+  Widget _buildBrandRow(BuildContext context, {bool compact = false}) {
     return Row(
       children: [
         Container(
-          width: compact ? 52 : 64,
-          height: compact ? 52 : 64,
+          width: compact ? 52 : 60,
+          height: compact ? 52 : 60,
           decoration: BoxDecoration(
-            color: primaryColor,
-            borderRadius: BorderRadius.circular(compact ? 16 : 20),
+            borderRadius: BorderRadius.circular(18),
+            gradient: const LinearGradient(
+              colors: [primaryColor, accentColor],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
           ),
           child: const Icon(
-            Icons.admin_panel_settings,
+            Icons.admin_panel_settings_rounded,
             color: Colors.white,
-            size: 32,
+            size: 30,
           ),
         ),
         const SizedBox(width: 14),
@@ -195,9 +210,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       fontWeight: FontWeight.w700,
                     ),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 2),
               Text(
-                'Store operations and content control',
+                'Store control center',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Colors.white70,
                     ),
@@ -209,11 +224,11 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildLoginPanel(BuildContext context) {
+  Widget _buildFormSurface(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: const Color(0xFF111827).withOpacity(0.75),
+        color: Colors.black.withOpacity(0.12),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: Colors.white.withOpacity(0.06)),
       ),
@@ -222,33 +237,29 @@ class _LoginScreenState extends State<LoginScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            if (!ResponsiveUtils.isMobile(context)) ...[
-              Text(
-                'Welcome back',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w700,
-                    ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Enter your admin credentials to continue.',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Colors.white70,
-                    ),
-              ),
-              const SizedBox(height: 24),
-            ],
+            Text(
+              'Sign in',
+              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w800,
+                  ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Use the admin account to manage catalog, content, and moderation.',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Colors.white70,
+                    height: 1.4,
+                  ),
+            ),
+            const SizedBox(height: 22),
             CustomTextField(
               controller: _usernameCtrl,
               labelText: 'Username',
-              prefixIcon: const Icon(Icons.person, color: Colors.white70),
+              prefixIcon: const Icon(Icons.person_outline_rounded),
               validator: (value) {
                 if (value == null || value.isEmpty) {
                   return 'Please enter username';
-                }
-                if (value.length < 3) {
-                  return 'Username must be at least 3 characters';
                 }
                 return null;
               },
@@ -258,13 +269,13 @@ class _LoginScreenState extends State<LoginScreen> {
               () => CustomTextField(
                 controller: _passwordCtrl,
                 labelText: 'Password',
-                prefixIcon: const Icon(Icons.lock, color: Colors.white70),
+                prefixIcon: const Icon(Icons.lock_outline_rounded),
                 obscureText: _obscurePassword.value,
                 suffixIcon: IconButton(
                   icon: Icon(
                     _obscurePassword.value
-                        ? Icons.visibility
-                        : Icons.visibility_off,
+                        ? Icons.visibility_outlined
+                        : Icons.visibility_off_outlined,
                     color: Colors.white70,
                   ),
                   onPressed: () => _obscurePassword.toggle(),
@@ -273,19 +284,14 @@ class _LoginScreenState extends State<LoginScreen> {
                   if (value == null || value.isEmpty) {
                     return 'Please enter password';
                   }
-                  if (value.length < 6) {
-                    return 'Password must be at least 6 characters';
-                  }
                   return null;
                 },
               ),
             ),
             const SizedBox(height: 18),
             Obx(() => _buildLoginButton()),
-            if (kDebugMode) ...[
-              const SizedBox(height: 18),
-              _buildDevelopmentHelper(),
-            ],
+            const SizedBox(height: 16),
+            _buildMiniNotes(context),
           ],
         ),
       ),
@@ -296,13 +302,10 @@ class _LoginScreenState extends State<LoginScreen> {
     return ElevatedButton(
       onPressed: _isLoading.value ? null : _handleLogin,
       style: ElevatedButton.styleFrom(
-        backgroundColor: primaryColor,
-        foregroundColor: Colors.white,
-        minimumSize: const Size(double.infinity, 52),
+        minimumSize: const Size.fromHeight(54),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(16),
         ),
-        elevation: 0,
       ),
       child: _isLoading.value
           ? const SizedBox(
@@ -320,30 +323,21 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildDevelopmentHelper() {
+  Widget _buildMiniNotes(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.orange.withOpacity(0.08),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.orange.withOpacity(0.25)),
+        color: Colors.white.withOpacity(0.04),
+        borderRadius: BorderRadius.circular(16),
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(Icons.developer_mode, color: Colors.orange.shade300, size: 18),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              'Development credentials are prefilled in debug mode.',
-              style: TextStyle(
-                color: Colors.orange.shade200,
-                fontSize: 12,
-                height: 1.35,
-              ),
+      child: Text(
+        kDebugMode
+            ? 'Debug mode pre-fills the admin account so you can test fast.'
+            : 'Use your admin credentials to continue.',
+        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Colors.white70,
+              height: 1.4,
             ),
-          ),
-        ],
       ),
     );
   }
@@ -352,9 +346,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     final adminAuthService = Get.find<AdminAuthService>();
-
     FocusScope.of(context).unfocus();
-
     _isLoading.value = true;
 
     try {
@@ -402,14 +394,11 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 }
 
-class _LoginStatChip extends StatelessWidget {
-  const _LoginStatChip({
-    required this.label,
-    required this.value,
-  });
+class _InfoPill extends StatelessWidget {
+  const _InfoPill({required this.icon, required this.label});
 
+  final IconData icon;
   final String label;
-  final String value;
 
   @override
   Widget build(BuildContext context) {
@@ -418,29 +407,193 @@ class _LoginStatChip extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.08),
         borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: Colors.white.withOpacity(0.08)),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
+          Icon(icon, size: 15, color: Colors.white),
+          const SizedBox(width: 8),
           Text(
             label,
             style: const TextStyle(
-              color: Colors.white70,
-              fontSize: 11,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            value,
-            style: const TextStyle(
               color: Colors.white,
-              fontWeight: FontWeight.w700,
-              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              fontSize: 12,
             ),
           ),
         ],
       ),
+    );
+  }
+}
+
+class _LoginPreviewPanel extends StatelessWidget {
+  const _LoginPreviewPanel({this.compact = false});
+
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    final items = [
+      _PreviewMetric(
+        label: 'Products',
+        value: '128',
+        accent: primaryColor,
+      ),
+      _PreviewMetric(
+        label: 'Orders',
+        value: '42',
+        accent: accentColor,
+      ),
+      _PreviewMetric(
+        label: 'Alerts',
+        value: '05',
+        accent: warningColor,
+      ),
+    ];
+
+    return Container(
+      padding: EdgeInsets.all(compact ? 16 : 18),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.06),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: Colors.white.withOpacity(0.08)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: const [
+              Icon(Icons.layers_rounded, color: Colors.white, size: 18),
+              SizedBox(width: 10),
+              Text(
+                'Live admin snapshot',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: items,
+          ),
+          const SizedBox(height: 16),
+          Column(
+            children: [
+              _SignalBar(label: 'Sales', value: 78, color: primaryColor),
+              const SizedBox(height: 10),
+              _SignalBar(label: 'Returns', value: 22, color: dangerColor),
+              const SizedBox(height: 10),
+              _SignalBar(label: 'Traffic', value: 92, color: accentColor),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PreviewMetric extends StatelessWidget {
+  const _PreviewMetric({
+    required this.label,
+    required this.value,
+    required this.accent,
+  });
+
+  final String label;
+  final String value;
+  final Color accent;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 108,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.black.withOpacity(0.14),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: accent.withOpacity(0.25)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(color: Colors.white70, fontSize: 11),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: TextStyle(
+              color: accent,
+              fontSize: 24,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SignalBar extends StatelessWidget {
+  const _SignalBar({
+    required this.label,
+    required this.value,
+    required this.color,
+  });
+
+  final String label;
+  final int value;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        SizedBox(
+          width: 72,
+          child: Text(
+            label,
+            style: const TextStyle(color: Colors.white70, fontSize: 12),
+          ),
+        ),
+        Expanded(
+          child: Container(
+            height: 10,
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.06),
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: FractionallySizedBox(
+                widthFactor: value / 100,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: color,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 10),
+        SizedBox(
+          width: 28,
+          child: Text(
+            '$value%',
+            textAlign: TextAlign.end,
+            style: const TextStyle(color: Colors.white, fontSize: 11),
+          ),
+        ),
+      ],
     );
   }
 }

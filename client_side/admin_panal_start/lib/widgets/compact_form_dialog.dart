@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:gap/gap.dart';
 import '../utility/responsive_utils.dart';
+import '../utility/constants.dart';
 
 class CompactFormDialog extends StatelessWidget {
   final String title;
@@ -19,62 +21,94 @@ class CompactFormDialog extends StatelessWidget {
 
     return Dialog(
       backgroundColor: Colors.transparent,
-      insetPadding: EdgeInsets.all(isMobile ? 16 : 24),
+      insetPadding: EdgeInsets.all(isMobile ? 14 : 24),
       child: ConstrainedBox(
         constraints: BoxConstraints(
-          maxWidth: maxWidth ?? (isMobile ? double.infinity : 600),
-          maxHeight:
-              MediaQuery.of(context).size.height * 0.95, // Increased max height
+          maxWidth: maxWidth ?? (isMobile ? double.infinity : 760),
+          maxHeight: MediaQuery.of(context).size.height * 0.95,
         ),
         child: Container(
           decoration: BoxDecoration(
-            color: Color(0xFF2A2D3E),
-            borderRadius: BorderRadius.circular(12),
+            gradient: LinearGradient(
+              colors: [
+                surfaceColor,
+                surfaceColor.withOpacity(0.96),
+              ],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: borderColor),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.3),
+                blurRadius: 28,
+                offset: const Offset(0, 18),
+              ),
+            ],
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Compact header
               Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12, // Reduced vertical padding
-                ),
+                padding: const EdgeInsets.fromLTRB(20, 18, 14, 16),
                 decoration: BoxDecoration(
-                  color: Color(0xFF212332),
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(12),
-                    topRight: Radius.circular(12),
+                  border: Border(
+                    bottom: BorderSide(color: Colors.white.withOpacity(0.06)),
                   ),
                 ),
                 child: Row(
                   children: [
-                    Expanded(
-                      child: Text(
-                        title,
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [primaryColor, accentColor],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child:
+                          const Icon(Icons.layers_rounded, color: Colors.white),
+                    ),
+                    const Gap(14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            title,
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const Gap(2),
+                          Text(
+                            'Structured form with mobile-friendly spacing',
+                            style:
+                                Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: Colors.white70,
+                                    ),
+                          ),
+                        ],
                       ),
                     ),
                     IconButton(
-                      icon: Icon(Icons.close, color: Colors.white70, size: 20),
+                      icon: const Icon(Icons.close, color: Colors.white70),
                       onPressed: () => Navigator.of(context).pop(),
-                      padding: EdgeInsets.zero,
-                      constraints: BoxConstraints(minWidth: 32, minHeight: 32),
                     ),
                   ],
                 ),
               ),
-
-              // Form content with flexible space
-              Expanded(
-                child: child,
-              ),
+              Flexible(child: child),
             ],
           ),
         ),
