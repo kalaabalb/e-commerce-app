@@ -37,17 +37,26 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ),
         child: SafeArea(
-          child: SingleChildScrollView(
-            padding: EdgeInsets.symmetric(
-              horizontal: isMobile ? 16 : 24,
-              vertical: 20,
-            ),
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 560),
-                child: _buildFormSurface(context, isMobile),
-              ),
-            ),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                padding: EdgeInsets.symmetric(
+                  horizontal: isMobile ? 16 : 24,
+                  vertical: 20,
+                ),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight: constraints.maxHeight - 40,
+                  ),
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 560),
+                      child: _buildFormSurface(context, isMobile),
+                    ),
+                  ),
+                ),
+              );
+            },
           ),
         ),
       ),
@@ -58,7 +67,7 @@ class _LoginScreenState extends State<LoginScreen> {
     return Container(
       padding: EdgeInsets.all(isMobile ? 20 : 26),
       decoration: BoxDecoration(
-        color: surfaceColor.withOpacity(0.94),
+        color: surfaceColor.withOpacity(0.96),
         gradient: const LinearGradient(
           colors: [
             Color(0xFF121A31),
@@ -182,16 +191,6 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             const Gap(18),
             Obx(() => _buildLoginButton()),
-            const Gap(14),
-            Text(
-              'This page only handles authentication. After sign in, the dashboard loads automatically.',
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Colors.white54,
-                    height: 1.4,
-                    fontStyle: FontStyle.italic,
-                  ),
-            ),
           ],
         ),
       ),

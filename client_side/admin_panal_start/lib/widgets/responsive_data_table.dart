@@ -41,11 +41,11 @@ class ResponsiveDataTable extends StatelessWidget {
             minWidth: MediaQuery.of(context).size.width,
           ),
           child: DataTable(
-            columnSpacing: 14,
-            horizontalMargin: 16,
+            columnSpacing: 10,
+            horizontalMargin: 12,
             headingRowHeight: 46,
-            dataRowMinHeight: dataRowMinHeight ?? 64,
-            dataRowMaxHeight: dataRowMaxHeight ?? 86,
+            dataRowMinHeight: dataRowMinHeight ?? 58,
+            dataRowMaxHeight: dataRowMaxHeight ?? 76,
             dividerThickness: 0.6,
             showBottomBorder: false,
             columns: columns,
@@ -92,7 +92,7 @@ class ResponsiveDataTable extends StatelessWidget {
             borderRadius: BorderRadius.circular(18),
             border: Border.all(color: borderColor),
           ),
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(10),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -101,62 +101,52 @@ class ResponsiveDataTable extends StatelessWidget {
                 const Gap(10),
                 _buildMobileImageField(imageField),
               ],
-              if (details.isNotEmpty) const Gap(10),
-              for (final field in details.take(2))
+              if (details.isNotEmpty) const Gap(8),
+              for (final field in details.take(1))
                 Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
+                  padding: const EdgeInsets.only(bottom: 6),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       SizedBox(
-                        width: 82,
+                        width: 68,
                         child: Text(
                           field.label,
                           style: TextStyle(
                             color: Colors.white.withOpacity(0.64),
                             fontWeight: FontWeight.w600,
-                            fontSize: 10.5,
+                            fontSize: 10,
                             height: 1.2,
                           ),
                         ),
                       ),
-                      const Gap(8),
+                      const Gap(6),
                       Expanded(
                           child: _buildMobileValue(field.cell, field.label)),
                     ],
                   ),
                 ),
-              if (details.length > 2)
+              if (details.length > 1)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 4),
                   child: Text(
-                    '+${details.length - 2} more',
+                    '+${details.length - 1} more',
                     style: TextStyle(
                       color: Colors.white.withOpacity(0.5),
-                      fontSize: 10.5,
+                      fontSize: 10,
                       fontStyle: FontStyle.italic,
                     ),
                   ),
                 ),
               if (actionFields.isNotEmpty) ...[
-                const Gap(10),
+                const Gap(8),
                 Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
+                  spacing: 6,
+                  runSpacing: 6,
                   children: actionFields
                       .map(
-                        (field) => Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.04),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: Colors.white.withOpacity(0.06),
-                            ),
-                          ),
+                        (field) => Padding(
+                          padding: const EdgeInsets.only(right: 2),
                           child: field.cell.child,
                         ),
                       )
@@ -262,8 +252,8 @@ class ResponsiveDataTable extends StatelessWidget {
     return DefaultTextStyle.merge(
       style: const TextStyle(
         color: Colors.white,
-        fontSize: 12.5,
-        height: 1.25,
+        fontSize: 12,
+        height: 1.2,
       ),
       child: child,
     );
@@ -276,18 +266,18 @@ class ResponsiveDataTable extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SizedBox(
-          width: 82,
+          width: 68,
           child: Text(
             field.label,
             style: TextStyle(
               color: Colors.white.withOpacity(0.64),
               fontWeight: FontWeight.w600,
-              fontSize: 10.5,
+              fontSize: 10,
               height: 1.2,
             ),
           ),
         ),
-        const Gap(8),
+        const Gap(6),
         ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 92, maxHeight: 68),
           child: ClipRRect(

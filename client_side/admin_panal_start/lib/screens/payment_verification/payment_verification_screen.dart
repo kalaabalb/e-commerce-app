@@ -116,7 +116,7 @@ class PaymentVerificationScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        "Order #${order.sId?.substring(order.sId!.length - 6) ?? 'N/A'}",
+                        "Order #${_shortOrderId(order.sId)}",
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
@@ -127,7 +127,7 @@ class PaymentVerificationScreen extends StatelessWidget {
                         style: TextStyle(color: Colors.white70),
                       ),
                       Text(
-                        "Amount: \$${order.totalPrice?.toStringAsFixed(2) ?? '0.00'}",
+                        "Amount: ETB ${order.totalPrice?.toStringAsFixed(2) ?? '0.00'}",
                         style: TextStyle(color: Colors.white70),
                       ),
                       Text(
@@ -295,5 +295,10 @@ class PaymentVerificationScreen extends StatelessWidget {
     } catch (e) {
       return dateString;
     }
+  }
+
+  String _shortOrderId(String? orderId) {
+    if (orderId == null || orderId.isEmpty) return 'N/A';
+    return orderId.length > 6 ? orderId.substring(orderId.length - 6) : orderId;
   }
 }

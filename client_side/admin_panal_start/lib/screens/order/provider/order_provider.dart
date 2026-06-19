@@ -188,7 +188,7 @@ class OrderProvider extends ChangeNotifier {
             builder: (context) => AlertDialog(
               title: Text("Delete Order"),
               content: Text(
-                  "Are you sure you want to delete order #${order.sId?.substring(order.sId!.length - 6) ?? 'N/A'}? This action cannot be undone."),
+                  "Are you sure you want to delete order #${_shortOrderId(order.sId)}? This action cannot be undone."),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(false),
@@ -241,6 +241,11 @@ class OrderProvider extends ChangeNotifier {
 
   updateUI() {
     notifyListeners();
+  }
+
+  String _shortOrderId(String? orderId) {
+    if (orderId == null || orderId.isEmpty) return 'N/A';
+    return orderId.length > 6 ? orderId.substring(orderId.length - 6) : orderId;
   }
 
   @override

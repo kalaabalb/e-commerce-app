@@ -90,14 +90,6 @@ class CompactFormDialog extends StatelessWidget {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
-                          const Gap(2),
-                          Text(
-                            'Structured form with mobile-friendly spacing',
-                            style:
-                                Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: Colors.white70,
-                                    ),
-                          ),
                         ],
                       ),
                     ),

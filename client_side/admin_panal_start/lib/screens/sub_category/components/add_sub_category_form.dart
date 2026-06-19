@@ -137,11 +137,13 @@ class SubCategorySubmitForm extends StatelessWidget {
 }
 
 void showAddSubCategoryForm(BuildContext context, SubCategory? subCategory) {
+  final isEditing = subCategory != null;
+
   showDialog(
     context: context,
     builder: (BuildContext context) {
       return CompactFormDialog(
-        title: 'Add Sub Category',
+        title: isEditing ? 'Edit Sub Category' : 'Add Sub Category',
         child: SubCategorySubmitForm(subCategory: subCategory),
       );
     },

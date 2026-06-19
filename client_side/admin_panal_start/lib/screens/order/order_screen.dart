@@ -247,7 +247,7 @@ DataRow orderDataRow(Order orderInfo, int index,
         ),
       ),
       DataCell(Text(
-        '\$${orderInfo.totalPrice?.toStringAsFixed(2) ?? '0.00'}',
+        'ETB ${orderInfo.totalPrice?.toStringAsFixed(2) ?? '0.00'}',
         overflow: TextOverflow.ellipsis,
         maxLines: 1,
       )),
