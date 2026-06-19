@@ -18,7 +18,9 @@ class _VariantsScreenState extends State<VariantsScreen> {
     super.initState();
     // Auto-load variants when screen is created
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.dataProvider.getAllVariant();
+      if (context.dataProvider.variants.isEmpty) {
+        context.dataProvider.getAllVariant();
+      }
     });
   }
 

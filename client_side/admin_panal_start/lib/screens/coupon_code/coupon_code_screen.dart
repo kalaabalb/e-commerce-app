@@ -18,7 +18,9 @@ class _CouponCodeScreenState extends State<CouponCodeScreen> {
     super.initState();
     // Auto-load coupons when screen is created
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.dataProvider.getAllCoupons();
+      if (context.dataProvider.coupons.isEmpty) {
+        context.dataProvider.getAllCoupons();
+      }
     });
   }
 

@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 import 'package:admin_panal_start/services/admin_auth_service.dart';
 import '../../models/api_response.dart';
 import '../../models/coupon.dart';
@@ -10,7 +9,6 @@ import '../../models/product.dart';
 import '../../models/variant_type.dart';
 import '../../services/http_services.dart';
 import '../../utility/snack_bar_helper.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart' hide Category;
 import 'package:get/get.dart';
 import '../../../models/category.dart';
@@ -21,6 +19,7 @@ import '../../models/variant.dart';
 class DataProvider extends ChangeNotifier {
   HttpService service = HttpService();
   final AdminAuthService _authService = Get.find<AdminAuthService>();
+  bool _isInitializing = false;
 
   List<Category> _allCategories = [];
   List<Category> _filteredCategories = [];
@@ -68,20 +67,17 @@ class DataProvider extends ChangeNotifier {
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
 
-  DataProvider() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_authService.isLoggedIn.value) {
-        initializeData();
-      }
-    });
+  DataProvider();
+
+  void initializeAppData({bool forceRefresh = false}) {
+    _initializeData(forceRefresh: forceRefresh);
   }
 
-  void initializeAppData() {
-    _initializeData();
-  }
+  Future<void> _initializeData({bool forceRefresh = false}) async {
+    if (_isInitializing) return;
 
-  Future<void> _initializeData() async {
     try {
+      _isInitializing = true;
       _isLoading = true;
       notifyListeners();
 
@@ -97,7 +93,6 @@ class DataProvider extends ChangeNotifier {
         getAllOrders(),
         getAllNotifications(),
       ], eagerError: false);
-
       debugDataState();
     } catch (e) {
       if (kDebugMode) {
@@ -105,12 +100,16 @@ class DataProvider extends ChangeNotifier {
       }
     } finally {
       _isLoading = false;
+      _isInitializing = false;
       notifyListeners();
     }
   }
 
-  Future<void> initializeData() async {
+  Future<void> initializeData({bool forceRefresh = false}) async {
+    if (_isInitializing) return;
+
     try {
+      _isInitializing = true;
       _isLoading = true;
       _errorMessage = null;
       notifyListeners();
@@ -138,6 +137,7 @@ class DataProvider extends ChangeNotifier {
       }
     } finally {
       _isLoading = false;
+      _isInitializing = false;
       notifyListeners();
     }
   }
@@ -1070,7 +1070,7 @@ class DataProvider extends ChangeNotifier {
   }
 
   Future<void> refreshAllData({bool showSnack = false}) async {
-    await initializeData();
+    await initializeData(forceRefresh: true);
     if (showSnack) {
       SnackBarHelper.showSuccessSnackBar('Data refreshed successfully');
     }

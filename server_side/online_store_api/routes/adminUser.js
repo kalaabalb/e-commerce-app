@@ -73,10 +73,15 @@ router.post('/login', asyncHandler(async (req, res) => {
       updatedAt: adminUser.updatedAt
     };
 
+    const token = adminUser._id.toString();
+
     res.json({ 
       success: true, 
       message: "Login successful.", 
-      data: userResponse 
+      data: {
+        token,
+        user: userResponse
+      } 
     });
 
   } catch (error) {

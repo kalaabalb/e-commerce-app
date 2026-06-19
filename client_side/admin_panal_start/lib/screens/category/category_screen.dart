@@ -18,7 +18,9 @@ class _CategoryScreenState extends State<CategoryScreen> {
     super.initState();
     // Auto-load categories when screen is created
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.dataProvider.getAllCategory();
+      if (context.dataProvider.categories.isEmpty) {
+        context.dataProvider.getAllCategory();
+      }
     });
   }
 

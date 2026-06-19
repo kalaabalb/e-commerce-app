@@ -1,9 +1,7 @@
-import 'package:admin_panal_start/services/http_services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:provider/provider.dart';
 import '../../../services/admin_auth_service.dart';
 import '../../../utility/constants.dart';
 import '../../../widgets/custom_text_field.dart';
@@ -25,11 +23,6 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void initState() {
     super.initState();
-
-    // Test connection on app start
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _testConnection();
-    });
 
     // Auto-fill for development
     if (kDebugMode) {
@@ -77,17 +70,6 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       ),
     );
-  }
-
-  void _testConnection() async {
-    try {
-      final response =
-          await Get.find<HttpService>().getItems(endpointUrl: 'health');
-      print('🔗 Connection test response: ${response.statusCode}');
-      print('🔗 Response body: ${response.body}');
-    } catch (e) {
-      print('🔗 Connection test failed: $e');
-    }
   }
 
   void _clearCachedData() {

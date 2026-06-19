@@ -18,7 +18,9 @@ class _PosterScreenState extends State<PosterScreen> {
     super.initState();
     // Auto-load posters when screen is created
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.dataProvider.getAllPosters();
+      if (context.dataProvider.posters.isEmpty) {
+        context.dataProvider.getAllPosters();
+      }
     });
   }
 

@@ -1,6 +1,4 @@
-import 'dart:convert';
 import 'package:admin_panal_start/models/product.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
@@ -98,7 +96,7 @@ class AdminAuthService extends GetxService {
         }
 
         if (responseBody['success'] == true) {
-          final data = responseBody['data'] as Map<String, dynamic>?;
+          final data = responseBody['data'];
 
           if (data == null) {
             return ApiResponse(
@@ -108,10 +106,22 @@ class AdminAuthService extends GetxService {
             );
           }
 
-          final token = data['token'] as String?;
-          final userJson = data['user'] as Map<String, dynamic>?;
+          Map<String, dynamic>? userJson;
+          String? token;
 
-          if (token == null || userJson == null) {
+          if (data is Map<String, dynamic>) {
+            token = data['token']?.toString();
+
+            final nestedUser = data['user'];
+            if (nestedUser is Map<String, dynamic>) {
+              userJson = nestedUser;
+            } else if (data.containsKey('_id') ||
+                data.containsKey('username')) {
+              userJson = data;
+            }
+          }
+
+          if (userJson == null) {
             return ApiResponse(
               success: false,
               message: 'Incomplete login data. Please try again.',
@@ -120,6 +130,9 @@ class AdminAuthService extends GetxService {
           }
 
           final user = AdminUser.fromJson(userJson);
+          final effectiveToken = (token != null && token.isNotEmpty)
+              ? token
+              : 'local-auth-${user.sId ?? user.username ?? DateTime.now().millisecondsSinceEpoch}';
 
           print('✅ [AUTH] Login successful!');
           print('   - User ID: ${user.sId}');
@@ -129,13 +142,13 @@ class AdminAuthService extends GetxService {
           print('   - Is Super Admin: ${user.isSuperAdmin}');
 
           // Store authentication data securely
-          await _storage.write('auth_token', token);
+          await _storage.write('auth_token', effectiveToken);
           await _storage.write('user_data', user.toJson());
 
           // Update application state
           currentUser.value = user;
           isLoggedIn.value = true;
-          _httpService.setAuthorizationHeader(token);
+          _httpService.setAuthorizationHeader(effectiveToken);
 
           return ApiResponse(
             success: true,

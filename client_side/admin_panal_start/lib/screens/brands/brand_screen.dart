@@ -18,7 +18,9 @@ class _BrandScreenState extends State<BrandScreen> {
     super.initState();
     // Auto-load brands when screen is created
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.dataProvider.getAllBrands();
+      if (context.dataProvider.brands.isEmpty) {
+        context.dataProvider.getAllBrands();
+      }
     });
   }
 

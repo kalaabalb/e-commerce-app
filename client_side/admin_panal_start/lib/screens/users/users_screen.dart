@@ -23,12 +23,15 @@ class _UsersScreenState extends State<UsersScreen> with WidgetsBindingObserver {
   final AdminAuthService _authService = Get.find<AdminAuthService>();
   final RxBool _isLoading = false.obs;
   final RxString _searchQuery = ''.obs;
+  bool _initialLoadTriggered = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _loadUsers();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadUsers();
+    });
   }
 
   @override
@@ -40,22 +43,19 @@ class _UsersScreenState extends State<UsersScreen> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      _loadUsers(); // Reload when app comes to foreground
+      _loadUsers(forceRefresh: true); // Reload when app comes to foreground
     }
   }
 
-  // This gets called when the screen becomes visible
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // Load users when navigating to this screen
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadUsers();
-    });
-  }
-
-  Future<void> _loadUsers() async {
+  Future<void> _loadUsers({bool forceRefresh = false}) async {
     if (!_authService.canManageUsers()) return;
+    if (!forceRefresh &&
+        _initialLoadTriggered &&
+        _authService.allAdminUsers.isNotEmpty) {
+      return;
+    }
+
+    _initialLoadTriggered = true;
 
     _isLoading.value = true;
 
@@ -126,7 +126,7 @@ class _UsersScreenState extends State<UsersScreen> with WidgetsBindingObserver {
         final result = await _authService.deleteAdminUser(user.sId!);
         if (result.success) {
           SnackBarHelper.showSuccessSnackBar('User deleted successfully');
-          await _loadUsers();
+          await _loadUsers(forceRefresh: true);
         } else {
           SnackBarHelper.showErrorSnackBar(result.message);
         }
@@ -186,7 +186,7 @@ class _UsersScreenState extends State<UsersScreen> with WidgetsBindingObserver {
         });
         if (result.success) {
           SnackBarHelper.showSuccessSnackBar('User ${action}ed successfully');
-          await _loadUsers();
+          await _loadUsers(forceRefresh: true);
         } else {
           SnackBarHelper.showErrorSnackBar(result.message);
         }

@@ -19,7 +19,9 @@ class _NotificationScreenState extends State<NotificationScreen> {
     super.initState();
     // Auto-load notifications when screen is created
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.dataProvider.getAllNotifications();
+      if (context.dataProvider.notifications.isEmpty) {
+        context.dataProvider.getAllNotifications();
+      }
     });
   }
 

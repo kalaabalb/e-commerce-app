@@ -23,7 +23,9 @@ class _RatingsScreenState extends State<RatingsScreen> {
     super.initState();
     // Auto-load products for ratings when screen is created
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.dataProvider.getAllProduct();
+      if (context.dataProvider.products.isEmpty) {
+        context.dataProvider.getAllProduct();
+      }
     });
   }
 

@@ -18,7 +18,9 @@ class _SubCategoryScreenState extends State<SubCategoryScreen> {
     super.initState();
     // Auto-load subcategories when screen is created
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.dataProvider.getAllSubCategory();
+      if (context.dataProvider.subCategories.isEmpty) {
+        context.dataProvider.getAllSubCategory();
+      }
     });
   }
 
