@@ -10,7 +10,7 @@ import 'package:admin_panal_start/utility/snack_bar_helper.dart';
 import 'package:admin_panal_start/utility/error_utils.dart';
 
 class VariantProvider extends ChangeNotifier {
-  HttpService service = HttpService();
+  final HttpService service = Get.find<HttpService>();
   final DataProvider _dataProvider;
   final AdminAuthService _authService = Get.find<AdminAuthService>();
 

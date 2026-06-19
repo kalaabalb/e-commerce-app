@@ -86,7 +86,6 @@ class SideMenu extends StatelessWidget {
         "icon": Icons.verified,
         "screen": "PaymentVerification"
       },
-      {"title": "Coupons", "icon": Icons.discount, "screen": "Coupon"},
       {"title": "Posters", "icon": Icons.photo, "screen": "Poster"},
       {"title": "Ratings & Reviews", "icon": Icons.star, "screen": "Ratings"},
       {

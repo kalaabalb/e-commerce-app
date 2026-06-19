@@ -17,7 +17,7 @@ import '../../models/sub_category.dart';
 import '../../models/variant.dart';
 
 class DataProvider extends ChangeNotifier {
-  HttpService service = HttpService();
+  final HttpService service = Get.find<HttpService>();
   final AdminAuthService _authService = Get.find<AdminAuthService>();
   bool _isInitializing = false;
 
@@ -89,7 +89,6 @@ class DataProvider extends ChangeNotifier {
         getAllBrands(),
         getAllVariantType(),
         getAllPosters(),
-        getAllCoupons(),
         getAllOrders(),
         getAllNotifications(),
       ], eagerError: false);

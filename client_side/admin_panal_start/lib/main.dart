@@ -12,7 +12,6 @@ import 'screens/brands/provider/brand_provider.dart';
 import 'screens/category/provider/category_provider.dart';
 import 'screens/coupon_code/provider/coupon_code_provider.dart';
 import 'screens/dashboard/provider/dash_board_provider.dart';
-import 'screens/main/main_screen.dart';
 import 'screens/main/provider/main_screen_provider.dart';
 import 'screens/notification/provider/notification_provider.dart';
 import 'screens/order/provider/order_provider.dart';
@@ -28,6 +27,9 @@ void main() async {
 
   // Initialize GetStorage for local storage
   await GetStorage.init();
+
+  Get.put(HttpService(), permanent: true);
+  Get.put(AdminAuthService(), permanent: true);
 
   runApp(MyApp());
 }
@@ -105,10 +107,6 @@ class MyApp extends StatelessWidget {
         unknownRoute: GetPage(name: '/notFound', page: () => LoginScreen()),
         defaultTransition: Transition.cupertino,
         getPages: AppPages.routes,
-        initialBinding: BindingsBuilder(() {
-          Get.lazyPut(() => HttpService(), fenix: true);
-          Get.lazyPut(() => AdminAuthService(), fenix: true);
-        }),
       ),
     );
   }

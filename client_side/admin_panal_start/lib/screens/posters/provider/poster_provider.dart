@@ -14,7 +14,7 @@ import '../../../models/poster.dart';
 import '../../../services/admin_auth_service.dart';
 
 class PosterProvider extends ChangeNotifier {
-  HttpService service = HttpService();
+  final HttpService service = Get.find<HttpService>();
   final DataProvider _dataProvider;
   final AdminAuthService _authService = Get.find<AdminAuthService>();
 

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:admin_panal_start/models/product.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -73,10 +75,11 @@ class AdminAuthService extends GetxService {
 
       print('📥 [AUTH] Login response received');
       print('   - Status: ${response.statusCode}');
-      print('   - Success: ${response.body?['success']}');
+      final loginBody = _normalizeResponseBody(response.body);
+      print('   - Success: ${loginBody is Map ? loginBody['success'] : null}');
 
       if (response.isOk) {
-        final responseBody = response.body;
+        final responseBody = loginBody;
 
         // Validate response structure
         if (responseBody is! Map<String, dynamic>) {
@@ -165,8 +168,10 @@ class AdminAuthService extends GetxService {
           );
         }
       } else {
-        final errorMessage = response.body?['message'] ??
-            'Unable to connect to server. Please check your internet connection.';
+        final errorMessage = _messageFromResponse(
+          response.body,
+          'Unable to connect to server. Please check your internet connection.',
+        );
         return ApiResponse(
           success: false,
           message: errorMessage,
@@ -193,7 +198,7 @@ class AdminAuthService extends GetxService {
       );
 
       if (response.isOk) {
-        final responseBody = response.body;
+        final responseBody = _normalizeResponseBody(response.body);
 
         if (responseBody is! Map<String, dynamic>) {
           return ApiResponse(
@@ -225,8 +230,10 @@ class AdminAuthService extends GetxService {
           );
         }
       } else {
-        final errorMessage =
-            response.body?['message'] ?? 'Failed to load profile information';
+        final errorMessage = _messageFromResponse(
+          response.body,
+          'Failed to load profile information',
+        );
         return ApiResponse(
           success: false,
           message: errorMessage,
@@ -240,6 +247,29 @@ class AdminAuthService extends GetxService {
         data: null,
       );
     }
+  }
+
+  dynamic _normalizeResponseBody(dynamic body) {
+    if (body is String) {
+      try {
+        return json.decode(body);
+      } catch (_) {
+        return body;
+      }
+    }
+
+    return body;
+  }
+
+  String _messageFromResponse(dynamic body, String fallback) {
+    final normalized = _normalizeResponseBody(body);
+    if (normalized is Map) {
+      return normalized['message']?.toString() ??
+          normalized['error']?.toString() ??
+          fallback;
+    }
+
+    return fallback;
   }
 
   Future<void> logout({bool showMessage = true}) async {
@@ -278,7 +308,7 @@ class AdminAuthService extends GetxService {
       );
 
       if (response.isOk) {
-        final responseBody = response.body;
+        final responseBody = _normalizeResponseBody(response.body);
 
         if (responseBody is! Map<String, dynamic>) {
           return ApiResponse(
@@ -318,8 +348,10 @@ class AdminAuthService extends GetxService {
           );
         }
       } else {
-        final errorMessage = response.body?['message'] ??
-            'Unable to connect to server. Please check your connection.';
+        final errorMessage = _messageFromResponse(
+          response.body,
+          'Unable to connect to server. Please check your connection.',
+        );
         return ApiResponse(
           success: false,
           message: errorMessage,
@@ -358,7 +390,7 @@ class AdminAuthService extends GetxService {
       );
 
       if (response.isOk) {
-        final responseBody = response.body;
+        final responseBody = _normalizeResponseBody(response.body);
 
         if (responseBody is! Map<String, dynamic>) {
           return ApiResponse(
@@ -388,8 +420,10 @@ class AdminAuthService extends GetxService {
           );
         }
       } else {
-        final errorMessage =
-            response.body?['message'] ?? 'Failed to create user account';
+        final errorMessage = _messageFromResponse(
+          response.body,
+          'Failed to create user account',
+        );
         return ApiResponse(
           success: false,
           message: errorMessage,
@@ -429,7 +463,7 @@ class AdminAuthService extends GetxService {
       );
 
       if (response.isOk) {
-        final responseBody = response.body;
+        final responseBody = _normalizeResponseBody(response.body);
 
         if (responseBody is! Map<String, dynamic>) {
           return ApiResponse(
@@ -465,8 +499,10 @@ class AdminAuthService extends GetxService {
           );
         }
       } else {
-        final errorMessage =
-            response.body?['message'] ?? 'Failed to update user profile';
+        final errorMessage = _messageFromResponse(
+          response.body,
+          'Failed to update user profile',
+        );
         return ApiResponse(
           success: false,
           message: errorMessage,
@@ -513,7 +549,7 @@ class AdminAuthService extends GetxService {
       );
 
       if (response.isOk) {
-        final responseBody = response.body;
+        final responseBody = _normalizeResponseBody(response.body);
 
         if (responseBody is! Map<String, dynamic>) {
           return ApiResponse(
@@ -540,8 +576,10 @@ class AdminAuthService extends GetxService {
           );
         }
       } else {
-        final errorMessage =
-            response.body?['message'] ?? 'Failed to delete user account';
+        final errorMessage = _messageFromResponse(
+          response.body,
+          'Failed to delete user account',
+        );
         return ApiResponse(
           success: false,
           message: errorMessage,

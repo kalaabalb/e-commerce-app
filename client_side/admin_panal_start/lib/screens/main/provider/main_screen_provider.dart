@@ -2,7 +2,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import '../../brands/brand_screen.dart';
 import '../../category/category_screen.dart';
-import '../../coupon_code/coupon_code_screen.dart';
 import '../../dashboard/dashboard_screen.dart';
 import '../../notification/notification_screen.dart';
 import '../../order/order_screen.dart';
@@ -42,9 +41,6 @@ class MainScreenProvider extends ChangeNotifier {
         break;
       case 'Variants':
         newScreen = VariantsScreen();
-        break;
-      case 'Coupon':
-        newScreen = CouponCodeScreen();
         break;
       case 'Poster':
         newScreen = PosterScreen();

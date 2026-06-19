@@ -17,7 +17,7 @@ import '../../../models/product.dart';
 import 'package:admin_panal_start/models/api_response.dart';
 
 class DashBoardProvider extends ChangeNotifier {
-  HttpService service = HttpService();
+  final HttpService service = Get.find<HttpService>();
   final DataProvider _dataProvider;
   final addProductFormKey = GlobalKey<FormState>();
 

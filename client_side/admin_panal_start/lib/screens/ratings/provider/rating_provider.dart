@@ -7,7 +7,7 @@ import '../../../services/http_services.dart';
 import '../../../utility/snack_bar_helper.dart';
 
 class RatingProvider extends ChangeNotifier {
-  HttpService service = HttpService();
+  final HttpService service = Get.find<HttpService>();
 
   RatingProvider();
 

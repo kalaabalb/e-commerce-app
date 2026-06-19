@@ -10,7 +10,7 @@ import 'package:flutter/cupertino.dart';
 import '../../../core/data/data_provider.dart';
 
 class OrderProvider extends ChangeNotifier {
-  HttpService service = HttpService();
+  final HttpService service = Get.find<HttpService>();
   final DataProvider _dataProvider;
   final AdminAuthService _authService = Get.find<AdminAuthService>();
 
